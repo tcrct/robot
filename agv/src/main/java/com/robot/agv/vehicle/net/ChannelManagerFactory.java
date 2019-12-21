@@ -7,8 +7,12 @@ import com.robot.agv.vehicle.net.serialport.SerialPortChannelManager;
 import com.robot.agv.vehicle.net.tcp.TcpChannelManager;
 import com.robot.agv.vehicle.net.upd.UdpChannelManager;
 
+/**
+ * 网络通讯管理工厂
+ *
+ * @author Laotang
+ */
 public class ChannelManagerFactory {
-
 
     /**
      * 取通讯渠道管理器
@@ -28,4 +32,5 @@ public class ChannelManagerFactory {
         }
         throw new NullPointerException("根据通讯类型枚举["+type.name()+"]没有找到实现类");
     }
+
 }

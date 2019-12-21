@@ -1,92 +1,39 @@
-/**
- * Copyright (c) Fraunhofer IML
- */
 package com.robot.agv.vehicle.comm;
-
-import com.google.common.primitives.Ints;
 
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.OrderResponse;
 import com.robot.agv.vehicle.telegrams.StateResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import java.util.List;
-import static java.util.Objects.requireNonNull;
-import org.apache.commons.codec.binary.Hex;
+import io.netty.handler.codec.string.StringDecoder;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.nio.charset.Charset;
+import java.util.List;
 
 /**
- * Decodes incoming bytes into {@link StateResponse} instances.
+ * 车辆电报解码
  *
- * @author Stefan Walter (Fraunhofer IML)
+ * @author Laotang
  */
-public class VehicleTelegramDecoder
-    extends ByteToMessageDecoder {
+public class VehicleTelegramDecoder extends StringDecoder {
 
-  /**
-   * This class's Logger.
-   */
-  private static final Logger LOG = LoggerFactory.getLogger(VehicleTelegramDecoder.class);
-  /**
-   * The handler decoded responses are sent to.
-   */
-  private final ConnectionEventListener<Response> responseHandler;
-  /**
-   * The minimum bytes required to even try decoding (size of the smallest telegram).
-   */
-  private final long minimumBytesRequired;
+    private final ConnectionEventListener<Response> eventListener;
 
-  /**
-   * Creates a new instance.
-   *
-   * @param responseHandler The handler decoded responses are sent to.
-   */
-  public VehicleTelegramDecoder(ConnectionEventListener<Response> responseHandler) {
-    this.responseHandler = requireNonNull(responseHandler, "responseHandler");
-    this.minimumBytesRequired = Ints.min(OrderResponse.TELEGRAM_LENGTH,
-                                         StateResponse.TELEGRAM_LENGTH);
-  }
-
-  @Override
-  protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
-    // Don't do anything if we don't have enough bytes.
-    if (in.readableBytes() < minimumBytesRequired) {
-      return;
+    public VehicleTelegramDecoder(ConnectionEventListener<Response> eventListener) {
+        this.eventListener = eventListener;
     }
 
-    byte[] telegramData;
-    in.markReaderIndex();
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        String telegramData = msg.toString(Charset.defaultCharset());
+        java.util.Objects.requireNonNull(telegramData, "telegramData");
 
-    if (in.readableBytes() >= OrderResponse.TELEGRAM_LENGTH) {
-      LOG.debug("Checking if it's an order response...");
-      telegramData = new byte[OrderResponse.TELEGRAM_LENGTH];
-      in.readBytes(telegramData);
-      LOG.debug("Telegram data: {}",
-              Hex.encodeHexString(telegramData));
-      if (OrderResponse.isOrderResponse(telegramData)) {
-        responseHandler.onIncomingTelegram(new OrderResponse(telegramData));
-        return;
-      }
-      else {
-        in.resetReaderIndex();
-      }
+        if (OrderResponse.isOrderResponse(telegramData)) {
+            eventListener.onIncomingTelegram(new OrderResponse(telegramData));
+        }
+        else if (StateResponse.isStateResponse(telegramData)) {
+            eventListener.onIncomingTelegram(new StateResponse(telegramData));
+        }
     }
-
-    if (in.readableBytes() >= StateResponse.TELEGRAM_LENGTH) {
-      LOG.debug("Checking if it's a state response...");
-      telegramData = new byte[StateResponse.TELEGRAM_LENGTH];
-      in.readBytes(telegramData);
-      LOG.debug("Telegram data: {}", Hex.encodeHexString(telegramData));
-      if (StateResponse.isStateResponse(telegramData)) {
-        responseHandler.onIncomingTelegram(new StateResponse(telegramData));
-      }
-      else {
-        // Don't reset reader index and discard bytes
-        LOG.warn("Not a valid telegram: {}", Hex.encodeHexString(telegramData));
-      }
-    }
-  }
 }

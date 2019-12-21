@@ -45,10 +45,10 @@ public class OrderResponse
    *
    * @param telegramData This telegram's raw content.
    */
-  public OrderResponse(byte[] telegramData) {
+  public OrderResponse(String telegramData) {
     super(TELEGRAM_LENGTH);
     requireNonNull(telegramData, "telegramData");
-    checkArgument(telegramData.length == TELEGRAM_LENGTH);
+    checkArgument(telegramData.length() == TELEGRAM_LENGTH);
 
     System.arraycopy(telegramData, 0, rawContent, 0, TELEGRAM_LENGTH);
     decodeTelegramContent();
@@ -74,28 +74,11 @@ public class OrderResponse
    * @param telegramData The telegram data to check.
    * @return {@code true} if, and only if, the given data is an order response telegram.
    */
-  public static boolean isOrderResponse(byte[] telegramData) {
+  public static boolean isOrderResponse(String telegramData) {
     requireNonNull(telegramData, "telegramData");
 
     boolean result = true;
-    if (telegramData.length != TELEGRAM_LENGTH) {
-      result = false;
-    }
-    else if (telegramData[0] != STX) {
-      result = false;
-    }
-    else if (telegramData[TELEGRAM_LENGTH - 1] != ETX) {
-      result = false;
-    }
-    else if (telegramData[1] != PAYLOAD_LENGTH) {
-      result = false;
-    }
-    else if (telegramData[2] != TYPE) {
-      result = false;
-    }
-    else if (getCheckSum(telegramData) != telegramData[CHECKSUM_POS]) {
-      result = false;
-    }
+
     return result;
   }
 

@@ -129,7 +129,7 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     // 创建负责与车辆连接的通讯渠道管理器
     NetChannelType netChannelType = NetChannelType.valueOf("TCP");
     channelManager = ChannelManagerFactory.getManager(this, netChannelType);
-    if (!channelManager.isInitialize()) {
+    if (!channelManager.isInitialized()) {
         channelManager.initialize();
     }
     super.enable();

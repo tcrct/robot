@@ -1,39 +1,12 @@
-/**
- * Copyright (c) Fraunhofer IML
- */
 package com.robot.agv.vehicle.comm;
 
-import com.robot.agv.common.telegrams.Request;
-import com.robot.agv.vehicle.telegrams.OrderRequest;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.handler.codec.string.StringEncoder;
 
 /**
- * Encodes outgoing {@link StateRequest} instances.
+ * 车辆电报编码
  *
- * @author Stefan Walter (Fraunhofer IML)
+ * @author Laotang
  */
-public class VehicleTelegramEncoder
-    extends MessageToByteEncoder<Request> {
+public class VehicleTelegramEncoder extends StringEncoder {
 
-  /**
-   * This class's Logger.
-   */
-  private static final Logger LOG = LoggerFactory.getLogger(VehicleTelegramEncoder.class);
-
-  @Override
-  protected void encode(ChannelHandlerContext ctx, Request msg, ByteBuf out)
-      throws Exception {
-    LOG.debug("Encoding request of class {}", msg.getClass().getName());
-
-    if (msg instanceof OrderRequest) {
-      OrderRequest order = (OrderRequest) msg;
-      LOG.debug("Encoding order telegram: {}", order.toString());
-    }
-
-    out.writeBytes(msg.getRawContent());
-  }
 }

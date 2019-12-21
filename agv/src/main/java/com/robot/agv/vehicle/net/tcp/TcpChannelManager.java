@@ -91,7 +91,7 @@ public class TcpChannelManager implements IChannelManager<Request, Response> {
     }
 
     @Override
-    public boolean isInitialize() {
+    public boolean isInitialized() {
         return tcpClientChannelManager.isInitialized();
     }
 }

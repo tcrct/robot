@@ -65,13 +65,11 @@ public class StateResponse
    *
    * @param telegramData This telegram's raw content.
    */
-  public StateResponse(byte[] telegramData) {
+  public StateResponse(String telegramData) {
     super(TELEGRAM_LENGTH);
-    requireNonNull(telegramData, "telegramData");
-    checkArgument(telegramData.length == TELEGRAM_LENGTH);
+    requireNonNull(telegramData, "报文内容不能为空");
 
-    System.arraycopy(telegramData, 0, rawContent, 0, TELEGRAM_LENGTH);
-    decodeTelegramContent();
+    decodeTelegramContent(telegramData);
   }
 
   /**
@@ -148,32 +146,15 @@ public class StateResponse
    * @param telegramData The telegram data to check.
    * @return {@code true} if, and only if, the given data is a state response telegram.
    */
-  public static boolean isStateResponse(byte[] telegramData) {
+  public static boolean isStateResponse(String telegramData) {
     requireNonNull(telegramData, "data");
 
     boolean result = true;
-    if (telegramData.length != TELEGRAM_LENGTH) {
-      result = false;
-    }
-    else if (telegramData[0] != STX) {
-      result = false;
-    }
-    else if (telegramData[TELEGRAM_LENGTH - 1] != ETX) {
-      result = false;
-    }
-    else if (telegramData[1] != PAYLOAD_LENGTH) {
-      result = false;
-    }
-    else if (telegramData[2] != TYPE) {
-      result = false;
-    }
-    else if (getCheckSum(telegramData) != telegramData[CHECKSUM_POS]) {
-      result = false;
-    }
+
     return result;
   }
 
-  private void decodeTelegramContent() {
+  private void decodeTelegramContent(String telegramData) {
     id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
     positionId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
     operatingState = decodeOperatingState((char) rawContent[7]);
