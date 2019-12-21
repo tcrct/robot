@@ -78,7 +78,7 @@
         <!-- 添加多个资源文件夹  -->
         <resources>
             <resource>
-                <directory>src/main/webapp/main/resources</directory>
+                <directory>src/main/resources</directory>
             </resource>
             <resource>
                 <directory>src/guiceConfig/resources</directory>

@@ -1,4 +1,4 @@
-package com.robot.web;
+package com.robot;
 
 import com.robot.config.OpenAgvConfigure;
 import org.opentcs.guing.RunPlantOverview;
