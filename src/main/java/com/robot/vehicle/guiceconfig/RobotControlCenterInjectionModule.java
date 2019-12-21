@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Fraunhofer IML
  */
-package com.robot.vehicle;
+package com.robot.vehicle.guiceconfig;
 
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.robot.vehicle.exchange.AdapterPanelComponentsFactory;

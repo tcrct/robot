@@ -23,6 +23,7 @@ public class OpenAgvConfigure {
 
     private void init() {
         String subDir = "config";
+        System.out.println("##########: " + ClassUtil.getResourceURL("/"));
         URL url = ClassUtil.getResourceURL(subDir);
         String configPath = url.getPath();
         File dir = new File(configPath);

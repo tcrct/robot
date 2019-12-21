@@ -1,1 +1,1 @@
-com.robot.vehicle.RobotControlCenterInjectionModule
+com.robot.vehicle.guiceconfig.RobotControlCenterInjectionModule

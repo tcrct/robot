@@ -1,9 +1,12 @@
 /**
  * Copyright (c) Fraunhofer IML
  */
-package com.robot.vehicle;
+package com.robot.vehicle.guiceconfig;
 
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.robot.vehicle.RobotAdapterComponentsFactory;
+import com.robot.vehicle.RobotCommAdapterConfiguration;
+import com.robot.vehicle.RobotCommAdapterFactory;
 import org.opentcs.customizations.kernel.KernelInjectionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
