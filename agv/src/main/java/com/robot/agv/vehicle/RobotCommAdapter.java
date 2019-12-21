@@ -3,25 +3,23 @@
  */
 package com.robot.agv.vehicle;
 
-import com.google.common.primitives.Ints;
 import com.google.inject.assistedinject.Assisted;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 
 import com.robot.agv.common.dispatching.LoadAction;
 import com.robot.agv.common.telegrams.*;
-import com.robot.agv.vehicle.comm.VehicleTelegramDecoder;
-import com.robot.agv.vehicle.comm.VehicleTelegramEncoder;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
+import com.robot.agv.vehicle.net.ChannelManagerFactory;
+import com.robot.agv.vehicle.net.IChannelManager;
+import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.agv.vehicle.telegrams.OrderRequest;
 import com.robot.agv.vehicle.telegrams.OrderResponse;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.agv.vehicle.telegrams.StateResponse;
-import io.netty.channel.ChannelHandler;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +30,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
-import org.opentcs.contrib.tcp.netty.TcpClientChannelManager;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
@@ -70,7 +67,7 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
   /**
    * Manages the channel to the vehicle.
    */
-  private TcpClientChannelManager<Request, Response> vehicleChannelManager;
+  private IChannelManager<Request, Response> channelManager;
   /**
    * 将请求与响应匹配，并保留挂起请求的队列
    */
@@ -129,14 +126,12 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
       LOG.info("车辆[{}]已开启通讯管理器，请勿重复开启", getName());
       return;
     }
-
     // 创建负责与车辆连接的通讯渠道管理器
-    vehicleChannelManager = new TcpClientChannelManager<>(this,
-            this::getChannelHandlers,
-            getProcessModel().getVehicleIdleTimeout(),
-            getProcessModel().isLoggingEnabled());
-    //初始化渠道管理器
-    vehicleChannelManager.initialize();
+    NetChannelType netChannelType = NetChannelType.valueOf("TCP");
+    channelManager = ChannelManagerFactory.getManager(this, netChannelType);
+    if (!channelManager.isInitialize()) {
+        channelManager.initialize();
+    }
     super.enable();
     LOG.info("车辆[{}]通讯管理器启用成功", getName());
   }
@@ -151,8 +146,8 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     }
 
     super.disable();
-    vehicleChannelManager.terminate();
-    vehicleChannelManager = null;
+    channelManager.terminate();
+    channelManager = null;
     LOG.info("车辆[{}]停用通讯成功", getName());
   }
 
@@ -168,29 +163,29 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
   /**连接车辆*/
   @Override
   protected synchronized void connectVehicle() {
-    if (vehicleChannelManager == null) {
+    if (channelManager == null) {
       LOG.warn("{}: 车辆通讯渠道管理器不存在.", getName());
       return;
     }
     // 根据车辆设置的host与port，连接车辆
-    vehicleChannelManager.connect(getProcessModel().getVehicleHost(), getProcessModel().getVehiclePort());
+    channelManager.connect(getProcessModel().getVehicleHost(), getProcessModel().getVehiclePort());
   }
 
   /**断开车辆连接*/
   @Override
   protected synchronized void disconnectVehicle() {
-    if (vehicleChannelManager == null) {
+    if (channelManager == null) {
       LOG.warn("{}: 车辆通讯渠道管理器不存在.", getName());
       return;
     }
 
-    vehicleChannelManager.disconnect();
+    channelManager.disconnect();
   }
 
   /**判断车辆是否已经连接，已经连接返回true*/
   @Override
   protected synchronized boolean isVehicleConnected() {
-    return vehicleChannelManager != null && vehicleChannelManager.isConnected();
+    return channelManager != null && channelManager.isConnected();
   }
 
   /***
@@ -209,7 +204,7 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
             VehicleProcessModel.Attribute.COMM_ADAPTER_CONNECTED.name())) {
       if (getProcessModel().isCommAdapterConnected()) {
         // 设置日志记录是否开启
-        vehicleChannelManager.setLoggingEnabled(getProcessModel().isLoggingEnabled());
+        channelManager.setLoggingEnabled(getProcessModel().isLoggingEnabled());
       }
     }
     if (Objects.equals(evt.getPropertyName(),VehicleProcessModel.Attribute.COMM_ADAPTER_CONNECTED.name()) ||
@@ -358,7 +353,7 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     }
     getProcessModel().setCommAdapterConnected(false);
     if (isEnabled() && getProcessModel().isReconnectingOnConnectionLoss()) {
-      vehicleChannelManager.scheduleConnect(getProcessModel().getVehicleHost(),
+      channelManager.scheduleConnect(getProcessModel().getVehicleHost(),
               getProcessModel().getVehiclePort(),
               getProcessModel().getReconnectDelay());
     }
@@ -371,7 +366,7 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     getProcessModel().setVehicleIdle(true);
     getProcessModel().setVehicleState(Vehicle.State.UNKNOWN);
     if (isEnabled() && getProcessModel().isReconnectingOnConnectionLoss()) {
-      vehicleChannelManager.scheduleConnect(getProcessModel().getVehicleHost(),
+      channelManager.scheduleConnect(getProcessModel().getVehicleHost(),
               getProcessModel().getVehiclePort(),
               getProcessModel().getReconnectDelay());
     }
@@ -437,7 +432,7 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
 
     LOG.debug("{}: Sending request '{}'", getName(), telegram);
-    vehicleChannelManager.send(telegram);
+    channelManager.send(telegram);
 
     // If the telegram is an order, remember it.
     if (telegram instanceof OrderRequest) {
@@ -566,19 +561,4 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     }
   }
 
-  /**
-   * 返回负责从字节流中写入和读取的通道处理程序
-   *
-   * @return 负责从字节流中写入和读取的通道处理程序
-   */
-  private List<ChannelHandler> getChannelHandlers() {
-    return Arrays.asList(new LengthFieldBasedFrameDecoder(getMaxTelegramLength(), 1, 1, 2, 0),
-            new VehicleTelegramDecoder(this),
-            new VehicleTelegramEncoder());
-  }
-
-  private int getMaxTelegramLength() {
-    return Ints.max(OrderResponse.TELEGRAM_LENGTH,
-            StateResponse.TELEGRAM_LENGTH);
-  }
 }
