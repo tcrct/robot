@@ -7,11 +7,7 @@ package com.robot.agv.vehicle.telegrams;
  */
 public class Protocol implements java.io.Serializable {
 
-    /**类型标识*/
-    private String type;
-    /**串口模块地址*/
-    private String serialPortAddress;
-    /**设备ID*/
+    /**设备/车辆 ID*/
     private String deviceId;
     /**功能指令*/
     private String functionCommand;
@@ -19,125 +15,52 @@ public class Protocol implements java.io.Serializable {
     private String params;
     /**方向,上下行*/
     private String direction;
-    /**验证码*/
-    private String verificationCode ;
+    /**CRC验证码*/
+    private String crc ;
 
-    public Protocol(String telegramData) {
-
-    }
-
-    private Protocol(String type, String serialPortAddress, String deviceId, String direction, String functionCommand, String params, String verificationCode) {
-        this.type = type;
-        this.serialPortAddress = serialPortAddress;
+    private Protocol(String deviceId, String direction, String functionCommand, String params, String crc) {
         this.deviceId = deviceId;
         this.direction = direction;
         this.functionCommand = functionCommand;
         this.params = params;
-        this.verificationCode = verificationCode;
+        this.crc = crc;
     }
 
-    /*
     public static class Builder {
-        private String type;
-        private String serialPortAddress;
         private String deviceId;
-        private DirectionEnum direction;
-        private FunctionCommandEnum functionCommand;
+        private String direction;
+        private String commandKey;
         private String params;
-        private String verificationCode;
-
-        public Builder type(String type) {
-            this.type = type;
-            return this;
-        }
-
-        public Builder serialPortAddress(String serialPortAddress) {
-            this.serialPortAddress = serialPortAddress;
-            return this;
-        }
+        private String crc;
 
         public Builder deviceId(String deviceId) {
             this.deviceId = deviceId;
             return this;
         }
 
-        public Builder direction(DirectionEnum direction) {
+        public Builder direction(String direction) {
             this.direction = java.util.Objects.requireNonNull(direction, "direction is null");
             return this;
         }
 
-        public Builder functionCommand(FunctionCommandEnum functionCommand) {
-            this.functionCommand = java.util.Objects.requireNonNull(functionCommand, "functionCommand is null, 请确保在FunctionCommandEnum有对应的枚举值");
+        public Builder commandKey(String commandKey) {
+            this.commandKey = java.util.Objects.requireNonNull(commandKey, "commandKey is null, 请确保在FunctionCommandEnum有对应的枚举值");
             return this;
         }
 
         public Builder params(String params) {
-//            if(!params.contains(DirectionEnum.PARAMLINK.getValue())){
-//                throw new IllegalArgumentException("自定义参数必须要包含["+DirectionEnum.PARAMLINK.getValue()+"]分隔符，请按规则编写！");
-//            }
             this.params = params;
             return this;
         }
 
-        public Builder params(IParamEnum paramEnum) {
-            this.params = paramEnum.getValue();
-            return this;
-        }
-
-        public Builder verificationCode(String verificationCode) {
-            this.verificationCode = verificationCode;
+        public Builder crc(String crc) {
+            this.crc = crc;
             return this;
         }
 
         public Protocol build() {
-            String directionStr = ToolsKit.isEmpty(direction) ? "" : direction.getValue();
-            String functionCommandStr = ToolsKit.isEmpty(functionCommand) ? "" : functionCommand.getValue();
-            return new Protocol(type, serialPortAddress, deviceId, directionStr, functionCommandStr, params, verificationCode);
+            return new Protocol(deviceId, direction, commandKey, params, crc);
         }
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public String getSerialPortAddress() {
-        return serialPortAddress;
-    }
-
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public String getDirection() {
-        return direction;
-    }
-
-    public void setDirection(DirectionEnum direction) {
-        this.direction = direction.getValue();
-    }
-
-    public void setFunctionCommand(FunctionCommandEnum functionCommand) {
-        this.functionCommand = functionCommand.getValue();
-    }
-
-    public void setSerialPortAddress(String serialPortAddress) {
-        this.serialPortAddress = serialPortAddress;
-    }
-
-    public String getFunctionCommand() {
-        return functionCommand;
-    }
-
-    public String getParams() {
-        return params;
-    }
-
-    public String getVerificationCode() {
-        return verificationCode;
-    }
-
-    public void setVerificationCode(String verificationCode) {
-        this.verificationCode = verificationCode;
-    }
-    */
 }

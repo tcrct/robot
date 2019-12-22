@@ -1,6 +1,7 @@
 package com.robot.agv.vehicle.comm;
 
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.OrderRequest;
 import com.robot.agv.vehicle.telegrams.OrderResponse;
 import com.robot.agv.vehicle.telegrams.Protocol;
@@ -37,10 +38,11 @@ public class VehicleTelegramDecoder extends StringDecoder {
         java.util.Objects.requireNonNull(telegramData, "报文协议内容不能为空");
 
         //将接收到的报文内容转换为Protocol对象
-        Protocol protocol = new Protocol(telegramData);
-        if (null == protocol) {
-            LOG.warn("将报文内容转换为Protocol对象时出错, 退出该请求的处理: {}", telegramData);
-            return;
+        Protocol protocol = null;
+        try {
+            protocol = ProtocolUtils.buildProtocol(telegramData);
+        } catch (Exception e) {
+            LOG.warn("将报文内容{}转换为Protocol对象时出错, 退出该请求的处理: {}, {}", telegramData,e.getMessage(), e);
         }
 
         // 如果是Order请求
