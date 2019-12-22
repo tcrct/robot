@@ -40,7 +40,7 @@ public class ProtocolUtils {
             }
         }
 
-        return new Protocol.Builder()
+               return new Protocol.Builder()
                 .deviceId(telegramArray[1])
                 .direction(telegramArray[2])
                 .commandKey(telegramArray[3])

@@ -3,6 +3,8 @@
  */
 package com.robot.agv.common.telegrams;
 
+import com.robot.agv.vehicle.telegrams.Protocol;
+
 import static java.util.Objects.requireNonNull;
 import javax.annotation.Nonnull;
 
@@ -19,8 +21,8 @@ public abstract class Response
    *
    * @param telegramLength The response's length.
    */
-  public Response(int telegramLength) {
-    super(telegramLength);
+  public Response(Protocol protocol) {
+    super(protocol);
   }
 
   /**

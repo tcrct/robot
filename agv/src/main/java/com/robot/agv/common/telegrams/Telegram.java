@@ -3,6 +3,8 @@
  */
 package com.robot.agv.common.telegrams;
 
+import com.robot.agv.vehicle.telegrams.Protocol;
+
 import java.io.Serializable;
 import static java.util.Objects.requireNonNull;
 
@@ -34,6 +36,10 @@ public abstract class Telegram
    */
   public Telegram(int telegramLength) {
     this.rawContent = new byte[telegramLength];
+  }
+
+  public Telegram(Protocol protocol) {
+
   }
 
   /**

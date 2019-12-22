@@ -3,9 +3,6 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
-import static com.google.common.base.Ascii.ETX;
-import static com.google.common.base.Ascii.STX;
-import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.primitives.Ints;
 import com.robot.agv.common.telegrams.Response;
 
@@ -43,15 +40,13 @@ public class OrderResponse
   /**
    * Creates a new instance.
    *
-   * @param telegramData This telegram's raw content.
+   * @param protocol This telegram's raw content.
    */
-  public OrderResponse(String telegramData) {
-    super(TELEGRAM_LENGTH);
-    requireNonNull(telegramData, "telegramData");
-    checkArgument(telegramData.length() == TELEGRAM_LENGTH);
+  public OrderResponse(Protocol protocol) {
+    requireNonNull(protocol, "protocol");
 
-    System.arraycopy(telegramData, 0, rawContent, 0, TELEGRAM_LENGTH);
     decodeTelegramContent();
+
   }
 
   /**
@@ -77,9 +72,10 @@ public class OrderResponse
   public static boolean isOrderResponse(Protocol protocol) {
     requireNonNull(protocol, "报文协议对象不能为空");
 
-    boolean result = true;
-
-    return result;
+      String commandKey = protocol.getCommandKey();
+      // 如果不是以下两种命令请求，则认为是其它动作指令请求
+      return !"rptac".equalsIgnoreCase(commandKey) &&
+                  !"rptrpt".equalsIgnoreCase(commandKey);
   }
 
   private void decodeTelegramContent() {

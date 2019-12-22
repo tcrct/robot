@@ -65,9 +65,9 @@ public class StateResponse
    *
    * @param telegramData This telegram's raw content.
    */
-  public StateResponse(String telegramData) {
+  public StateResponse(Protocol protocol) {
     super(TELEGRAM_LENGTH);
-    requireNonNull(telegramData, "报文内容不能为空");
+    requireNonNull(protocol, "报文内容对象不能为空");
 
     decodeTelegramContent(telegramData);
   }
