@@ -143,4 +143,18 @@ public class OrderRequest
     rawContent[CHECKSUM_POS] = getCheckSum(rawContent);
     rawContent[TELEGRAM_LENGTH - 1] = ETX;
   }
+
+  /**
+   * 检查是否为状态类型的请求
+   *
+   * @param protocol 待检查的协议对象
+   * @return 是则返回true，否则返回false
+   */
+  public static boolean isOrderRequest(Protocol protocol) {
+    requireNonNull(protocol, "报文协议对象不能为空");
+
+    boolean result = true;
+
+    return result;
+  }
 }

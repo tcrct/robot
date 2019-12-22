@@ -141,13 +141,13 @@ public class StateResponse
   }
 
   /**
-   * Checks if the given byte array is a state reponse telegram.
+   * 检查是否为状态类型的响应
    *
-   * @param telegramData The telegram data to check.
-   * @return {@code true} if, and only if, the given data is a state response telegram.
+   * @param protocol 待检查的报文协议对象
+   * @return 是则返回true，否则返回false
    */
-  public static boolean isStateResponse(String telegramData) {
-    requireNonNull(telegramData, "data");
+  public static boolean isStateResponse(Protocol protocol) {
+    requireNonNull(protocol, "报文协议对象不能为空");
 
     boolean result = true;
 
