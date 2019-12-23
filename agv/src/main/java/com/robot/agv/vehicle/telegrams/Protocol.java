@@ -7,6 +7,12 @@ package com.robot.agv.vehicle.telegrams;
  */
 public class Protocol implements java.io.Serializable {
 
+    public static final String DEVICEID_FIELD = "deviceId";
+    public static final String COMMAND_KEY_FIELD = "commandKey";
+    public static final String PARAMS_FIELD = "params";
+    public static final String DIRECTION_FIELD = "direction";
+    public static final String CRC_FIELD = "crc";
+
     /**设备/车辆 ID*/
     private String deviceId;
     /**功能指令*/
@@ -25,6 +31,7 @@ public class Protocol implements java.io.Serializable {
         this.params = params;
         this.crc = crc;
     }
+
 
     public String getDeviceId() {
         return deviceId;

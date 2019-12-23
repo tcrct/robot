@@ -3,6 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
+import com.robot.agv.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
 
 import static java.util.Objects.requireNonNull;
@@ -17,12 +18,12 @@ public abstract class Response
     extends Telegram {
   
   /**
-   * Creates a new instance.
+   * 构造函数
    *
-   * @param telegramLength The response's length.
+   * @param protocol  协议对象
    */
   public Response(Protocol protocol) {
-    super(protocol);
+    super(ProtocolUtils.converterString(protocol));
   }
 
   /**

@@ -45,7 +45,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Mats Wilhelm (Fraunhofer IML)
  */
-public class RobotCommAdapter extends BasicVehicleCommAdapter implements ConnectionEventListener<Response>,TelegramSender {
+public class RobotCommAdapter
+        extends BasicVehicleCommAdapter
+        implements ConnectionEventListener<Response>,TelegramSender {
 
   /**
    * This class's logger.
@@ -234,6 +236,10 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
     return (RobotProcessModel) super.getProcessModel();
   }
 
+  public synchronized void initVehiclePosition(String newPos) {
+      getProcessModel().setVehiclePosition(newPos);
+  }
+
   @Override
   protected VehicleProcessModelTO createCustomTransferableProcessModel() {
     // 发送到其他软件（如控制中心或工厂概览）时，添加车辆的附加信息
@@ -262,10 +268,10 @@ public class RobotCommAdapter extends BasicVehicleCommAdapter implements Connect
 
     try {
       OrderRequest telegram = orderMapper.mapToOrder(cmd);
-      orderIds.put(cmd, telegram.getOrderId());
+      orderIds.put(cmd, telegram.getCode());
       LOG.debug("{}: Enqueuing order telegram with ID {}: {}, {}",
               getName(),
-              telegram.getOrderId(),
+              telegram.getCode(),
               telegram.getDestinationId(),
               telegram.getDestinationAction());
       // 把请求请求加入队列。请求发送规则是FIFO。电报请求将在队列中的第一封电报之后发送。这确保我们总是等待响应，直到发送新请求。

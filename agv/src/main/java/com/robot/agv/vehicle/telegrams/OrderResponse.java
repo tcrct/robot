@@ -3,8 +3,10 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
-import com.google.common.primitives.Ints;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.utils.ProtocolUtils;
 
 import static java.util.Objects.requireNonNull;
 
@@ -13,8 +15,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Martin Grzenia (Fraunhofer IML)
  */
-public class OrderResponse
-    extends Response {
+public class OrderResponse extends Response {
 
   /**
    * The response type.
@@ -35,18 +36,16 @@ public class OrderResponse
   /**
    * The order id received by the vehicle.
    */
-  private int orderId;
+  private String code;
 
   /**
    * Creates a new instance.
    *
-   * @param protocol This telegram's raw content.
+   * @param protocol  协议对象
    */
   public OrderResponse(Protocol protocol) {
-    requireNonNull(protocol, "protocol");
-
+    super(protocol);
     decodeTelegramContent();
-
   }
 
   /**
@@ -54,8 +53,8 @@ public class OrderResponse
    *
    * @return The order id received by the vehicle.
    */
-  public int getOrderId() {
-    return orderId;
+  public String getCode() {
+    return code;
   }
 
   @Override
@@ -65,6 +64,7 @@ public class OrderResponse
 
   /**
    * 检查是否为状态类型的响应
+   *方向为r时为响应
    *
    * @param protocol 待检查的报文协议对象
    * @return 是则返回true，否则返回false
@@ -72,14 +72,12 @@ public class OrderResponse
   public static boolean isOrderResponse(Protocol protocol) {
     requireNonNull(protocol, "报文协议对象不能为空");
 
-      String commandKey = protocol.getCommandKey();
-      // 如果不是以下两种命令请求，则认为是其它动作指令请求
-      return !"rptac".equalsIgnoreCase(commandKey) &&
-                  !"rptrpt".equalsIgnoreCase(commandKey);
+    return ProtocolUtils.isOrderProtocol(protocol.getCommandKey()) &&
+                ProtocolUtils.DIRECTION_RESPONSE.equalsIgnoreCase(protocol.getDirection());
   }
 
   private void decodeTelegramContent() {
-    this.id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
-    orderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
+//    this.id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
+//    orderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
   }
 }

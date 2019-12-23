@@ -43,11 +43,15 @@ public class RequestResponseMatcher {
     this.telegramSender = requireNonNull(telegramSender, "telegramSender");
   }
 
+  /**
+   * 将请求对象加入到队列中
+   * @param request 请求对象
+   */
   public void enqueueRequest(@Nonnull Request request) {
     requireNonNull(request, "request");
     boolean emptyQueueBeforeEnqueue = requests.isEmpty();
 
-    LOG.debug("Enqueuing request: {}", request);
+    LOG.debug("加入到发送队列的请求: {}", request);
     requests.add(request);
 
     if (emptyQueueBeforeEnqueue) {

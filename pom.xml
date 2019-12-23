@@ -92,5 +92,13 @@
             <artifactId>commons-codec</artifactId>
             <version>${commons.codec.version}</version>
         </dependency>
+		<!-- RXTXcomm-->
+		<dependency>
+			<groupId>com.rxtxcomm.seralport</groupId>
+			<artifactId>seralport</artifactId>
+			<version>1.6.0_10</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/RXTXcomm.jar</systemPath>
+		</dependency>
 	</dependencies>
 </project>
