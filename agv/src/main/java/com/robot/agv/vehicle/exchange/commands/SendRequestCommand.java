@@ -11,34 +11,36 @@ import org.opentcs.drivers.vehicle.AdapterCommand;
 import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 
 /**
- * A command for sending a telegram to the actual vehicle.
+ * 发送请求电报到车辆
  *
- * @author Martin Grzenia (Fraunhofer IML)
+ * @author Laotang
  */
 public class SendRequestCommand
     implements AdapterCommand {
 
   /**
-   * The request to send.
+   * 请求报文
    */
   private final Request request;
 
   /**
-   * Creates a new instance.
+   * 构造函数
    *
-   * @param request The request to send.
+   * @param request 请求报文对象
    */
   public SendRequestCommand(Request request) {
     this.request = requireNonNull(request, "request");
   }
 
+
+  /**发送*/
   @Override
   public void execute(VehicleCommAdapter adapter) {
     if (!(adapter instanceof RobotCommAdapter)) {
       return;
     }
 
-    RobotCommAdapter exampleAdapter = (RobotCommAdapter) adapter;
-    exampleAdapter.getRequestResponseMatcher().enqueueRequest(request);
+    RobotCommAdapter robotCommAdapter = (RobotCommAdapter) adapter;
+    robotCommAdapter.getRequestResponseMatcher().enqueueRequest(request);
   }
 }

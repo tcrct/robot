@@ -8,6 +8,7 @@ import static com.google.common.base.Ascii.STX;
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.primitives.Ints;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.utils.ProtocolUtils;
 
 import static java.util.Objects.requireNonNull;
 
@@ -63,13 +64,13 @@ public class StateResponse
   /**
    * Creates a new instance.
    *
-   * @param telegramData This telegram's raw content.
+   * @param protocol This telegram's raw content.
    */
-  public StateResponse(String telegramData) {
-    super(TELEGRAM_LENGTH);
-    requireNonNull(telegramData, "报文内容不能为空");
+  public StateResponse(Protocol protocol) {
+    super(protocol);
+    requireNonNull(protocol, "报文内容不能为空");
 
-    decodeTelegramContent(telegramData);
+//    decodeTelegramContent(protocol);
   }
 
   /**
@@ -132,7 +133,7 @@ public class StateResponse
    * @return The telegram's checksum byte.
    */
   public byte getCheckSum() {
-    return rawContent[CHECKSUM_POS];
+    return getRawContentByte()[CHECKSUM_POS];
   }
   
   @Override
@@ -142,6 +143,7 @@ public class StateResponse
 
   /**
    * 检查是否为状态类型的响应
+   * 方向为r时为响应
    *
    * @param protocol 待检查的报文协议对象
    * @return 是则返回true，否则返回false
@@ -149,19 +151,18 @@ public class StateResponse
   public static boolean isStateResponse(Protocol protocol) {
     requireNonNull(protocol, "报文协议对象不能为空");
 
-    boolean result = true;
-
-    return result;
+    return ProtocolUtils.isStateProtocol(protocol.getCommandKey()) &&
+            ProtocolUtils.DIRECTION_RESPONSE.equalsIgnoreCase(protocol.getDirection());
   }
 
   private void decodeTelegramContent(String telegramData) {
-    id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
-    positionId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
-    operatingState = decodeOperatingState((char) rawContent[7]);
-    loadState = decodeLoadState((char) rawContent[8]);
-    lastReceivedOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[9], rawContent[10]);
-    currentOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[11], rawContent[12]);
-    lastFinishedOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[13], rawContent[14]);
+//    id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
+//    positionId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
+//    operatingState = decodeOperatingState((char) rawContent[7]);
+//    loadState = decodeLoadState((char) rawContent[8]);
+//    lastReceivedOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[9], rawContent[10]);
+//    currentOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[11], rawContent[12]);
+//    lastFinishedOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[13], rawContent[14]);
   }
 
   private OperatingState decodeOperatingState(char operatingStateRaw) {

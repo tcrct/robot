@@ -146,7 +146,8 @@ public class VehicleState {
 
     telegramCounter++;
 
-    return new StateResponse(telegramData);
+//    return new StateResponse(telegramData);
+    return new StateResponse(null);
   }
 
   /**
@@ -174,6 +175,7 @@ public class VehicleState {
 
     telegramCounter++;
 
-    return new OrderResponse(telegramData);
+//    return new OrderResponse(telegramData);
+    return new OrderResponse(null);
   }
 }

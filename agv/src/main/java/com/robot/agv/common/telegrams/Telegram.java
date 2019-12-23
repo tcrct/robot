@@ -3,54 +3,66 @@
  */
 package com.robot.agv.common.telegrams;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import io.netty.util.CharsetUtil;
+
 import java.io.Serializable;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The base class for all telegram types used for communication with the vehicle.
+ * 用于与车辆通信的所有电报类型的基类
  *
- * @author Stefan Walter (Fraunhofer IML)
+ * @author Laotang
  */
-public abstract class Telegram
-    implements Serializable {
+public abstract class Telegram implements Serializable {
 
   /**
-   * The default value for a telegram's id.
+   * 默认的报文ID
    */
-  public static final int ID_DEFAULT = 0;
+  public static final String ID_DEFAULT = "0";
   /**
-   * The telegram's raw content as sent via the network.
+   * 报文协议内容
    */
-  protected final byte[] rawContent;
+  protected String rawContent;
   /**
-   * The identifier for a specific telegram instance.
+   * 唯一的报文ID
    */
-  protected int id;
+  protected String id;
 
   /**
-   * Creates a new instance.
+   * 构造函数
    *
-   * @param telegramLength The telegram's length
+   * @param telegramLength 报文长度
    */
-  public Telegram(int telegramLength) {
-    this.rawContent = new byte[telegramLength];
+  public Telegram(String telegramData) {
+    this.id = IdUtil.objectId();
+    this.rawContent = telegramData;
   }
 
   /**
-   * Returns this telegram's actual raw content.
+   * 返回报文内容
    *
-   * @return This telegram's actual raw content.
+   * @return byte[]格式的报文内容
    */
-  public byte[] getRawContent() {
+  public String getRawContent() {
     return rawContent;
   }
 
   /**
-   * Returns the identifier for this specific telegram instance.
-   *
-   * @return The identifier for this specific telegram instance.
+   * 取报文内容Byte数组
+   * @return 字符串
    */
-  public int getId() {
+  public byte[] getRawContentByte() {
+    return StrUtil.isBlank(rawContent) ? null : rawContent.getBytes();
+  }
+
+  /**
+   *  报文ID，唯一
+   *
+   * @return Mongodb ObjectId格式的字符串
+   */
+  public String getId() {
     return id;
   }
 

@@ -7,10 +7,16 @@ package com.robot.agv.vehicle.telegrams;
  */
 public class Protocol implements java.io.Serializable {
 
+    public static final String DEVICEID_FIELD = "deviceId";
+    public static final String COMMAND_KEY_FIELD = "commandKey";
+    public static final String PARAMS_FIELD = "params";
+    public static final String DIRECTION_FIELD = "direction";
+    public static final String CRC_FIELD = "crc";
+
     /**设备/车辆 ID*/
     private String deviceId;
     /**功能指令*/
-    private String functionCommand;
+    private String commandKey;
     /**参数*/
     private String params;
     /**方向,上下行*/
@@ -18,12 +24,33 @@ public class Protocol implements java.io.Serializable {
     /**CRC验证码*/
     private String crc ;
 
-    private Protocol(String deviceId, String direction, String functionCommand, String params, String crc) {
+    private Protocol(String deviceId, String direction, String commandKey, String params, String crc) {
         this.deviceId = deviceId;
         this.direction = direction;
-        this.functionCommand = functionCommand;
+        this.commandKey = commandKey;
         this.params = params;
         this.crc = crc;
+    }
+
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public String getCommandKey() {
+        return commandKey;
+    }
+
+    public String getParams() {
+        return params;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    public String getCrc() {
+        return crc;
     }
 
     public static class Builder {

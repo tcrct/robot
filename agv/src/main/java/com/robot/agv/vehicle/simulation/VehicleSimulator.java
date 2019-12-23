@@ -24,10 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A standalone application to simulate communication between the {@link RobotCommAdapter} and a
- * vehicle.
+ * 模拟车辆与RobotCommAdapter之间的通讯应用程序
  *
- * @author Martin Grzenia (Fraunhofer IML)
+ * @author Laotang
  */
 public class VehicleSimulator
     implements ConnectionEventListener<byte[]> {

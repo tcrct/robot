@@ -7,6 +7,7 @@ import static com.google.common.base.Ascii.ETX;
 import static com.google.common.base.Ascii.STX;
 import com.google.common.primitives.Ints;
 import com.robot.agv.common.telegrams.Request;
+import com.robot.agv.utils.ProtocolUtils;
 
 import static java.util.Objects.requireNonNull;
 
@@ -15,8 +16,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Mats Wilhelm (Fraunhofer IML)
  */
-public class OrderRequest
-    extends Request {
+public class OrderRequest extends Request {
 
   /**
    * The request type.
@@ -35,37 +35,21 @@ public class OrderRequest
    */
   public static final int CHECKSUM_POS = TELEGRAM_LENGTH - 2;
   /**
-   * The transport order orderId.
+   * crc验证码
    */
-  private final int orderId;
+  private String code;
   /**
    * The name of the destination point.
    */
-  private final int destinationId;
+  private int destinationId;
   /**
    * The action to execute at the destination point.
    */
-  private final OrderAction destinationAction;
+  private OrderAction destinationAction;
 
-  /**
-   * Creates a new instance.
-   *
-   * @param telegramId The request's telegram id.
-   * @param orderId The order id.
-   * @param destinationId The name of the destination point.
-   * @param destinationAction The action to execute at the destination point.
-   */
-  public OrderRequest(int telegramId,
-                      int orderId,
-                      int destinationId,
-                      OrderAction destinationAction) {
-    super(TELEGRAM_LENGTH);
-    this.id = telegramId;
-    this.orderId = orderId;
-    this.destinationId = destinationId;
-    this.destinationAction = requireNonNull(destinationAction, "destinationAction");
-
-    encodeTelegramContent(orderId, destinationId, destinationAction);
+  public OrderRequest(Protocol protocol) {
+    super(protocol);
+    this.code = protocol.getCrc();
   }
 
   /**
@@ -73,8 +57,8 @@ public class OrderRequest
    *
    * @return This telegram's order orderId
    */
-  public int getOrderId() {
-    return orderId;
+  public String getCode() {
+    return code;
   }
 
   /**
@@ -97,64 +81,31 @@ public class OrderRequest
 
   @Override
   public String toString() {
-    return "OrderRequest{" + "orderId=" + orderId + ","
+    return "OrderRequest{" + "orderId=" + code + ","
         + " destinationId=" + destinationId + ","
         + " destinationAction=" + destinationAction + '}';
   }
 
   @Override
   public void updateRequestContent(int telegramId) {
-    id = telegramId;
-    encodeTelegramContent(orderId, destinationId, destinationAction);
+//    encodeTelegramContent(code, destinationId, destinationAction);
+  }
+
+
+  private void encodeTelegramContent(Protocol protocol){
+
   }
 
   /**
-   * Encodes this telegram's content into the raw content byte array.
-   *
-   * @param orderId The order id
-   * @param destinationId The destination name
-   * @param destinationAction The destination action
-   */
-  private void encodeTelegramContent(int orderId,
-                                     int destinationId,
-                                     OrderAction destinationAction) {
-    // Start of each telegram
-    rawContent[0] = STX;
-    rawContent[1] = PAYLOAD_LENGTH;
-
-    // Payload of the telegram
-    rawContent[2] = TYPE;
-
-    byte[] tmpWord = Ints.toByteArray(id);
-    rawContent[3] = tmpWord[2];
-    rawContent[4] = tmpWord[3];
-
-    tmpWord = Ints.toByteArray(orderId);
-    rawContent[5] = tmpWord[2];
-    rawContent[6] = tmpWord[3];
-
-    tmpWord = Ints.toByteArray(destinationId);
-    rawContent[7] = tmpWord[2];
-    rawContent[8] = tmpWord[3];
-
-    rawContent[9] = destinationAction.getActionByte();
-
-    // End of each telegram
-    rawContent[CHECKSUM_POS] = getCheckSum(rawContent);
-    rawContent[TELEGRAM_LENGTH - 1] = ETX;
-  }
-
-  /**
-   * 检查是否为状态类型的请求
+   * 检查是否为状态类型的请求，
+   * 方向为s时为请求
    *
    * @param protocol 待检查的协议对象
    * @return 是则返回true，否则返回false
    */
   public static boolean isOrderRequest(Protocol protocol) {
     requireNonNull(protocol, "报文协议对象不能为空");
-
-    boolean result = true;
-
-    return result;
+    return ProtocolUtils.isOrderProtocol(protocol.getCommandKey()) &&
+                    ProtocolUtils.DIRECTION_REQUEST.equalsIgnoreCase(protocol.getDirection());
   }
 }

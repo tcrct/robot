@@ -47,15 +47,15 @@ public class VehicleTelegramDecoder extends StringDecoder {
 
         // 如果是Order请求
         if (OrderRequest.isOrderRequest(protocol)) {
-//            eventListener.onIncomingTelegram(new OrderRequest(telegramData));
+//            eventListener.onIncomingTelegram(new OrderRequest(protocol));
         }
         // 如果是Order响应
         else if (OrderResponse.isOrderResponse(protocol)) {
-            eventListener.onIncomingTelegram(new OrderResponse(telegramData));
+            eventListener.onIncomingTelegram(new OrderResponse(protocol));
         }
         // 如果是State响应
         else if (StateResponse.isStateResponse(protocol)) {
-            eventListener.onIncomingTelegram(new StateResponse(telegramData));
+            eventListener.onIncomingTelegram(new StateResponse(protocol));
         }
     }
 }

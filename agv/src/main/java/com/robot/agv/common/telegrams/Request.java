@@ -3,6 +3,9 @@
  */
 package com.robot.agv.common.telegrams;
 
+import com.robot.agv.utils.ProtocolUtils;
+import com.robot.agv.vehicle.telegrams.Protocol;
+
 /**
  * A request represents a telegram sent from the control system to vehicle control and expects
  * a response with the same id to match.
@@ -13,12 +16,12 @@ public abstract class Request
     extends Telegram {
 
   /**
-   * Creates a new instance.
+   *  构造函数
    *
-   * @param telegramLength The request's length.
+   * @param protocol  协议对象
    */
-  public Request(int telegramLength) {
-    super(telegramLength);
+  public Request(Protocol protocol) {
+    super(ProtocolUtils.converterString(protocol));
   }
 
   /**
