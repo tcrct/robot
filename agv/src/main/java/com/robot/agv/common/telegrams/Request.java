@@ -15,6 +15,12 @@ import com.robot.agv.vehicle.telegrams.Protocol;
 public abstract class Request
     extends Telegram {
 
+  private Protocol protocol;
+
+  public Request() {
+    super("");
+  }
+
   /**
    *  构造函数
    *
@@ -22,6 +28,11 @@ public abstract class Request
    */
   public Request(Protocol protocol) {
     super(ProtocolUtils.converterString(protocol));
+    this.protocol = protocol;
+  }
+
+  public Protocol getProtocol() {
+    return protocol;
   }
 
   /**
@@ -29,5 +40,5 @@ public abstract class Request
    *
    * @param telegramId The request's new id.
    */
-  public abstract void updateRequestContent(int telegramId);
+  public abstract void updateRequestContent(String telegramId);
 }

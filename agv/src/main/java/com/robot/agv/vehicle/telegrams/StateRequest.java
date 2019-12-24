@@ -7,6 +7,7 @@ import static com.google.common.base.Ascii.ETX;
 import static com.google.common.base.Ascii.STX;
 import com.google.common.primitives.Ints;
 import com.robot.agv.common.telegrams.Request;
+import org.opentcs.drivers.vehicle.MovementCommand;
 
 
 /**
@@ -17,9 +18,10 @@ import com.robot.agv.common.telegrams.Request;
 public class StateRequest extends Request {
 
   /**
-   * The request type.
+   *  opentcs的车辆移动命令
    */
-  public static final byte TYPE = 1;
+  public MovementCommand command;
+
   /**
    * The expected length of a telegram of this type.
    */
@@ -38,30 +40,29 @@ public class StateRequest extends Request {
    *
    * @param telegramId The request's telegram id.
    */
-  public StateRequest(int telegramId) {
-    super(TELEGRAM_LENGTH);
+  public StateRequest(String telegramId) {
+    super(new Protocol.Builder().build());
     this.id = telegramId;
 
     encodeTelegramContent();
   }
 
+  /**
+   * 构造函数
+   * @param command opentcs的移动命令
+   */
+  public StateRequest(MovementCommand command) {
+    this.command = command;
+    encodeTelegramContent();
+  }
+
   @Override
-  public void updateRequestContent(int telegramId) {
+  public void updateRequestContent(String telegramId) {
     id = telegramId;
     encodeTelegramContent();
   }
 
   private void encodeTelegramContent() {
-    rawContent[0] = STX;
-    rawContent[1] = PAYLOAD_LENGTH;
 
-    rawContent[2] = TYPE;
-
-    byte[] tmpWord = Ints.toByteArray(id);
-    rawContent[3] = tmpWord[2];
-    rawContent[4] = tmpWord[3];
-
-    rawContent[CHECKSUM_POS] = getCheckSum(rawContent);
-    rawContent[TELEGRAM_LENGTH - 1] = ETX;
   }
 }

@@ -1,4 +1,4 @@
-package com.robot.agv.vehicle.net.upd.netty;
+package com.robot.agv.vehicle.net.netty.upd;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;

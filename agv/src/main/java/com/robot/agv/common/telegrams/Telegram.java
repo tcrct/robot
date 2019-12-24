@@ -3,9 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
-import io.netty.util.CharsetUtil;
 
 import java.io.Serializable;
 import static java.util.Objects.requireNonNull;
@@ -36,7 +34,6 @@ public abstract class Telegram implements Serializable {
    * @param telegramLength 报文长度
    */
   public Telegram(String telegramData) {
-    this.id = IdUtil.objectId();
     this.rawContent = telegramData;
   }
 

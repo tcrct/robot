@@ -1,11 +1,11 @@
-package com.robot.agv.vehicle.net.tcp;
+package com.robot.agv.vehicle.net.netty.tcp;
 
 import com.google.common.primitives.Ints;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.RobotCommAdapter;
-import com.robot.agv.vehicle.comm.VehicleTelegramDecoder;
-import com.robot.agv.vehicle.comm.VehicleTelegramEncoder;
+import com.robot.agv.vehicle.net.netty.comm.VehicleTelegramDecoder;
+import com.robot.agv.vehicle.net.netty.comm.VehicleTelegramEncoder;
 import com.robot.agv.vehicle.net.IChannelManager;
 import com.robot.agv.vehicle.telegrams.OrderResponse;
 import com.robot.agv.vehicle.telegrams.StateResponse;
@@ -86,7 +86,7 @@ public class TcpChannelManager implements IChannelManager<Request, Response> {
     }
 
     @Override
-    public void send(Object telegram) {
+    public void send(Request telegram) {
         tcpClientChannelManager.send(telegram);
     }
 

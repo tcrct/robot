@@ -151,7 +151,9 @@ public class ProtocolUtils {
      * @return 如果是返回true
      */
     public static boolean isStateProtocol(String commandKey) {
-        return "setrout".equalsIgnoreCase(commandKey);
+        return "setrout".equalsIgnoreCase(commandKey) ||
+                        "rptac".equalsIgnoreCase(commandKey) ||
+                        "rptrtp".equalsIgnoreCase(commandKey);
     }
 
 }

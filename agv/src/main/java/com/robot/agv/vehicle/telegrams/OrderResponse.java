@@ -3,8 +3,8 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
-import static com.google.common.base.Preconditions.checkArgument;
 
+import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.utils.ProtocolUtils;
 
@@ -43,9 +43,10 @@ public class OrderResponse extends Response {
    *
    * @param protocol  协议对象
    */
-  public OrderResponse(Protocol protocol) {
-    super(protocol);
-    decodeTelegramContent();
+  public OrderResponse(Request request) {
+    super(request.getProtocol());
+    super.id = request.getId();
+//    decodeTelegramContent();
   }
 
   /**

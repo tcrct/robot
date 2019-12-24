@@ -478,7 +478,7 @@ public class StatusPanel
     }//GEN-LAST:event_chkBoxEnablePeriodicGetStateActionPerformed
 
   private void buttonGetStateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGetStateActionPerformed
-    SendRequestCommand command = new SendRequestCommand(new StateRequest(0));
+    SendRequestCommand command = new SendRequestCommand(new StateRequest("0"));
     sendAdapterCommand(command);
   }//GEN-LAST:event_buttonGetStateActionPerformed
 

@@ -1,4 +1,4 @@
-package com.robot.agv.vehicle.comm;
+package com.robot.agv.vehicle.net.netty.comm;
 
 import io.netty.handler.codec.string.StringEncoder;
 

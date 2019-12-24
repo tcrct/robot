@@ -1,12 +1,11 @@
-package com.robot.agv.vehicle.net.upd;
+package com.robot.agv.vehicle.net.netty.upd;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.RobotCommAdapter;
-import com.robot.agv.vehicle.comm.VehicleTelegramDecoder;
-import com.robot.agv.vehicle.comm.VehicleTelegramEncoder;
+import com.robot.agv.vehicle.net.netty.comm.VehicleTelegramDecoder;
+import com.robot.agv.vehicle.net.netty.comm.VehicleTelegramEncoder;
 import com.robot.agv.vehicle.net.IChannelManager;
-import com.robot.agv.vehicle.net.upd.netty.UdpServerChannelManager;
 import io.netty.channel.ChannelHandler;
 
 import javax.annotation.Nonnull;
@@ -77,7 +76,7 @@ public class UdpChannelManager implements IChannelManager<Request, Response> {
     }
 
     @Override
-    public void send(Object telegram) {
+    public void send(Request telegram) {
         udpServerChannelManager.send(telegram);
     }
 }

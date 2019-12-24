@@ -1,4 +1,4 @@
-package com.robot.agv.vehicle.net.upd.netty;
+package com.robot.agv.vehicle.net.netty.upd;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
-import java.sql.Struct;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

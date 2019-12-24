@@ -3,12 +3,14 @@
  */
 package com.robot.agv.vehicle;
 
+import cn.hutool.setting.Setting;
 import com.google.inject.assistedinject.Assisted;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 
 import com.robot.agv.common.dispatching.LoadAction;
 import com.robot.agv.common.telegrams.*;
+import com.robot.agv.utils.SettingUtils;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
 import com.robot.agv.vehicle.net.ChannelManagerFactory;
 import com.robot.agv.vehicle.net.IChannelManager;
@@ -65,7 +67,7 @@ public class RobotCommAdapter
   /**
    * Maps commands to order IDs so we know which command to report as finished.
    */
-  private final Map<MovementCommand, Integer> orderIds = new ConcurrentHashMap<>();
+  private final Map<MovementCommand, String> orderIds = new ConcurrentHashMap<>();
   /**
    * Manages the channel to the vehicle.
    */
@@ -170,7 +172,15 @@ public class RobotCommAdapter
       return;
     }
     // 根据车辆设置的host与port，连接车辆
-    channelManager.connect(getProcessModel().getVehicleHost(), getProcessModel().getVehiclePort());
+    NetChannelType netChannelType = NetChannelType.valueOf("SERIALPORT");
+    if (NetChannelType.TCP.equals(netChannelType) || NetChannelType.UDP.equals(netChannelType)) {
+        channelManager.connect(getProcessModel().getVehicleHost(), getProcessModel().getVehiclePort());
+    }
+    else if (NetChannelType.SERIALPORT.equals(netChannelType)) {
+      channelManager.connect(
+              SettingUtils.getStringByGroup("name", NetChannelType.SERIALPORT.name().toLowerCase(), "COM6"),
+              SettingUtils.getInt("baudrate", NetChannelType.SERIALPORT.name().toLowerCase(),38400));
+    }
   }
 
   /**断开车辆连接*/
@@ -346,8 +356,8 @@ public class RobotCommAdapter
     if (!isEnabled()) {
       return;
     }
-    LOG.debug("车辆[{}]连接成功", getName());
     getProcessModel().setCommAdapterConnected(true);
+    LOG.debug("车辆[{}]连接成功", getName());
     // 检查是否重新发送上一个请求
     requestResponseMatcher.checkForSendingNextRequest();
   }
@@ -435,7 +445,7 @@ public class RobotCommAdapter
     }
 
     // Update the request's id
-    telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
+//    telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
 
     LOG.debug("{}: Sending request '{}'", getName(), telegram);
     channelManager.send(telegram);
@@ -536,8 +546,8 @@ public class RobotCommAdapter
     while (!finishedAll && cmdIter.hasNext()) {
       MovementCommand cmd = cmdIter.next();
       cmdIter.remove();
-      int orderId = orderIds.remove(cmd);
-      if (orderId == currentState.getLastFinishedOrderId()) {
+      String orderId = orderIds.remove(cmd);
+      if (orderId.equals(currentState.getLastFinishedOrderId())) {
         finishedAll = true;
       }
 

@@ -3,9 +3,6 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
-import static com.google.common.base.Ascii.ETX;
-import static com.google.common.base.Ascii.STX;
-import com.google.common.primitives.Ints;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.utils.ProtocolUtils;
 
@@ -87,7 +84,7 @@ public class OrderRequest extends Request {
   }
 
   @Override
-  public void updateRequestContent(int telegramId) {
+  public void updateRequestContent(String telegramId) {
 //    encodeTelegramContent(code, destinationId, destinationAction);
   }
 

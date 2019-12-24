@@ -1,5 +1,7 @@
 package com.robot.agv.vehicle.net;
 
+import com.robot.agv.common.telegrams.Request;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -49,6 +51,6 @@ public interface IChannelManager<I, O> {
     void scheduleConnect(@Nonnull String host, int port, long delay);
 
     /**发送报文*/
-    void send(Object telegram);
+    void send(Request telegram);
 
 }
