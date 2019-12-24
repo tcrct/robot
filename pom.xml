@@ -10,7 +10,7 @@
 	<modules>
 		<module>opentcs</module>
 		<module>agv</module>
-        <module>robot-mvc</module>
+        <module>mvc</module>
     </modules>
 	<packaging>pom</packaging>
 

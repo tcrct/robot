@@ -4,6 +4,7 @@
 package com.robot.agv.vehicle.telegrams;
 
 
+import cn.hutool.core.util.IdUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.utils.ProtocolUtils;
@@ -43,6 +44,11 @@ public class OrderResponse extends Response {
    *
    * @param protocol  协议对象
    */
+  public OrderResponse(Protocol protocol) {
+    super(protocol);
+    decodeTelegramContent();
+  }
+
   public OrderResponse(Request request) {
     super(request.getProtocol());
     super.id = request.getId();
@@ -78,7 +84,8 @@ public class OrderResponse extends Response {
   }
 
   private void decodeTelegramContent() {
-//    this.id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
-//    orderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
+    super.id = IdUtil.objectId();
+
   }
+
 }

@@ -61,11 +61,11 @@ public class ChannelManagerFactory {
             LOG.warn("将报文内容{}转换为Protocol对象时出错, 退出该请求的处理: {}, {}", telegramData,e.getMessage(), e);
         }
 
-        // 如果是Order请求或响应，则直接进行到车辆或设备的Service
+        // 如果是Order请求或响应(车辆主动上报的)，则直接进行到车辆或设备的Service
         if (OrderRequest.isOrderRequest(protocol)) {
 //            eventListener.onIncomingTelegram(new OrderRequest(protocol));
         }
-        // 如果是Order响应
+        // 如果是Order响应(车辆回复)
         else if (OrderResponse.isOrderResponse(protocol)) {
             Response response = ReflectUtil.invoke(dispatchFactory, "execute", new OrderResponse(protocol));
             eventListener.onIncomingTelegram(response);
