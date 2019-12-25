@@ -9,9 +9,8 @@
 	<version>1.0-SNAPSHOT</version>
 	<modules>
 		<module>opentcs</module>
-		<module>agv</module>
-        <module>mvc</module>
-    </modules>
+		<module>duang</module>
+	</modules>
 	<packaging>pom</packaging>
 
 	<name>robot</name>
@@ -52,6 +51,8 @@
         <commons.codec.version>1.10</commons.codec.version>
 		<robot-opentcs>1.0-SNAPSHOT</robot-opentcs>
 	</properties>
+
+
 
 	<dependencies>
 		<dependency>
@@ -100,6 +101,13 @@
 			<version>1.6.0_10</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/RXTXcomm.jar</systemPath>
+		</dependency>
+
+		<!-- CGLIB -->
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<version>3.3.0</version>
 		</dependency>
 	</dependencies>
 </project>
