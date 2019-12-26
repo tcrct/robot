@@ -3,7 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
-import com.robot.agv.utils.ProtocolUtils;
+import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
 
 import static java.util.Objects.requireNonNull;
@@ -16,14 +16,14 @@ import javax.annotation.Nonnull;
  */
 public abstract class Response
     extends Telegram {
-  
+
   /**
    * 构造函数
    *
-   * @param protocol  协议对象
+   * @param protocol 协议对象
    */
   public Response(Protocol protocol) {
-    super(ProtocolUtils.converterString(protocol));
+    super((null == protocol) ? "" : ProtocolUtils.converterString(protocol));
   }
 
   /**
@@ -38,6 +38,12 @@ public abstract class Response
    */
   public boolean isResponseTo(@Nonnull Request request) {
     requireNonNull(request, "request");
-    return request.getId() == getId();
+    return request.getId().equals(getId());
   }
+
+  public void write(Object object) {
+    requireNonNull(object, "object");
+    super.rawContent = String.valueOf(object);
+  }
+
 }

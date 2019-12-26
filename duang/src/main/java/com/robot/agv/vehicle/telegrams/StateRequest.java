@@ -7,7 +7,10 @@ import cn.hutool.core.util.IdUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.RobotProcessModel;
+import com.robot.utils.ToolsKit;
 import org.opentcs.drivers.vehicle.MovementCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -16,6 +19,8 @@ import org.opentcs.drivers.vehicle.MovementCommand;
  * @author Martin Grzenia (Fraunhofer IML)
  */
 public class StateRequest extends Request {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StateRequest.class);
 
   /**
    *  opentcs的车辆移动命令
@@ -60,12 +65,15 @@ public class StateRequest extends Request {
 
   @Override
   public void updateRequestContent(Response response) {
-
-//    encodeTelegramContent();
+    if (ToolsKit.isEmpty(response.getRawContent())) {
+      LOG.error("response content is empty");
+      super.rawContent = "Hello LaoTang!";
+    }
+    super.rawContent = response.getRawContent();
   }
 
   private void encodeTelegramContent() {
-    this.id = IdUtil.objectId();
+    super.id = IdUtil.objectId();
     destinationId = command.getFinalDestination().getName();
     destinationAction = command.getFinalOperation();
     destinationLocation = command.getFinalDestinationLocation().getName();

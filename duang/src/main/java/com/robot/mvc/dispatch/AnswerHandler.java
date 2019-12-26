@@ -1,7 +1,7 @@
 package com.robot.mvc.dispatch;
 
 import com.robot.agv.common.telegrams.TelegramSender;
-import com.robot.agv.utils.ProtocolUtils;
+import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.OrderRequest;
 import com.robot.agv.vehicle.telegrams.Protocol;
 

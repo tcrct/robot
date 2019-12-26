@@ -7,7 +7,7 @@ package com.robot.agv.vehicle.telegrams;
 import cn.hutool.core.util.IdUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
-import com.robot.agv.utils.ProtocolUtils;
+import com.robot.utils.ProtocolUtils;
 
 import static java.util.Objects.requireNonNull;
 

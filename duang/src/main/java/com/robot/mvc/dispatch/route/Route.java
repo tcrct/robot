@@ -1,7 +1,6 @@
 package com.robot.mvc.dispatch.route;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.robot.mvc.utils.ToolsKit;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -49,7 +48,8 @@ public class Route {
     public String toString() {
         return "Route{" +
                 "key='" + key + '\'' +
-                ", Class=" + injectObject.getClass().getName() +
+                ", class=" + injectObject.getClass().getName() +
+                ", methods=" +methodMap.keySet() +
                 '}';
     }
 }

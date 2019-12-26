@@ -3,10 +3,14 @@ package com.robot.mvc.dispatch;
 import cn.hutool.core.util.ReflectUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.vehicle.telegrams.Protocol;
+import com.robot.utils.SettingUtils;
+import com.robot.agv.vehicle.telegrams.OrderRequest;
+import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.dispatch.route.RouteHelper;
-import com.robot.mvc.exceptions.AgvException;
-import com.robot.mvc.utils.ToolsKit;
+import com.robot.mvc.exceptions.RobotException;
+import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +29,23 @@ public class BusinessHandler implements Callable {
     public BusinessHandler(Request request, Response response) {
         this.request = request;
         this.response = response;
-        this.deviceId = request.getProtocol().getDeviceId();
-        this.methodName = request.getProtocol().getCommandKey();
+        this.deviceId = getDeviceId();
+        this.methodName = getCommandKey();
     }
+
+    private String getDeviceId() {
+        return (request instanceof OrderRequest) ?
+                request.getProtocol().getDeviceId() :
+                ((StateRequest)request).getModel().getName();
+    }
+
+    private String getCommandKey() {
+        return (request instanceof OrderRequest) ?
+                request.getProtocol().getCommandKey() :
+                SettingUtils.getString("state.request.cmd", "setrout");
+    }
+
+
 
     @Override
     public Object call() throws Exception {
@@ -44,10 +62,10 @@ public class BusinessHandler implements Callable {
             }
             Object resultObj = ReflectUtil.invoke(route.getInjectObject(), method, request, response);
             if (response.isResponseTo(request)) {
-//                response.write(resultObj);
+                response.write(resultObj);
             }
         } catch (Exception e) {
-            throw new AgvException(e.getMessage(), e);
+            throw new RobotException(e.getMessage(), e);
         }
         return response;
     }

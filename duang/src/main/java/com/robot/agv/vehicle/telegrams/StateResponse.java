@@ -7,7 +7,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
-import com.robot.agv.utils.ProtocolUtils;
+import com.robot.utils.ProtocolUtils;
 
 import static java.util.Objects.requireNonNull;
 
@@ -62,6 +62,7 @@ public class StateResponse
 
   public StateResponse(Request request) {
     super(request.getProtocol());
+    super.id = request.getId();
     requireNonNull(request, "报文请求不能为空");
 
 //    decodeTelegramContent(protocol);

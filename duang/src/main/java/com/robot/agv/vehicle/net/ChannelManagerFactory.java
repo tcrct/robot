@@ -4,7 +4,7 @@ import com.robot.agv.common.dispatching.DispatchAction;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
-import com.robot.agv.utils.ProtocolUtils;
+import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.serialport.SerialPortChannelManager;
 import com.robot.agv.vehicle.net.netty.tcp.TcpChannelManager;

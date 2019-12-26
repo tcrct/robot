@@ -8,7 +8,8 @@ import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.*;
 import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.dispatch.route.RouteHelper;
-import com.robot.mvc.utils.ToolsKit;
+import com.robot.mvc.exceptions.RobotException;
+import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,16 +46,20 @@ public class DispatchFactory {
             SERVICE_METHOD_MAP.putAll(RouteHelper.getRoutes());
         }
 
+        // 返回对象
+        Response response = null;
         Protocol protocol = request.getProtocol();
-        if (ToolsKit.isEmpty(protocol)) {
-            LOG.error("协议对象为空，返回null退出处理！");
-            return null;
+        if (request instanceof OrderRequest) {
+            if (ToolsKit.isEmpty(protocol)) {
+                throw new RobotException("非移动车辆请求的协议对象不能为空，返回null退出处理！");
+            }
+            // 线程进行应答回复
+            ThreadUtil.execute(new AnswerHandler(protocol, sender));
+            response = new OrderResponse(request);
+        } else {
+            response= new StateResponse(request);
         }
 
-        // 返回对象
-        Response response = (request instanceof OrderRequest) ? new OrderResponse(request) : new StateResponse(request);
-        // 线程进行应答回复
-        ThreadUtil.execute(new AnswerHandler(protocol, sender));
         // 线程进行业务处理
         FutureTask<Response> futureTask = (FutureTask<Response>) ThreadUtil.execAsync(new BusinessHandler(request, response));
         try {

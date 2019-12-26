@@ -3,7 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
-import com.robot.agv.utils.ProtocolUtils;
+import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
 
 /**

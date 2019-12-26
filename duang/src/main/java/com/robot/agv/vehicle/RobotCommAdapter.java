@@ -10,7 +10,8 @@ import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import com.robot.agv.common.dispatching.DispatchAction;
 import com.robot.agv.common.dispatching.LoadAction;
 import com.robot.agv.common.telegrams.*;
-import com.robot.agv.utils.SettingUtils;
+import com.robot.core.AppContext;
+import com.robot.utils.SettingUtils;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
 import com.robot.agv.vehicle.net.ChannelManagerFactory;
 import com.robot.agv.vehicle.net.IChannelManager;
@@ -33,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
@@ -83,6 +85,8 @@ public class RobotCommAdapter
    */
   private StateRequesterTask stateRequesterTask;
 
+  private TCSObjectService objectService;
+
   /**
    * 创建适配器
    *
@@ -93,10 +97,19 @@ public class RobotCommAdapter
   @Inject
   public RobotCommAdapter(@Assisted Vehicle vehicle,
                           StateMapper stateMapper,
+                          TCSObjectService objectService,
                           RobotAdapterComponentsFactory componentsFactory) {
     super(new RobotProcessModel(vehicle), 3, 2, LoadAction.CHARGE);
     this.stateMapper = requireNonNull(stateMapper, "orderMapper");
     this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
+    this.objectService = requireNonNull(objectService, "objectService");
+    AppContext.setCommAdapter(this);
+  }
+
+  /**取TCSObjectServcie对象*/
+  public TCSObjectService getObjectService() {
+    java.util.Objects.requireNonNull(objectService, "objectService is null");
+    return objectService;
   }
 
   /**
@@ -288,8 +301,11 @@ public class RobotCommAdapter
     try {
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
       StateRequest stateRequest = new StateRequest(cmd, getProcessModel());
-      DispatchAction.duang().doAction(stateRequest);
-      orderIds.put(cmd, stateRequest.getCode());
+      //进行业务处理
+      DispatchAction.duang().doAction(stateRequest, this);
+
+//      orderIds.put(cmd, stateRequest.getCode());
+      orderIds.put(cmd, "11111");
 
 
       LOG.debug("{}: Enqueuing order telegram with ID {}: {}, {}",
@@ -456,7 +472,7 @@ public class RobotCommAdapter
     // Update the request's id
 //    telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
 
-    LOG.debug("{}: Sending request '{}'", getName(), telegram);
+    LOG.info("车辆{}: Sending request '{}'", getName(), telegram);
     channelManager.send(telegram);
 
     // If the telegram is an order, remember it.

@@ -1,7 +1,7 @@
 package com.robot.agv.vehicle.telegrams;
 
 import com.google.inject.assistedinject.Assisted;
-import com.robot.agv.utils.SettingUtils;
+import com.robot.utils.SettingUtils;
 import org.apache.log4j.Logger;
 
 import javax.annotation.Nonnull;

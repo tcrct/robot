@@ -1,10 +1,8 @@
 package com.robot.agv.common.dispatching;
 
-import cn.hutool.core.util.ReflectUtil;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
-import com.robot.agv.utils.ProtocolUtils;
-import com.robot.agv.utils.SettingUtils;
+import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.*;
 import com.robot.mvc.dispatch.DispatchFactory;
 import org.slf4j.Logger;
@@ -49,8 +47,8 @@ public class DispatchAction {
      * 处理车辆移动请求
      * @param request
      */
-    public StateResponse doAction(StateRequest request) {
-        StateResponse response = (StateResponse)dispatchFactory.execute(request, null);
+    public StateResponse doAction(StateRequest request,TelegramSender telegramSender) {
+        StateResponse response = (StateResponse)dispatchFactory.execute(request, telegramSender);
         return response;
     }
 

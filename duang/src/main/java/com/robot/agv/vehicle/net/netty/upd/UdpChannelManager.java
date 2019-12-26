@@ -86,6 +86,6 @@ public class UdpChannelManager implements IChannelManager<Request, Response> {
 
     @Override
     public void send(Request telegram) {
-        udpServerChannelManager.send(telegram);
+        udpServerChannelManager.send(telegram.getRawContent());
     }
 }

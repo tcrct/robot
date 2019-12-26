@@ -5,21 +5,21 @@ import cn.hutool.core.util.ObjectUtil;
 /**
  * Created by laotang on 2019/9/25.
  */
-public class AgvException extends AbstractDuangException{
+public class RobotException extends AbstractDuangException{
 
-    public AgvException() {
+    public RobotException() {
         super();
     }
 
-    public AgvException(String msg) {
+    public RobotException(String msg) {
         super(msg);
     }
 
-    public AgvException(int code, String msg) {
+    public RobotException(int code, String msg) {
         super(code, msg);
     }
 
-    public AgvException(String msg , Throwable cause) {
+    public RobotException(String msg , Throwable cause) {
         super(msg, cause);
     }
 

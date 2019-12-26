@@ -3,7 +3,7 @@
  */
 package com.robot.agv.vehicle.exchange;
 
-import com.robot.agv.utils.SettingUtils;
+import com.robot.utils.SettingUtils;
 import org.opentcs.drivers.vehicle.VehicleCommAdapterDescription;
 
 /**
