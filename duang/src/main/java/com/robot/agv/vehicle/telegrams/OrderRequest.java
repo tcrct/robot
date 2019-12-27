@@ -3,9 +3,12 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
+import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.mvc.exceptions.RobotException;
 import com.robot.utils.ProtocolUtils;
+import com.robot.utils.ToolsKit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -45,9 +48,14 @@ public class OrderRequest extends Request {
    */
   private OrderAction destinationAction;
 
+  public OrderRequest(OrderResponse response) {
+    super(response.getProtocol());
+    this.code = protocol.getCode();
+  }
+
   public OrderRequest(Protocol protocol) {
     super(protocol);
-    this.code = protocol.getCrc();
+    this.code = protocol.getCode();
   }
 
   /**
@@ -79,7 +87,11 @@ public class OrderRequest extends Request {
 
   @Override
   public void updateRequestContent(Response response) {
-    encodeTelegramContent(null);
+    if (ToolsKit.isEmpty(response.getRawContent())) {
+      throw new RobotException("返回的协议内容不能为空");
+    }
+    super.rawContent = response.getRawContent();
+    super.protocol = ProtocolUtils.buildProtocol(rawContent);
   }
 
 

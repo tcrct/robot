@@ -1,5 +1,6 @@
 package com.robot.utils;
 
+import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.core.AppContext;
 import com.robot.mvc.exceptions.RobotException;
@@ -21,6 +22,17 @@ public class RobotUtil {
     public static Point getPoint(String pointName){
         java.util.Objects.requireNonNull(pointName, "点名称不能为空");
         return AppContext.getOpenTcsObjectService().fetchObject(Point.class, pointName);
+    }
+
+    /***
+     * 根据点名称取openTCS线路图上的点
+     */
+    public static String getPoint(Protocol protocol){
+        java.util.Objects.requireNonNull(protocol, "协议对象不能为空");
+        if (!ProtocolUtils.isReportStateProtocol(protocol.getCommandKey())) {
+            throw new RobotException("取上报卡号时，协议["+ProtocolUtils.converterString(protocol)+"]指令不符， 不是上报卡号[rptac/rptrtp]指令");
+        }
+        return protocol.getParams().split(RobotEnum.PARAMLINK.getValue())[0];
     }
 
     /**
@@ -80,4 +92,5 @@ public class RobotUtil {
         LOG.info("创建协议字符串：{}", paramsString);
         return paramsString.toString();
     }
+
 }

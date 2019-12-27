@@ -15,7 +15,7 @@ import com.robot.agv.vehicle.telegrams.Protocol;
 public abstract class Request
     extends Telegram {
 
-  private Protocol protocol;
+  protected Protocol protocol;
   /**验证码*/
   private String code;
 
@@ -45,7 +45,7 @@ public abstract class Request
   public abstract void updateRequestContent(Response response);
 
   public String getCode() {
-    if (null != protocol) {
+    if (null != getProtocol()) {
       code = ProtocolUtils.builderCrcString(protocol);
     }
     return code;

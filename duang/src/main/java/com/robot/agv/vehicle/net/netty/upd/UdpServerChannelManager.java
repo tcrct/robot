@@ -41,14 +41,11 @@ public class UdpServerChannelManager<O, I> {
     private ScheduledFuture<?> connectFuture;
     private RobotCommAdapter adapter;
     private Supplier<List<ChannelHandler>> channelSupplier;
-    private String host;
-    private int port;
     private int readTimeout;
     private boolean enableLogging;
 
     private boolean initialized;
     private static int BUFFER_SIZE = 64 * 1024;
-    private InetSocketAddress address;
     private static final String LOGGING_HANDLER_NAME = "ChannelLoggingHandler";
 
     public UdpServerChannelManager(@Nonnull RobotCommAdapter adapter,
@@ -91,10 +88,6 @@ public class UdpServerChannelManager<O, I> {
         initialized = true;
     }
 
-    public void setSendAddress(InetSocketAddress address) {
-        this.address = address;
-    }
-
     public boolean isInitialized() {
         return initialized;
     }
@@ -116,8 +109,6 @@ public class UdpServerChannelManager<O, I> {
             if (future.isSuccess()) {
                 this.initialized = true;
                 adapter.onConnect();
-                this.host = host;
-                this.port = port;
                 LOG.warn("UdpServerChannelManager connect is success:  {}:{}", host, port);
             }
             else {
@@ -184,14 +175,15 @@ public class UdpServerChannelManager<O, I> {
             throw new IllegalArgumentException("广播的报文内容不能为空");
         }
 
-        if (null == address && StrUtil.isNotEmpty(host) && port >0) {
-            address = new InetSocketAddress(host, port);
-        }
-
-        LOG.info("upd server send client {} ", (address.getAddress().toString()+":"+address.getPort()));
+        String host= adapter.getProcessModel().getVehicleHost();
+        int port = adapter.getProcessModel().getVehiclePort();
+        InetSocketAddress address = new InetSocketAddress(host, port);
         String telegramStr = telegram.toString();
+        LOG.info("upd server send client[{}][{}], telegram [{}] ",
+                adapter.getProcessModel().getName(),
+                (address.getAddress().toString()+":"+address.getPort()),
+                telegramStr);
         channelFuture.channel().writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(telegramStr, CharsetUtil.UTF_8),  address));
-        address = null;
     }
 
 

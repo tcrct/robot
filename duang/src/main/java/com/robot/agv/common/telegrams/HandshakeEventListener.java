@@ -36,7 +36,7 @@
 //
 //    private HandshakeEventListener() {
 //        handshakeTelegramQueue = AppContext.getAgvConfigure().getHandshakeTelegramQueue();
-//        INTERVAL = SettingUtils.getInt("handshake.interval", "adapter", 1000);
+//        INTERVAL = SettingUtils.getInt("com.robot.core.handshake.interval", "adapter", 1000);
 //    }
 //
 //    @Override

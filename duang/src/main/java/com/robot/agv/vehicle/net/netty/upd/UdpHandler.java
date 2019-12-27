@@ -39,10 +39,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             }
             if(ObjectUtil.isNotEmpty(eventListener)) {
                 // 接收到的报文，以字符串形式传递
-//                eventListener.onIncomingTelegram(telegramData);
                 ChannelManagerFactory.onIncomingTelegram(eventListener, telegramSender, telegramData);
-                // 将地址回调
-                manager.setSendAddress(datagramPacket.sender());
             }
 //            ctx.channel().writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(response.toString(), CharsetUtil.UTF_8), datagramPacket.sender()));
         } catch (Exception e) {

@@ -9,6 +9,8 @@ import static java.util.Objects.requireNonNull;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.swing.Timer;
+
+import com.robot.utils.SettingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +36,7 @@ public class StateRequesterTask {
   /**
    * The interval requests should be enqueued.
    */
-  private int requestInterval = 500;
+  private int requestInterval = 2000;
 
   /**
    * Creates a new instance.
@@ -44,6 +46,7 @@ public class StateRequesterTask {
   @Inject
   public StateRequesterTask(@Nonnull @Assisted ActionListener stateRequestAction) {
     this.stateRequestAction = requireNonNull(stateRequestAction, "stateRequestAction");
+    setRequestInterval(SettingUtils.getInt("com.robot.core.handshake.interval", "adapter", requestInterval));
   }
 
   public void enable() {
@@ -83,4 +86,6 @@ public class StateRequesterTask {
   public void setRequestInterval(int requestInterval) {
     this.requestInterval = requestInterval;
   }
+
+
 }

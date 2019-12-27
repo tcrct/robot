@@ -8,8 +8,6 @@ import com.robot.mvc.dispatch.DispatchFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cn.hutool.core.util.ReflectUtil.invoke;
-
 public class DispatchAction {
 
     private static final Logger LOG = LoggerFactory.getLogger(DispatchAction.class);
@@ -35,8 +33,8 @@ public class DispatchAction {
         if (OrderRequest.isOrderRequest(protocol) || (OrderResponse.isOrderResponse(protocol))) {
             return (Response) dispatchFactory.execute(new OrderRequest(protocol), telegramSender);
         }
-        else if (StateResponse.isStateResponse(protocol)) {
-            return (Response)dispatchFactory.execute(new OrderRequest(protocol), telegramSender);
+        else if (ProtocolUtils.isStateProtocol(protocol.getCommandKey())) {
+            return (Response)dispatchFactory.execute(new StateRequest(protocol), telegramSender);
         } else {
             LOG.error("该报文不符合规则：{}", ProtocolUtils.converterString(protocol));
             return null;

@@ -22,14 +22,14 @@ public class Protocol implements java.io.Serializable {
     /**方向,上下行*/
     private String direction;
     /**CRC验证码*/
-    private String crc ;
+    private String code;
 
-    private Protocol(String deviceId, String direction, String commandKey, String params, String crc) {
+    private Protocol(String deviceId, String direction, String commandKey, String params, String code) {
         this.deviceId = deviceId;
         this.direction = direction;
         this.commandKey = commandKey;
         this.params = params;
-        this.crc = crc;
+        this.code = code;
     }
 
 
@@ -49,8 +49,8 @@ public class Protocol implements java.io.Serializable {
         return direction;
     }
 
-    public String getCrc() {
-        return crc;
+    public String getCode() {
+        return code;
     }
 
 
@@ -70,8 +70,8 @@ public class Protocol implements java.io.Serializable {
         this.direction = direction;
     }
 
-    public void setCrc(String crc) {
-        this.crc = crc;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public static class Builder {

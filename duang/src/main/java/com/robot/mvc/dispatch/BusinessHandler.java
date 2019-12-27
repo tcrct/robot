@@ -34,18 +34,22 @@ public class BusinessHandler implements Callable {
     }
 
     private String getDeviceId() {
-        return (request instanceof OrderRequest) ?
-                request.getProtocol().getDeviceId() :
-                ((StateRequest)request).getModel().getName();
+        Protocol protocol = request.getProtocol();
+        if (ToolsKit.isEmpty(protocol) &&
+                (request instanceof StateRequest)) {
+            return ((StateRequest)request).getModel().getName();
+        }
+        return protocol.getDeviceId();
     }
 
     private String getCommandKey() {
-        return (request instanceof OrderRequest) ?
-                request.getProtocol().getCommandKey() :
-                SettingUtils.getString("state.request.cmd", "setrout");
+        Protocol protocol = request.getProtocol();
+        if (ToolsKit.isEmpty(protocol) &&
+                (request instanceof StateRequest)) {
+            return SettingUtils.getString("", "setrout");
+        }
+        return protocol.getCommandKey();
     }
-
-
 
     @Override
     public Object call() throws Exception {

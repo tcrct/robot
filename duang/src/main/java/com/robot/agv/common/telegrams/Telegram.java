@@ -4,6 +4,7 @@
 package com.robot.agv.common.telegrams;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpStatus;
 
 import java.io.Serializable;
 import static java.util.Objects.requireNonNull;
@@ -27,6 +28,19 @@ public abstract class Telegram implements Serializable {
    * 唯一的报文ID
    */
   protected String id;
+
+  /**
+   * 取返回状态标识，与http状态码对应
+   * @return
+   */
+  protected int status = HttpStatus.HTTP_OK;
+
+  /**
+   * 协议字符串验证码或签名标识符
+   */
+  protected String code;
+
+
 
   /**
    * 构造函数
@@ -61,6 +75,22 @@ public abstract class Telegram implements Serializable {
    */
   public String getId() {
     return id;
+  }
+
+  /**
+   * 状态码，200时为正常
+   * @return
+   */
+  public int getStatus() {
+    return status;
+  }
+
+  /**
+   * 协议的验证码或签名标识符
+   * @return
+   */
+  public String getCode() {
+    return code;
   }
 
   // tag::documentation_checksumComp[]

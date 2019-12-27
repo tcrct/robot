@@ -3,6 +3,7 @@
  */
 package com.robot.agv.vehicle;
 
+import cn.hutool.http.HttpStatus;
 import com.google.inject.assistedinject.Assisted;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
@@ -11,6 +12,8 @@ import com.robot.agv.common.dispatching.DispatchAction;
 import com.robot.agv.common.dispatching.LoadAction;
 import com.robot.agv.common.telegrams.*;
 import com.robot.core.AppContext;
+import com.robot.core.handshake.HandshakeTelegram;
+import com.robot.core.handshake.RobotTelegramListener;
 import com.robot.utils.SettingUtils;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
 import com.robot.agv.vehicle.net.ChannelManagerFactory;
@@ -34,6 +37,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import com.robot.utils.ToolsKit;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.opentcs.data.model.Vehicle;
@@ -119,18 +124,8 @@ public class RobotCommAdapter
   public void initialize() {
     super.initialize();
     this.requestResponseMatcher = componentsFactory.createRequestResponseMatcher(this);
-//    this.stateRequesterTask = componentsFactory.createStateRequesterTask(e -> {
-//      LOG.info("添加新的状态请求到队列");
-//      requestResponseMatcher.enqueueRequest(new StateRequest(Telegram.ID_DEFAULT));
-//    });
-
     // 启动定时器
-    stateRequesterTask = new StateRequesterTask(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        //
-      }
-    });
+    stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
     stateRequesterTask.enable();
     LOG.info("车辆[{}]完成Robot适配器初始化完成", getName());
   }
@@ -181,6 +176,9 @@ public class RobotCommAdapter
     super.disable();
     channelManager.terminate();
     channelManager = null;
+    // 清空握手队列
+    HandshakeTelegram.getHandshakeTelegramQueue().get(getName()).clear();
+    orderIds.clear();
     LOG.info("车辆[{}]停用通讯成功", getName());
   }
 
@@ -302,10 +300,14 @@ public class RobotCommAdapter
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
       StateRequest stateRequest = new StateRequest(cmd, getProcessModel());
       //进行业务处理
-      DispatchAction.duang().doAction(stateRequest, this);
+      StateResponse stateResponse = DispatchAction.duang().doAction(stateRequest, this);
+      if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
+        LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
+        return;
+      }
 
-//      orderIds.put(cmd, stateRequest.getCode());
-      orderIds.put(cmd, "11111");
+
+      orderIds.put(cmd, cmd.isFinalMovement() ? cmd.getFinalDestination().getName() : cmd.getStep().getDestinationPoint().getName());
 
 
       LOG.debug("{}: Enqueuing order telegram with ID {}: {}, {}",
@@ -314,7 +316,7 @@ public class RobotCommAdapter
               stateRequest.getDestinationId(),
               stateRequest.getDestinationAction());
       // 把请求请求加入队列。请求发送规则是FIFO。电报请求将在队列中的第一封电报之后发送。这确保我们总是等待响应，直到发送新请求。
-      requestResponseMatcher.enqueueRequest(stateRequest);
+      requestResponseMatcher.enqueueRequest(getProcessModel().getName(), stateRequest);
       LOG.debug("将车辆[{}]将移动请求提交到消息队列完成", getName());
     }
     catch (IllegalArgumentException exc) {
@@ -388,7 +390,7 @@ public class RobotCommAdapter
     getProcessModel().setCommAdapterConnected(true);
     LOG.debug("车辆[{}]连接成功", getName());
     // 检查是否重新发送上一个请求
-    requestResponseMatcher.checkForSendingNextRequest();
+    requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
   }
 
   @Override
@@ -436,8 +438,9 @@ public class RobotCommAdapter
     getProcessModel().setVehicleIdle(false);
 
     // 检查响应是否与当前请求匹配，请求与响应应该是一一对应的
-    if (!requestResponseMatcher.tryMatchWithCurrentRequest(response)) {
+    if (!requestResponseMatcher.tryMatchWithCurrentRequest((StateResponse)response)) {
       // 如果不匹配则忽略消息
+      LOG.error("该报文不存在系统的队列中，忽略该报文退出");
       return;
     }
 
@@ -446,9 +449,9 @@ public class RobotCommAdapter
       onStateResponse((StateResponse) response);
     }
     // 如果是订单请求，即其它指令请求，例如上报卡号之类的
-    else if (response instanceof OrderResponse) {
-      LOG.debug("车辆[{}]接收到一个新的订单响应: {}", getName(), response);
-    }
+//    else if (response instanceof OrderResponse) {
+//      LOG.debug("车辆[{}]接收到一个新的订单响应: {}", getName(), response.getRawContent());
+//    }
     else {
       LOG.warn("车辆[{}]接收到一个未知的报文请求/响应: {}",
               getName(),
@@ -456,7 +459,7 @@ public class RobotCommAdapter
     }
 
     //发送下一封电报
-    requestResponseMatcher.checkForSendingNextRequest();
+    requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
   }
 
   @Override
@@ -472,7 +475,7 @@ public class RobotCommAdapter
     // Update the request's id
 //    telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
 
-    LOG.info("车辆{}: Sending request '{}'", getName(), telegram);
+//    LOG.info("车辆{}: Sending request '{}'", getName(), telegram);
     channelManager.send(telegram);
 
     // If the telegram is an order, remember it.
@@ -490,8 +493,7 @@ public class RobotCommAdapter
   }
 
   private void onStateResponse(StateResponse stateResponse) {
-    LOG.info("车辆[{}]接收到一个新的状态响应报文: {}", getName(), stateResponse);
-
+    LOG.info("车辆[{}]接收到一个新的状态响应报文: {}", getName(), stateResponse.getRawContent());
     // 更新车辆的当前状态并记住上一个状态
     getProcessModel().setPreviousState(getProcessModel().getCurrentState());
     getProcessModel().setCurrentState(stateResponse);
@@ -518,12 +520,12 @@ public class RobotCommAdapter
    */
   private void checkForVehiclePositionUpdate(StateResponse previousState, StateResponse currentState) {
     // 如果两个状态的位置是相等的，则退出
-    if (previousState.getPositionId() == currentState.getPositionId()) {
+    if (currentState.getPositionId().equals(previousState.getPositionId())) {
         return;
     }
+    String currentPosition = currentState.getPositionId();
     // 将提交上来的位置更新到调试系统，但位置点数不能为0
-    if (currentState.getPositionId() != 0) {
-      String currentPosition = String.valueOf(currentState.getPositionId());
+    if (ToolsKit.isNotEmpty(currentPosition)) {
       getProcessModel().setVehiclePosition(currentPosition);
       LOG.info("车辆[{}]当前最新位置点: {}", getName(), currentPosition);
     }
@@ -550,16 +552,16 @@ public class RobotCommAdapter
    */
   private void checkOrderFinished(StateResponse previousState, StateResponse currentState) {
     // 如果最后完成的订单ID为空，则退出
-    if (currentState.getLastFinishedOrderId() == 0) {
+    if (ToolsKit.isEmpty(currentState.getLastFinishedOrderId())) {
       return;
     }
     // 如果上次完成的订单ID没有发生变化，则退出
-    if (previousState.getLastFinishedOrderId() == currentState.getLastFinishedOrderId()) {
+    if (currentState.getLastFinishedOrderId().equals(previousState.getLastFinishedOrderId())) {
       return;
     }
     // 检查新的已完成订单ID是否在已发送订单的队列中。如果是，则将该订单之前的所有订单报告为已完成。
     if (!orderIds.containsValue(currentState.getLastFinishedOrderId())) {
-      LOG.debug("{}: Ignored finished order ID {} (reported by vehicle, not found in sent queue).",
+      LOG.info("{}: Ignored finished order ID {} (reported by vehicle, not found in sent queue).",
               getName(),
               currentState.getLastFinishedOrderId());
       return;
@@ -576,7 +578,7 @@ public class RobotCommAdapter
         finishedAll = true;
       }
 
-      LOG.debug("车辆[{}]开始执行id为[{}]的移动命令: {}", getName(), orderId, cmd);
+      LOG.debug("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), orderId, cmd);
       getProcessModel().commandExecuted(cmd);
     }
   }

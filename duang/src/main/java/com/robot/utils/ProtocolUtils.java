@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.robot.agv.vehicle.telegrams.Protocol;
+import com.robot.numes.RobotEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +53,13 @@ public class ProtocolUtils {
             }
         }
 
-               return new Protocol.Builder()
-                .deviceId(telegramArray[1])
-                .direction(telegramArray[2])
-                .commandKey(telegramArray[3])
-                .params(telegramArray[4])
-                .crc(telegramArray[5])
-                .build();
+       return new Protocol.Builder()
+        .deviceId(telegramArray[1])
+        .direction(telegramArray[2])
+        .commandKey(telegramArray[3])
+        .params(telegramArray[4])
+        .crc(telegramArray[5])
+        .build();
 
     }
 
@@ -92,6 +93,26 @@ public class ProtocolUtils {
                 .append(SEPARATOR);
 
         return protocolString.toString();
+    }
+
+    /**
+     * 构建握手报文的code
+     * 将方向反转再做成code返回
+     * @param protocol
+     * @return
+     */
+    public static String builderHandshakeCode(Protocol protocol) {
+        if (!checkProtocolValue(protocol)) {
+            return "";
+        }
+        String direction = "";
+        if (RobotEnum.DOWN_LINK.getValue().equals(protocol.getDirection())) {
+            direction = RobotEnum.UP_LINK.getValue();
+        } else if (RobotEnum.UP_LINK.getValue().equals(protocol.getDirection())){
+            direction = RobotEnum.DOWN_LINK.getValue();
+        }
+        protocol.setDirection(direction);
+        return CrcUtil.CrcVerify_Str(builderCrcString(protocol));
     }
 
     /**
@@ -153,6 +174,10 @@ public class ProtocolUtils {
         return "setrout".equalsIgnoreCase(commandKey) ||
                         "rptac".equalsIgnoreCase(commandKey) ||
                         "rptrtp".equalsIgnoreCase(commandKey);
+    }
+
+    public static boolean isReportStateProtocol(String commandKey) {
+        return "rptac".equalsIgnoreCase(commandKey) || "rptrtp".equalsIgnoreCase(commandKey);
     }
 
 }

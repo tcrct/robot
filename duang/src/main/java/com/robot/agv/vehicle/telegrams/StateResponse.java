@@ -3,11 +3,12 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.mvc.exceptions.RobotException;
 import com.robot.utils.ProtocolUtils;
+import com.robot.utils.RobotUtil;
+import com.robot.utils.ToolsKit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -38,7 +39,7 @@ public class StateResponse
   /**
    * The id of the point at the vehicle's current position.
    */
-  private int positionId;
+  private String positionId;
   /**
    * The vehicle's operating state.
    */
@@ -58,7 +59,9 @@ public class StateResponse
   /**
    * The id of the last finished order.
    */
-  private int lastFinishedOrderId;
+  private String lastFinishedOrderId;
+
+
 
   public StateResponse(Request request) {
     super(request.getProtocol());
@@ -76,7 +79,10 @@ public class StateResponse
   public StateResponse(Protocol protocol) {
     super(protocol);
     requireNonNull(protocol, "报文内容不能为空");
-
+    if (ToolsKit.isNotEmpty(protocol.getCommandKey())) {
+      this.positionId = RobotUtil.getPoint(protocol);
+      this.lastFinishedOrderId = positionId;
+    }
 //    decodeTelegramContent(protocol);
   }
   /**
@@ -84,7 +90,7 @@ public class StateResponse
    *
    * @return The id of the point at the vehicle's current position
    */
-  public int getPositionId() {
+  public String getPositionId() {
     return positionId;
   }
 
@@ -129,7 +135,7 @@ public class StateResponse
    *
    * @return The id of the last finished order.
    */
-  public int getLastFinishedOrderId() {
+  public String getLastFinishedOrderId() {
     return lastFinishedOrderId;
   }
 
@@ -141,10 +147,11 @@ public class StateResponse
   public byte getCheckSum() {
     return getRawContentByte()[CHECKSUM_POS];
   }
+
   
   @Override
   public String toString() {
-    return "StateResponse{" + "id=" + id + '}';
+    return "StateResponse{" + "rawContent=" + rawContent + '}';
   }
 
   /**

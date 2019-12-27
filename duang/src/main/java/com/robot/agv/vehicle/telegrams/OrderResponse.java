@@ -52,7 +52,6 @@ public class OrderResponse extends Response {
   public OrderResponse(Request request) {
     super(request.getProtocol());
     super.id = request.getId();
-//    decodeTelegramContent();
   }
 
   /**

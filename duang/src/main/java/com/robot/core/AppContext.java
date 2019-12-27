@@ -1,6 +1,7 @@
 package com.robot.core;
 
 import com.robot.agv.vehicle.RobotCommAdapter;
+import com.robot.utils.SettingUtils;
 import org.opentcs.components.kernel.services.TCSObjectService;
 
 public class AppContext {
@@ -21,5 +22,14 @@ public class AppContext {
      */
     public static TCSObjectService getOpenTcsObjectService(){
         return getCommAdapter().getObjectService() ;
+    }
+
+
+    private static Boolean isHandshakeListener = null;
+    public static boolean isHandshakeListener() {
+        if(null == isHandshakeListener) {
+            isHandshakeListener = SettingUtils.getBoolean("com/robot/core/handshake", true);
+        }
+        return isHandshakeListener;
     }
 }

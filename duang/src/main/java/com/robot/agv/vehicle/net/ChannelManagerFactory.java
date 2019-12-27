@@ -1,5 +1,6 @@
 package com.robot.agv.vehicle.net;
 
+import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.dispatching.DispatchAction;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
@@ -11,6 +12,7 @@ import com.robot.agv.vehicle.net.netty.tcp.TcpChannelManager;
 import com.robot.agv.vehicle.net.netty.upd.UdpChannelManager;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateResponse;
+import com.robot.utils.ToolsKit;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,15 +62,19 @@ public class ChannelManagerFactory {
         }
 
         // 将请求转到业务逻辑处理
-        DispatchAction.duang().doAction(protocol, telegramSender);
-
+        Response response = DispatchAction.duang().doAction(protocol, telegramSender);
+        if (ToolsKit.isNotEmpty(response)) {
+            if (response.getStatus() != HttpStatus.HTTP_OK) {
+                LOG.error("协议内容：{}，业务逻辑处理时发生异常，退出处理！", response.getRawContent());
+            }
+        } else {
+            return;
+        }
+        protocol = response.getProtocol();
         // 如果请求报文里包含setrout,rptac,rptrtp关键字，则认为是State请求
-        //State请求是需要进入到RobotCommAdapter进行处理的，其它请求则直接进入到对应的车辆的Service处理
-        if (StateResponse.isStateResponse(protocol)) {
+        // State请求是需要进入到RobotCommAdapter进行处理的，其它请求则直接进入到对应的车辆的Service处理
+        if (ToolsKit.isNotEmpty(protocol) && ProtocolUtils.isReportStateProtocol(protocol.getCommandKey())) {
             eventListener.onIncomingTelegram(new StateResponse(protocol));
         }
     }
-
-
-
 }

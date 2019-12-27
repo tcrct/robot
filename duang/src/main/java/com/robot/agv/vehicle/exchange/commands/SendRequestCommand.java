@@ -41,6 +41,6 @@ public class SendRequestCommand
     }
 
     RobotCommAdapter robotCommAdapter = (RobotCommAdapter) adapter;
-    robotCommAdapter.getRequestResponseMatcher().enqueueRequest(request);
+    robotCommAdapter.getRequestResponseMatcher().enqueueRequest(robotCommAdapter.getName(), request);
   }
 }
