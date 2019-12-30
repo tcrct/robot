@@ -4,8 +4,10 @@ import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.core.AppContext;
 import com.robot.mvc.exceptions.RobotException;
+import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import org.opentcs.data.model.Point;
+import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +93,27 @@ public class RobotUtil {
         paramsString.append(RobotEnum.PARAMLINK.getValue()).append(endProtocolParam.getAfter());
         LOG.info("创建协议字符串：{}", paramsString);
         return paramsString.toString();
+    }
+
+    /**
+     * 最后执行的动作名称是否包含自定义模板集合中
+     * @param currentCmd
+     * @return
+     */
+    public static  boolean isContainActionsKey(MovementCommand currentCmd) {
+        String operation = currentCmd.getOperation();
+        IAction actionTemplate = AppContext.getCustomActionsQueue().get(operation);
+        if(ToolsKit.isEmpty(actionTemplate)) {
+            actionTemplate = AppContext.getCustomActionsQueue().get(operation.toUpperCase());
+            if(ToolsKit.isEmpty(actionTemplate)) {
+                actionTemplate = AppContext.getCustomActionsQueue().get(operation.toLowerCase());
+            }
+        }
+        if(ToolsKit.isEmpty(actionTemplate)) {
+            LOG.error("请先配置需要执行的自定义指令组合，名称需要一致，不区分大小写");
+            return false;
+        }
+        return true;
     }
 
 }

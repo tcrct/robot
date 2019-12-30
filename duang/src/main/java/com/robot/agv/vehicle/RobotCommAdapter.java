@@ -3,6 +3,7 @@
  */
 package com.robot.agv.vehicle;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpStatus;
 import com.google.inject.assistedinject.Assisted;
 
@@ -14,6 +15,7 @@ import com.robot.agv.common.telegrams.*;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.RobotTelegramListener;
+import com.robot.utils.RobotUtil;
 import com.robot.utils.SettingUtils;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
 import com.robot.agv.vehicle.net.ChannelManagerFactory;
@@ -27,11 +29,8 @@ import com.robot.agv.vehicle.telegrams.StateResponse;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
 import static java.util.Objects.requireNonNull;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
@@ -39,6 +38,7 @@ import javax.inject.Inject;
 
 import com.robot.utils.ToolsKit;
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.opentcs.data.model.Vehicle;
@@ -93,6 +93,12 @@ public class RobotCommAdapter
   private TCSObjectService objectService;
 
   /**
+   * 自定义动作是否运行
+   * 如果key存在，则正在运行该指定的动作组合
+   */
+  private final static Map<String,String>  CUSTOM_ACTIONS_MAP = new java.util.concurrent.ConcurrentHashMap<>();
+
+  /**
    * 创建适配器
    *
    * @param vehicle 需要连接的车辆
@@ -115,6 +121,11 @@ public class RobotCommAdapter
   public TCSObjectService getObjectService() {
     java.util.Objects.requireNonNull(objectService, "objectService is null");
     return objectService;
+  }
+
+  /**取TelegramSender对象*/
+  public TelegramSender getSender() {
+    return (TelegramSender) this;
   }
 
   /**
@@ -577,10 +588,77 @@ public class RobotCommAdapter
       if (orderId.equals(currentState.getLastFinishedOrderId())) {
         finishedAll = true;
       }
-
-      LOG.debug("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), orderId, cmd);
-      getProcessModel().commandExecuted(cmd);
+      // 不是NOP，是最后一条指令并且自定义动作组合里包含该动作名称
+      if(!cmd.isWithoutOperation() &&
+              cmd.isFinalMovement()  &&
+              RobotUtil.isContainActionsKey(cmd)) {
+        // 如果动作指令操作未运行则可以运行
+        String operation = cmd.getOperation();
+        if (!CUSTOM_ACTIONS_MAP.containsKey(operation)) {
+          LOG.info("车辆["+getName()+"]对应位置["+cmd.getStep().getSourcePoint().getName()+"]上的设备开始执行动作["+operation+"]");
+          executeCustomCmds(getName(), operation);
+        } else {
+          LOG.info("不能重复执行该操作，因该动作指令已经运行，作丢弃处理！");
+        }
+      } else {
+        LOG.debug("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), orderId, cmd);
+        executeNextMoveCmd(getName(), "");
+      }
+//      getProcessModel().commandExecuted(cmd);
     }
+  }
+
+  /**
+   * 执行自定义指令组合
+   * @param operations 指令组合标识字符串
+   */
+  private void executeCustomCmds(String vehicleName, String operations)  {
+    final String operation = requireNonNull(operations, "需要执行的动作名称不能为空");
+    if (!isEnabled()) {
+      LOG.error("适配器没开启，请先开启！");
+      return ;
+    }
+    LOG.info("车辆[{}]开始执行自定义指令集合[{}]操作", vehicleName, operation);
+    try {
+      //设置为执行状态
+      getProcessModel().setVehicleState(Vehicle.State.EXECUTING);
+      // 设置为允许单步执行，即等待自定义命令执行完成或某一指令取消单步操作模式后，再发送移动车辆命令。
+      getProcessModel().setSingleStepModeEnabled(true);
+      // 线程执行自定义指令队列
+      ThreadUtil.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AppContext.getCustomActionsQueue().get(operation).execute();
+          } catch (Exception e) {
+            LOG.error("执行自定义动作组合指令时出错: " + e.getMessage(), e);
+          }
+        }
+      });
+      CUSTOM_ACTIONS_MAP.put(operation, operation);
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * 执行下一步移动车辆
+   */
+  public void executeNextMoveCmd(String deviceId, String actionKey) {
+    LOG.info("成功执行自定义指令完成，则检查是否有下一订单，如有则继续执行");
+    //车辆设置为空闲状态，执行下一个移动指令
+    getProcessModel().setVehicleState(Vehicle.State.IDLE);
+    // 取消单步执行状态
+    getProcessModel().setSingleStepModeEnabled(false);
+    MovementCommand cmd = getSentQueue().poll();
+//        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
+    System.out.println("cmd: " + cmd);
+    //移除指定动作的名称
+    if(ToolsKit.isNotEmpty(actionKey)) {
+      CUSTOM_ACTIONS_MAP.remove(actionKey);
+    }
+    System.out.println("#################deviceId: "+ deviceId+",                    getName: " + getName());
+    getProcessModel().commandExecuted(cmd);
   }
 
   /**

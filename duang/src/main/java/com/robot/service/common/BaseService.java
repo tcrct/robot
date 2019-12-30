@@ -1,4 +1,4 @@
-package com.robot.service;
+package com.robot.service.common;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;

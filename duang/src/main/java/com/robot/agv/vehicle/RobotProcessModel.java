@@ -76,6 +76,11 @@ public class RobotProcessModel extends VehicleProcessModel {
    * Whether logging should be enabled or not.
    */
   private boolean loggingEnabled = false;
+  /**
+   * Indicates whether this communication adapter is in single step mode or not (i.e. in automatic
+   * mode).
+   */
+  private boolean singleStepModeEnabled;
 
   /**
    * Creates a new instance.
@@ -382,6 +387,21 @@ public class RobotProcessModel extends VehicleProcessModel {
   }
 
   /**
+   * Sets this communication adapter's <em>single step mode</em> flag.
+   *
+   * @param mode If <code>true</code>, sets this adapter to single step mode,
+   * otherwise sets this adapter to flow mode.
+   */
+  public synchronized void setSingleStepModeEnabled(final boolean mode) {
+    boolean oldValue = singleStepModeEnabled;
+    singleStepModeEnabled = mode;
+
+    getPropertyChangeSupport().firePropertyChange(Attribute.SINGLE_STEP_MODE.name(),
+            oldValue,
+            mode);
+  }
+
+  /**
    * Model attributes specific to this implementation.
    */
   public static enum Attribute {
@@ -397,6 +417,10 @@ public class RobotProcessModel extends VehicleProcessModel {
     DISCONNECTING_ON_IDLE,
     RECONNECTING_ON_CONNECTION_LOSS,
     LOGGING_ENABLED,
-    RECONNECT_DELAY;
+    RECONNECT_DELAY,
+
+    SINGLE_STEP_MODE,
+
+    ;
   }
 }
