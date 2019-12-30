@@ -50,7 +50,7 @@ public abstract class BaseResponse implements ICommand {
 //            baseRequest.getPropertiesMap().put(IRequest.SENSOR_FIELD, sensor);
 //        }
 
-        baseRequest.setRequestType(BaseResponse.class.getSimpleName().toLowerCase());
+//        baseRequest.setRequestType(BaseResponse.class.getSimpleName().toLowerCase());
         return baseRequest;
     }
 
