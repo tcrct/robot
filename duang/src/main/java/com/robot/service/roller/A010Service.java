@@ -9,9 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service
-public class A006Service extends BaseService {
+public class A010Service extends BaseService {
 
-    private static final Logger LOG =  LoggerFactory.getLogger(A006Service.class);
+    private static final Logger LOG =  LoggerFactory.getLogger(A010Service.class);
 
     /**
      * 下发车辆移动指令
