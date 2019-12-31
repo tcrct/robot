@@ -5,16 +5,17 @@ package com.robot.agv.common.telegrams;
 
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
+import com.robot.utils.ToolsKit;
 
 /**
- * A request represents a telegram sent from the control system to vehicle control and expects
- * a response with the same id to match.
+ *  发送到车辆/设备的请求报文对象
+ *  所有请求均继承该抽抽象类
  *
- * @author Mats Wilhelm (Fraunhofer IML)
+ * @author Laotang
  */
-public abstract class Request
-    extends Telegram {
+public abstract class Request extends Telegram {
 
+  /**协议对象*/
   protected Protocol protocol;
   /**验证码*/
   private String code;
@@ -42,7 +43,7 @@ public abstract class Request
   }
 
   /**
-   * Updates the content of the request to include the given id.
+   * 根据响应结果，更新请求内容
    *
    * @param response  返回对象
    */
@@ -58,7 +59,7 @@ public abstract class Request
   @Override
   public String toString() {
     if (null != protocol) {
-      return ProtocolUtils.converterString(protocol);
+      return ToolsKit.isEmpty(rawContent) ? ProtocolUtils.converterString(protocol) : rawContent;
     }
     return "";
   }

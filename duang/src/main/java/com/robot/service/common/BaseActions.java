@@ -1,6 +1,6 @@
 package com.robot.service.common;
 
-import com.robot.agv.common.dispatching.DispatchAction;
+import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
@@ -18,7 +18,8 @@ import com.robot.utils.ActionsQueue;
 import com.robot.utils.CrcUtil;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.ToolsKit;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -29,7 +30,7 @@ import java.util.*;
  */
 public abstract  class BaseActions implements IAction {
 
-    private static final Logger logger = Logger.getLogger(BaseActions.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BaseActions.class);
 
     private ActionsQueue actionsQueue;
 
@@ -111,7 +112,7 @@ public abstract  class BaseActions implements IAction {
         Queue<Request> queue = Objects.requireNonNull(actionsQueue.getQueue(actionKey), "根据"+actionKey+"查找指令队列不能为空");
         Request request = peekRequest(queue).isPresent() ? peekRequest(queue).get() : null;
         if(null == request) {
-            logger.info("指令集为空，退出");
+            LOG.info("指令集为空，退出");
             return ;
         }
         Protocol protocol = request.getProtocol();
@@ -127,7 +128,7 @@ public abstract  class BaseActions implements IAction {
                         isVehicleMove = true;
                         // 取出下一位
                         request = peekRequest(queue).isPresent() ? peekRequest(queue).get() : null;
-                        logger.info("移动车辆指令已发送，继续执行下一个指令请求");
+                        LOG.info("移动车辆指令已发送，继续执行下一个指令请求");
                     }
                 }
 //                else {
@@ -205,10 +206,10 @@ public abstract  class BaseActions implements IAction {
         //退出指令集动作
         if(null == request) {
             ActionsQueue.duang().clearVerificationCodeMap(actionKey);
-            logger.info("指令集为空，退出");
+            LOG.info("指令集为空，退出");
             return ;
         }
-        Response response = DispatchAction.duang().doAction((ActionRequest) request, sender);
+        Response response = SendRequest.duang().send((ActionRequest) request, sender);
         if(AppContext.isHandshakeListener()) {
             ICallback<String> callback = new ICallback<String>() {
                 @Override
@@ -257,7 +258,7 @@ public abstract  class BaseActions implements IAction {
         if(!peekRequest(queue).isPresent()) {
             //清空所有动作请求集合
             ActionsQueue.duang().clearVerificationCodeMap(actionKey);
-            logger.info("清空所有动作请求集合完成");
+            LOG.info("清空所有动作请求集合完成");
             executeMoveVehicleCmd(deviceId, actionKey);
         }
     }
@@ -273,7 +274,7 @@ public abstract  class BaseActions implements IAction {
         try {
             Request request = queue.peek();
             queue.remove();
-            logger.info("移除设备任务队列[ " + request.getRawContent() +" ]成功！");
+            LOG.info("移除设备任务队列[ " + request.getRawContent() +" ]成功！");
             return true;
         } catch (Exception e) {
             return false;

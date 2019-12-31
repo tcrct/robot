@@ -62,5 +62,5 @@ vehicle=A030
 enable=true;
 #设置允许访问的报文指令，若没有设置，则代表允许所有请求访问
 allow.keys=getmt,setout,setrout,setspd,setvmot,getmag,getac,setmov,rptac,rpterr,rptmt,rptrtp,rptvmot,rptgo,rptmag,rptstart,rptmode
-#允许访问的串口模块地址
-serialport.address=A001,A002,A006,A009,A010,A030,A033,B002,B003,B030,B052,B053
+#允许访问的车辆或设备名称
+device.name=A001,A002,A006,A009,A010,A030,A033,B002,B003,B030,B052,B053

@@ -3,7 +3,7 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
-import com.robot.agv.common.dispatching.LoadAction;
+import com.robot.agv.common.send.LoadAction;
 
 /**
  * Defines all actions that a vehicle can execute as part of an order.

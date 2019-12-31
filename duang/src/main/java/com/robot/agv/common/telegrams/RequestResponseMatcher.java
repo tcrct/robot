@@ -62,7 +62,7 @@ public class RequestResponseMatcher {
    * @param request 请求对象
    */
   public void enqueueRequest(@NonNull String deviceId, @Nonnull Request request) {
-    requireNonNull(request, "request");
+    requireNonNull(request, "请求对象不能为空");
     boolean emptyQueueBeforeEnqueue = requests.isEmpty();
 
     LOG.info("加入到车辆移动队列的请求: {}", request.getRawContent());

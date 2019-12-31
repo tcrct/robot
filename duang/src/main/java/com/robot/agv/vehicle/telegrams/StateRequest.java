@@ -114,6 +114,7 @@ public class StateRequest extends Request {
     Route.Step step = command.getStep();
     currectPointName = step.getSourcePoint().getName();
     nextPointName = step.getDestinationPoint().getName();
+    setRobotSend(true);
   }
 
   public MovementCommand getCommand() {

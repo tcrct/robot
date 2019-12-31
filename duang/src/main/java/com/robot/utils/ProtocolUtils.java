@@ -4,12 +4,17 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.robot.agv.vehicle.telegrams.Protocol;
+import com.robot.mvc.exceptions.RobotException;
 import com.robot.numes.RobotEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * 协议对象工具
@@ -18,6 +23,7 @@ import java.util.Map;
 public class ProtocolUtils {
 
     private static final Logger LOG =  LoggerFactory.getLogger(ProtocolUtils.class);
+    private static Set<String> DEVICE_FLAG_SET;
 
     /**协议报文前缀*/
     private static final String START_PREFIX = "##";
@@ -184,4 +190,45 @@ public class ProtocolUtils {
         return "rptrtp".equalsIgnoreCase(commandKey);
     }
 
+
+    /**
+     * 检查是否为状态类型的请求，
+     * 方向为s时为请求
+     *
+     * @param protocol 待检查的协议对象
+     * @return 是则返回true，否则返回false
+     */
+    public static boolean isOrderRequest(Protocol protocol) {
+        requireNonNull(protocol, "报文协议对象不能为空");
+        return ProtocolUtils.isOrderProtocol(protocol.getCommandKey()) &&
+                ProtocolUtils.DIRECTION_REQUEST.equalsIgnoreCase(protocol.getDirection());
+    }
+
+    /**
+     * 检查是否为状态类型的响应
+     *方向为r时为响应
+     *
+     * @param protocol 待检查的报文协议对象
+     * @return 是则返回true，否则返回false
+     */
+    public static boolean isOrderResponse(Protocol protocol) {
+        requireNonNull(protocol, "报文协议对象不能为空");
+
+        return ProtocolUtils.isOrderProtocol(protocol.getCommandKey()) &&
+                ProtocolUtils.DIRECTION_RESPONSE.equalsIgnoreCase(protocol.getDirection());
+    }
+
+    public static boolean isAllowAccess(String deviceId) {
+        return getDeviceFlagSet().contains(deviceId);
+    }
+
+    private static Set<String> getDeviceFlagSet() {
+        if(null == DEVICE_FLAG_SET) {
+            DEVICE_FLAG_SET = SettingUtils.getStringsToSet("device.name", "security");
+            if (ToolsKit.isEmpty(DEVICE_FLAG_SET)) {
+                throw new RobotException("请先在app.setting里设置device.name值！该值用于允许指定的车辆或设备ID访问系统");
+            }
+        }
+        return DEVICE_FLAG_SET;
+    }
 }

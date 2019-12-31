@@ -9,8 +9,8 @@ import com.google.inject.assistedinject.Assisted;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 
-import com.robot.agv.common.dispatching.DispatchAction;
-import com.robot.agv.common.dispatching.LoadAction;
+import com.robot.agv.common.send.SendRequest;
+import com.robot.agv.common.send.LoadAction;
 import com.robot.agv.common.telegrams.*;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
@@ -24,12 +24,9 @@ import com.robot.agv.vehicle.net.ChannelManagerFactory;
 import com.robot.agv.vehicle.net.IChannelManager;
 import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.agv.vehicle.telegrams.OrderRequest;
-import com.robot.agv.vehicle.telegrams.OrderResponse;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.agv.vehicle.telegrams.StateResponse;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.util.*;
 
@@ -39,8 +36,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.robot.utils.ToolsKit;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.opentcs.data.model.Vehicle;
@@ -319,7 +314,7 @@ public class RobotCommAdapter
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
       StateRequest stateRequest = new StateRequest(cmd, getProcessModel());
       //进行业务处理
-      StateResponse stateResponse = DispatchAction.duang().doAction(stateRequest, this);
+      StateResponse stateResponse = SendRequest.duang().send(stateRequest, this);
       if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
         LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
         return;

@@ -1,4 +1,4 @@
-package com.robot.agv.common.dispatching;
+package com.robot.agv.common.send;
 
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
@@ -10,29 +10,29 @@ import com.robot.mvc.dispatch.DispatchFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DispatchAction {
+public class SendRequest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DispatchAction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SendRequest.class);
     private static DispatchFactory dispatchFactory = null;
     private static final String methodName = "execute";
-    private static DispatchAction dispatchAction;
+    private static SendRequest sendRequest;
 
-    private DispatchAction(){
+    private SendRequest(){
         initDispatchFactory();
     }
 
-    public static synchronized  DispatchAction duang() {
-        if (null == dispatchAction) {
-            dispatchAction = new DispatchAction();
+    public static synchronized SendRequest duang() {
+        if (null == sendRequest) {
+            sendRequest = new SendRequest();
         }
-        return dispatchAction;
+        return sendRequest;
     }
 
 
-    // 执行操作
-    public Response doAction(Protocol protocol, TelegramSender telegramSender)  {
+    // TCP、UDP、串口接收到报文信息
+    public Response send(Protocol protocol, TelegramSender telegramSender)  {
         // 如果是Order请求(车辆主动上报的)或响应(车辆回复应答)，则直接进行到车辆或设备的Service
-        if (OrderRequest.isOrderRequest(protocol) || (OrderResponse.isOrderResponse(protocol))) {
+        if (ProtocolUtils.isOrderRequest(protocol) || (ProtocolUtils.isOrderResponse(protocol))) {
             return (Response) dispatchFactory.execute(new OrderRequest(protocol), telegramSender);
         }
         else if (ProtocolUtils.isStateProtocol(protocol.getCommandKey())) {
@@ -47,7 +47,7 @@ public class DispatchAction {
      * 处理车辆移动请求
      * @param request
      */
-    public StateResponse doAction(StateRequest request,TelegramSender telegramSender) {
+    public StateResponse send(StateRequest request, TelegramSender telegramSender) {
         StateResponse response = (StateResponse)dispatchFactory.execute(request, telegramSender);
         return response;
     }
@@ -58,7 +58,7 @@ public class DispatchAction {
      * @param telegramSender
      * @return
      */
-    public ActionResponse doAction(ActionRequest request, TelegramSender telegramSender) {
+    public ActionResponse send(ActionRequest request, TelegramSender telegramSender) {
         ActionResponse response = (ActionResponse)dispatchFactory.execute(request, telegramSender);
         return response;
     }

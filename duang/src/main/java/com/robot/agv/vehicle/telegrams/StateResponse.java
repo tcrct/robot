@@ -36,7 +36,7 @@ public class StateResponse
    */
   public static final int CHECKSUM_POS = TELEGRAM_LENGTH - 2;
   /**
-   * The id of the point at the vehicle's current position.
+   * 上报的点
    */
   private String positionId;
   /**
@@ -73,7 +73,7 @@ public class StateResponse
 /**
  * Creates a new instance.
  *
- * @param protocol This telegram's raw content.
+ * @param protocol 协议对象
  */
   public StateResponse(Protocol protocol) {
     super(protocol);
@@ -85,18 +85,18 @@ public class StateResponse
 //    decodeTelegramContent(protocol);
   }
   /**
-   * Returns the id of the point at the vehicle's current position.
+   * 取当前位置的卡号或ID号
    *
-   * @return The id of the point at the vehicle's current position
+   * @return 车辆当前所在的位置
    */
   public String getPositionId() {
     return positionId;
   }
 
   /**
-   * Returns the vehicle's operating state.
+   * 返回车辆的操作状态
    *
-   * @return The vehicle's operating state.
+   * @return 车辆的操作状态
    */
   public OperatingState getOperatingState() {
     return operatingState;
@@ -150,7 +150,7 @@ public class StateResponse
   
   @Override
   public String toString() {
-    return "StateResponse{" + "rawContent=" + rawContent + '}';
+    return  rawContent;
   }
 
   /**
@@ -206,19 +206,19 @@ public class StateResponse
   }
 
   /**
-   * The load handling state of a vehicle.
+   * 车辆的负载处理状态
    */
   public static enum LoadState {
     /**
-     * The vehicle's load handling state is currently empty.
+     * 空
      */
     EMPTY,
     /**
-     * The vehicle's load handling state is currently full.
+     * 已装载
      */
     FULL,
     /**
-     * The vehicle's load handling state is currently unknown.
+     * 未知
      */
     UNKNOWN
   }
@@ -228,27 +228,30 @@ public class StateResponse
    */
   public static enum OperatingState {
     /**
-     * The vehicle is currently executing an operation.
+     * 正在执行操作
      */
     ACTING,
+
     /**
-     * The vehicle is currently idle.
+     * 空闲
      */
     IDLE,
+
     /**
-     * The vehicle is currently moving.
+     * 移动
      */
     MOVING,
+
     /**
-     * The vehicle is currently in an error state.
+     * 错误
      */
     ERROR,
     /**
-     * The vehicle is currently recharging.
+     * 充电
      */
     CHARGING,
     /**
-     * The vehicle's state is currently unknown.
+     * 未知
      */
     UNKNOWN
   }

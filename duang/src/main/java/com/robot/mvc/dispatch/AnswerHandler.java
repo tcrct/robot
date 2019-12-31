@@ -31,7 +31,9 @@ public class AnswerHandler implements Runnable {
     public void run() {
         // 凡是请求上报的(s)，均需要应答回复
         if (RobotEnum.UP_LINK.getValue().equals(protocol.getDirection())) {
+            //更改方向
             protocol.setDirection(ProtocolUtils.DIRECTION_RESPONSE);
+            // 重新计算验证码
             protocol.setCode(ProtocolUtils.builderCrcString(protocol));
             OrderRequest orderRequest = new OrderRequest(protocol);
             LOG.info("发送应答报文[{}]", orderRequest.getRawContent());

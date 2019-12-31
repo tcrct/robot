@@ -68,20 +68,6 @@ public class OrderResponse extends Response {
     return "OrderResponse{" + "id=" + id + '}';
   }
 
-  /**
-   * 检查是否为状态类型的响应
-   *方向为r时为响应
-   *
-   * @param protocol 待检查的报文协议对象
-   * @return 是则返回true，否则返回false
-   */
-  public static boolean isOrderResponse(Protocol protocol) {
-    requireNonNull(protocol, "报文协议对象不能为空");
-
-    return ProtocolUtils.isOrderProtocol(protocol.getCommandKey()) &&
-                ProtocolUtils.DIRECTION_RESPONSE.equalsIgnoreCase(protocol.getDirection());
-  }
-
   private void decodeTelegramContent() {
     super.id = IdUtil.objectId();
 

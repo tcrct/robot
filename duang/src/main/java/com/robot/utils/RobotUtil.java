@@ -28,7 +28,7 @@ public class RobotUtil {
     }
 
     /***
-     * 根据点名称取openTCS线路图上的点
+     * 根据协议对象取上报卡号或预停车协议内容的点
      */
     public static String getReportPoint(Protocol protocol){
         java.util.Objects.requireNonNull(protocol, "协议对象不能为空");

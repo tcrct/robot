@@ -111,7 +111,7 @@ public abstract class Response
    */
   public Protocol getProtocol() {
     if (ToolsKit.isEmpty(super.rawContent)) {
-      throw new RobotException("返回的报文协议内容为空，不能生成code返回");
+      throw new RobotException("返回的报文协议内容为空");
     }
     if (ToolsKit.isEmpty(protocol)) {
       protocol = ProtocolUtils.buildProtocol(super.rawContent);

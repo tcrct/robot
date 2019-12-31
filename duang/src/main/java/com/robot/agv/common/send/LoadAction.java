@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Fraunhofer IML
  */
-package com.robot.agv.common.dispatching;
+package com.robot.agv.common.send;
 
 import org.opentcs.data.order.DriveOrder;
 
