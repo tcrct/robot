@@ -1,6 +1,7 @@
 package com.robot.mvc.dispatch;
 
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
@@ -54,10 +55,9 @@ public class BusinessHandler implements Callable {
     @Override
     public Object call() throws Exception {
         try {
-            Route route = RouteHelper.getRoutes().get(deviceId);
+            Route route = RouteHelper.duang().getRoutes().get(deviceId);
             if (null == route) {
-                LOG.info("与车辆或设备[deviceId]对应的Service没有实现");
-                return response;
+                throw new NullPointerException("与车辆或设备["+deviceId+"]对应的Service没有实现");
             }
             Method method = route.getMethodMap().get(methodName.toLowerCase());
             // 如果Service里没有实现该指令对应的方法，则执行公用的duang方法，直接返回响应协议，防止抛出异常

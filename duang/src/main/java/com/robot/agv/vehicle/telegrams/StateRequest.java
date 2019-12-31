@@ -8,6 +8,7 @@ import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.RobotProcessModel;
 import com.robot.mvc.exceptions.RobotException;
+import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.ToolsKit;
 import org.opentcs.data.order.Route;
@@ -43,6 +44,8 @@ public class StateRequest extends Request {
   private String currectPointName;
   /**路径的下一个点*/
   private String nextPointName;
+  /**是否预停车*/
+  private boolean isPreStop;
 
 
   /**
@@ -83,6 +86,24 @@ public class StateRequest extends Request {
     }
     super.rawContent = response.getRawContent();
     super.protocol = ProtocolUtils.buildProtocol(rawContent);
+    setPreStop();
+  }
+
+  public boolean isPreStop() {
+    return isPreStop;
+  }
+
+  /**
+   * 是否预停车指令
+   * @return 是返回true
+   */
+  private void setPreStop() {
+    if (ToolsKit.isEmpty(protocol) || ToolsKit.isEmpty(protocol.getParams())) {
+      isPreStop = false;
+    }
+    String[] paramsArray = protocol.getParams().split(RobotEnum.PARAMLINK.getValue());
+    String lastCmd = paramsArray[paramsArray.length-1];
+    isPreStop =  lastCmd.startsWith(RobotEnum.PRE_STOP.getValue());
   }
 
   private void encodeTelegramContent() {

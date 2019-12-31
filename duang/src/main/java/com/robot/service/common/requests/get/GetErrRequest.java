@@ -1,13 +1,13 @@
 package com.robot.service.common.requests.get;
 
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 查询状态信息
  *
  * @author Laotang
  */
-public class GetErrRequest extends BaseRequest {
+public class GetErrRequest extends ActionRequest {
 
     public GetErrRequest(String deviceId, String params) {
         super(deviceId, params);

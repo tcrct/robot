@@ -1,6 +1,6 @@
 package com.robot.service.common.requests.get;
 
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 查询车辆速度值
@@ -8,7 +8,7 @@ import com.robot.service.common.BaseRequest;
  *
  * @author Laotang
  */
-public class GetSpdRequest extends BaseRequest {
+public class GetSpdRequest extends ActionRequest {
 
     public GetSpdRequest(String deviceId, String params) {
         super(deviceId, params);

@@ -176,8 +176,12 @@ public class ProtocolUtils {
                         "rptrtp".equalsIgnoreCase(commandKey);
     }
 
-    public static boolean isReportStateProtocol(String commandKey) {
-        return "rptac".equalsIgnoreCase(commandKey) || "rptrtp".equalsIgnoreCase(commandKey);
+    public static boolean isRptacProtocol(String commandKey) {
+        return "rptac".equalsIgnoreCase(commandKey);
+    }
+
+    public static boolean isRptrtpProtocol(String commandKey) {
+        return "rptrtp".equalsIgnoreCase(commandKey);
     }
 
 }

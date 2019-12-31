@@ -1,6 +1,6 @@
 package com.robot.service.common.requests.set;
 
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 预停车指令
@@ -8,7 +8,7 @@ import com.robot.service.common.BaseRequest;
  *
  * @author Laotang
  */
-public class SetRtpRequest extends BaseRequest {
+public class SetRtpRequest extends ActionRequest {
 
     public SetRtpRequest(String deviceId, String param) {
         super(deviceId, param);

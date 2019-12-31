@@ -1,5 +1,6 @@
 package com.robot.service.roller;
 
+import com.robot.mvc.annotations.Action;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.service.common.BaseActions;
 import com.robot.service.common.requests.set.SetOutRequest;
@@ -15,6 +16,7 @@ import java.util.List;
  *
  * @author Laotang
  */
+@Action(name="RollerLeft")
 public class RollerLeftActions extends BaseActions {
 
     /**动作组合名称，要与工厂概述中的动作名称一样*/

@@ -15,7 +15,13 @@ public class RouteHelper {
     private static Set<String> excludedMethodName = null;
     private static Map<String,Route> ROUTE_MAP = new HashMap<>();
 
-    public static Map<String,Route> getRoutes() {
+    private static RouteHelper routeHelper = new RouteHelper();
+
+    public static RouteHelper duang() {
+        return routeHelper;
+    }
+
+    public  Map<String,Route> getRoutes() {
         if(ROUTE_MAP.isEmpty()) {
             if (null == excludedMethodName) {
                 excludedMethodName = ToolsKit.buildExcludedMethodName();
@@ -52,7 +58,7 @@ public class RouteHelper {
         return ROUTE_MAP;
     }
 
-    private static void printRouteKey() {
+    private  void printRouteKey() {
         List<String> keyList = new ArrayList<>(ROUTE_MAP.keySet());
             if(keyList.isEmpty()) {
             throw new NullPointerException("业务逻辑处理类不存在！");

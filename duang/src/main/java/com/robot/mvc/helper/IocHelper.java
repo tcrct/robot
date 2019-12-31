@@ -32,7 +32,7 @@ public class IocHelper {
     }
 
     public  void ioc() throws Exception {
-        Iterator<Map.Entry<String, Route>> iterator = Optional.ofNullable(RouteHelper.getRoutes().entrySet().iterator()).orElseThrow(NullPointerException::new);
+        Iterator<Map.Entry<String, Route>> iterator = Optional.ofNullable(RouteHelper.duang().getRoutes().entrySet().iterator()).orElseThrow(NullPointerException::new);
         while (iterator.hasNext()) {
             Map.Entry<String, Route> entry = iterator.next();
             Route route = Optional.ofNullable(entry.getValue()).orElseThrow(NullPointerException::new);

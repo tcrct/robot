@@ -1,5 +1,6 @@
 package com.robot.mvc.helper;
 
+import com.robot.mvc.annotations.Action;
 import com.robot.mvc.annotations.Controller;
 import com.robot.mvc.annotations.Service;
 
@@ -8,6 +9,7 @@ import java.lang.annotation.Annotation;
 public enum AnnotationEnum {
     CONTROLLER_ANNOTATION(Controller.class, true,"所有Controller类的注解，必须在类添加该注解否则框架忽略扫描"),
     SERVICE_ANNOTATION(Service.class, true,"所有Service类的注解，必须在类添加该注解否则框架忽略扫描"),
+    ACTION_ANNOTATION(Action.class, true,"工站动作指令，所有Action类的注解，必须在类添加该注解否则框架忽略扫描"),
 //    ENTITY_ANNOTATION(Entity.class, false,"所有Entity类的注解，必须在类添加该注解否则框架忽略扫描"),
     ;
 

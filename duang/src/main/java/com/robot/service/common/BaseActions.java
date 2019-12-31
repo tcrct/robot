@@ -44,12 +44,12 @@ public abstract  class BaseActions implements IAction {
     public BaseActions() {
         actionsQueue = ActionsQueue.duang();
         handshakeTelegram = HandshakeTelegram.duang(); // AppContext.getAgvConfigure().getHandshakeTelegramQueue();
-        adapter = AppContext.getCommAdapter();
     }
 
     @Override
     public void execute() throws Exception {
         if(ToolsKit.isEmpty(sender)) {
+            adapter = AppContext.getCommAdapter();
             sender = adapter.getSender();
         }
         //确认车辆没有提前移走
@@ -70,12 +70,12 @@ public abstract  class BaseActions implements IAction {
         Queue<Request> queue = actionsQueue.getQueue(actionKey);
         Double index = 1D; //从1开始，以便在1的位置前插入一个指令
         for(ICommand command : requestList) {
-            BaseRequest request= null;
-            if(command instanceof BaseRequest){
-                request = (BaseRequest)command;
+            ActionRequest request= null;
+            if(command instanceof ActionRequest){
+                request = (ActionRequest)command;
             }
-            else if(command instanceof BaseResponse){
-                BaseResponse response = (BaseResponse)command;
+            else if(command instanceof ActionResponse){
+                ActionResponse response = (ActionResponse)command;
                 request = response.toRequest();
 //                request.setRequestType(BaseResponse.class.getSimpleName().toLowerCase());
             }
@@ -100,7 +100,7 @@ public abstract  class BaseActions implements IAction {
 //            }
             // 设置索引，排序用，提供改变队列中元素的顺序的能力
             request.setIndex(index++);
-//            request.setVehicleId(vehicleId); //设备车辆ID
+            request.setVehicleId(vehicleId); //设备车辆ID
             queue.add(request);
         }
         actionsQueue.put(actionKey, queue);
@@ -110,6 +110,10 @@ public abstract  class BaseActions implements IAction {
     private void sendTelegram(String actionKey) {
         Queue<Request> queue = Objects.requireNonNull(actionsQueue.getQueue(actionKey), "根据"+actionKey+"查找指令队列不能为空");
         Request request = peekRequest(queue).isPresent() ? peekRequest(queue).get() : null;
+        if(null == request) {
+            logger.info("指令集为空，退出");
+            return ;
+        }
         Protocol protocol = request.getProtocol();
         // 先判断是否为VehicleMoveRequest，如果是，则作特殊处理，移动车辆指令发送后，系统会执行下发路径指令到车辆
         if(ToolsKit.isNotEmpty(request) && ToolsKit.isNotEmpty(protocol)) {
@@ -204,7 +208,7 @@ public abstract  class BaseActions implements IAction {
             logger.info("指令集为空，退出");
             return ;
         }
-        Response response = DispatchAction.duang().doAction(protocol, sender);
+        Response response = DispatchAction.duang().doAction((ActionRequest) request, sender);
         if(AppContext.isHandshakeListener()) {
             ICallback<String> callback = new ICallback<String>() {
                 @Override
@@ -238,7 +242,12 @@ public abstract  class BaseActions implements IAction {
         Queue<Request> queue = actionsQueue.getQueue(actionKey);
         if(peekRequest(queue).isPresent()) {
             Request request = peekRequest(queue).get();
-            if (request.getId().equals(requestId)) {
+            if (ToolsKit.isNotEmpty(request) &&
+                    ToolsKit.isEmpty(deviceId) &&
+                    (request instanceof ActionRequest)) {
+                deviceId = ((ActionRequest)request).getVehicleId();
+            }
+            if (ToolsKit.isNotEmpty(request) && request.getId().equals(requestId)) {
                 if (remove(queue)) {//移除第一位请求
                     sendTelegram(actionKey);// 发送下一个请求
                 }
@@ -248,7 +257,7 @@ public abstract  class BaseActions implements IAction {
         if(!peekRequest(queue).isPresent()) {
             //清空所有动作请求集合
             ActionsQueue.duang().clearVerificationCodeMap(actionKey);
-            logger.info("清空");
+            logger.info("清空所有动作请求集合完成");
             executeMoveVehicleCmd(deviceId, actionKey);
         }
     }

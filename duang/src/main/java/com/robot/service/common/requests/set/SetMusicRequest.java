@@ -1,6 +1,6 @@
 package com.robot.service.common.requests.set;
 
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 设置音乐
@@ -9,7 +9,7 @@ import com.robot.service.common.BaseRequest;
  *
  * @author Laotang
  */
-public class SetMusicRequest extends BaseRequest {
+public class SetMusicRequest extends ActionRequest {
 
     public SetMusicRequest(String deviceId, String param) {
         super(deviceId, param);

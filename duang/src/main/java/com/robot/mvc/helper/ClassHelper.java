@@ -66,6 +66,10 @@ public class ClassHelper {
         return CLASS_MAP.get(AnnotationEnum.CONTROLLER_ANNOTATION.getName());
     }
 
+    public List<Class<?>> getActionClassList() {
+        return CLASS_MAP.get(AnnotationEnum.ACTION_ANNOTATION.getName());
+    }
+
     public List<Class<?>> getEntityClassList() {
 //        return CLASS_MAP.get(AnnotationEnum.ENTITY_ANNOTATION.getName());
         return null;

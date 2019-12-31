@@ -1,11 +1,13 @@
 package com.robot.service.common;
 
 
+import cn.hutool.core.util.IdUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.numes.RobotEnum;
+import com.robot.utils.ProtocolUtils;
 import com.robot.utils.ToolsKit;
 
 /**
@@ -13,20 +15,20 @@ import com.robot.utils.ToolsKit;
  *
  * @author Laotang
  */
-public abstract class BaseRequest extends Request implements ICommand,Comparable<BaseRequest> {
+public abstract class ActionRequest extends Request implements ICommand,Comparable<ActionRequest> {
 
     /**请求参数*/
     private String params;
     /**接收的设备ID*/
     private String deviceId;
-    /**是否服务器发送，默认为true*/
-    private boolean isServerSend = true;
+    /**与设备对应的车辆ID*/
+    private String vehicleId;
     /**请求类型*/
-    private String requestType = BaseRequest.class.getSimpleName().toLowerCase();
+    private String requestType = ActionRequest.class.getSimpleName().toLowerCase();
     /**位置索引*/
     private Double index;
 
-    public BaseRequest(String deviceId, String param) {
+    public ActionRequest(String deviceId, String param) {
         this(new Protocol.Builder().deviceId(deviceId).params(param).build());
     }
 
@@ -34,7 +36,7 @@ public abstract class BaseRequest extends Request implements ICommand,Comparable
      * 构造函数
      * @param protocol 协议对象
      */
-    public BaseRequest(Protocol protocol) {
+    public ActionRequest(Protocol protocol) {
         protocol.setCommandKey(cmd());
         protocol.setDirection(RobotEnum.UP_LINK.getValue());
 //        setProtocol(java.util.Objects.requireNonNull(protocol, "BaseRequest: protocol对象不能为null"));
@@ -45,6 +47,10 @@ public abstract class BaseRequest extends Request implements ICommand,Comparable
 //            protocol.setSerialPortAddress(deviceId);
 //        }
         this.params = java.util.Objects.requireNonNull(protocol.getParams(), "BaseRequest: 接收的参数不能为空");
+        setProtocol(protocol);
+        super.rawContent = ProtocolUtils.converterString(protocol);
+        setRobotSend(true);
+        super.id = IdUtil.objectId();
     }
 
     public Double getIndex() {
@@ -69,17 +75,13 @@ public abstract class BaseRequest extends Request implements ICommand,Comparable
 //        return requestType;
 //    }
 
-    public void setProtocol(Protocol protocol) {
-        this.protocol = protocol;
-    }
-
     /**
      * 排序, index数值越少的越靠前
      * @param that
      * @return
      */
     @Override
-    public int compareTo(BaseRequest that) {
+    public int compareTo(ActionRequest that) {
 
         if(this.index > that.index) {
             return 1;
@@ -100,4 +102,15 @@ public abstract class BaseRequest extends Request implements ICommand,Comparable
      */
     public abstract String cmd();
 
+    public void setProtocol(Protocol protocol) {
+        super.protocol = protocol;
+    }
+
+    public String getVehicleId() {
+        return vehicleId;
+    }
+
+    public void setVehicleId(String vehicleId) {
+        this.vehicleId = vehicleId;
+    }
 }

@@ -5,7 +5,6 @@ package com.robot.agv.vehicle.telegrams;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
-import com.robot.mvc.exceptions.RobotException;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
@@ -80,7 +79,7 @@ public class StateResponse
     super(protocol);
     requireNonNull(protocol, "报文内容不能为空");
     if (ToolsKit.isNotEmpty(protocol.getCommandKey())) {
-      this.positionId = RobotUtil.getPoint(protocol);
+      this.positionId = RobotUtil.getReportPoint(protocol);
       this.lastFinishedOrderId = positionId;
     }
 //    decodeTelegramContent(protocol);

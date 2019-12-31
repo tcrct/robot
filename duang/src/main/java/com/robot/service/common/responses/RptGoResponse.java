@@ -1,6 +1,6 @@
 package com.robot.service.common.responses;
 
-import com.robot.service.common.BaseResponse;
+import com.robot.service.common.ActionResponse;
 
 /**
  * 小车请求继续执行当前任务
@@ -8,7 +8,7 @@ import com.robot.service.common.BaseResponse;
  *
  * Created by laotang on 2019/10/15.
  */
-public class RptGoResponse extends BaseResponse {
+public class RptGoResponse extends ActionResponse {
 
     public RptGoResponse(String deviceId, String paramEnum) {
         super(deviceId, paramEnum);

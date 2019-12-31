@@ -2,6 +2,8 @@ package com.robot.agv.common.dispatching;
 
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
+import com.robot.service.common.ActionRequest;
+import com.robot.service.common.ActionResponse;
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.*;
 import com.robot.mvc.dispatch.DispatchFactory;
@@ -28,7 +30,7 @@ public class DispatchAction {
 
 
     // 执行操作
-    public Response doAction(Protocol protocol, TelegramSender telegramSender) {
+    public Response doAction(Protocol protocol, TelegramSender telegramSender)  {
         // 如果是Order请求(车辆主动上报的)或响应(车辆回复应答)，则直接进行到车辆或设备的Service
         if (OrderRequest.isOrderRequest(protocol) || (OrderResponse.isOrderResponse(protocol))) {
             return (Response) dispatchFactory.execute(new OrderRequest(protocol), telegramSender);
@@ -47,6 +49,17 @@ public class DispatchAction {
      */
     public StateResponse doAction(StateRequest request,TelegramSender telegramSender) {
         StateResponse response = (StateResponse)dispatchFactory.execute(request, telegramSender);
+        return response;
+    }
+
+    /**
+     * 设备动作指令请求
+     * @param request
+     * @param telegramSender
+     * @return
+     */
+    public ActionResponse doAction(ActionRequest request, TelegramSender telegramSender) {
+        ActionResponse response = (ActionResponse)dispatchFactory.execute(request, telegramSender);
         return response;
     }
 

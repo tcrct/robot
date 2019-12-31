@@ -66,14 +66,17 @@ public class ChannelManagerFactory {
         if (ToolsKit.isNotEmpty(response)) {
             if (response.getStatus() != HttpStatus.HTTP_OK) {
                 LOG.error("协议内容：{}，业务逻辑处理时发生异常，退出处理！", response.getRawContent());
+                return;
             }
         } else {
             return;
         }
         protocol = response.getProtocol();
-        // 如果请求报文里包含setrout,rptac,rptrtp关键字，则认为是State请求
+        // 如果请求报文里包含rptac,rptrtp关键字，则认为是State请求
         // State请求是需要进入到RobotCommAdapter进行处理的，其它请求则直接进入到对应的车辆的Service处理
-        if (ToolsKit.isNotEmpty(protocol) && ProtocolUtils.isReportStateProtocol(protocol.getCommandKey())) {
+        if (ToolsKit.isNotEmpty(protocol) && (
+                ProtocolUtils.isRptacProtocol(protocol.getCommandKey()) ||
+                        ProtocolUtils.isRptrtpProtocol(protocol.getCommandKey()))) {
             eventListener.onIncomingTelegram(new StateResponse(protocol));
         }
     }

@@ -15,6 +15,8 @@ import com.robot.agv.common.telegrams.*;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.RobotTelegramListener;
+import com.robot.mvc.helper.ActionHelper;
+import com.robot.mvc.interfaces.IAction;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.SettingUtils;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
@@ -97,6 +99,7 @@ public class RobotCommAdapter
    * 如果key存在，则正在运行该指定的动作组合
    */
   private final static Map<String,String>  CUSTOM_ACTIONS_MAP = new java.util.concurrent.ConcurrentHashMap<>();
+  private final static Map<String,MovementCommand>  LAST_CMD_MAP = new java.util.concurrent.ConcurrentHashMap<>();
 
   /**
    * 创建适配器
@@ -169,7 +172,12 @@ public class RobotCommAdapter
     super.enable();
     LOG.info("车辆[{}]通讯管理器启用成功", getName());
 
-    getProcessModel().setVehiclePosition("705");
+    if ("A006".equals(getName())) {
+      getProcessModel().setVehiclePosition("705");
+    }
+    if ("A010".equals(getName())) {
+      getProcessModel().setVehiclePosition("1");
+    }
     getProcessModel().setVehicleIdle(true);
     getProcessModel().setVehicleState(Vehicle.State.IDLE);
 
@@ -439,7 +447,7 @@ public class RobotCommAdapter
 
   /***
    * 接收到报文消息
-   * @param response  报文对象
+   * @param response  接收到的报文对象
    */
   @Override
   public synchronized void onIncomingTelegram(Response response) {
@@ -451,7 +459,7 @@ public class RobotCommAdapter
     // 检查响应是否与当前请求匹配，请求与响应应该是一一对应的
     if (!requestResponseMatcher.tryMatchWithCurrentRequest((StateResponse)response)) {
       // 如果不匹配则忽略消息
-      LOG.error("该报文不存在系统的队列中，忽略该报文退出");
+      LOG.error("该报文不存在系统的队列中或需要作预停车处理，忽略该报文退出");
       return;
     }
 
@@ -596,15 +604,16 @@ public class RobotCommAdapter
         String operation = cmd.getOperation();
         if (!CUSTOM_ACTIONS_MAP.containsKey(operation)) {
           LOG.info("车辆["+getName()+"]对应位置["+cmd.getStep().getSourcePoint().getName()+"]上的设备开始执行动作["+operation+"]");
-          executeCustomCmds(getName(), operation);
+          executeCustomCmds(cmd, getName(), operation);
         } else {
           LOG.info("不能重复执行该操作，因该动作指令已经运行，作丢弃处理！");
         }
       } else {
         LOG.debug("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), orderId, cmd);
-        executeNextMoveCmd(getName(), "");
+//        executeNextMoveCmd(getName(), "");
+        getProcessModel().commandExecuted(cmd);
       }
-//      getProcessModel().commandExecuted(cmd);
+//
     }
   }
 
@@ -612,13 +621,13 @@ public class RobotCommAdapter
    * 执行自定义指令组合
    * @param operations 指令组合标识字符串
    */
-  private void executeCustomCmds(String vehicleName, String operations)  {
+  private void executeCustomCmds(MovementCommand cmd, String deviceId, String operations)  {
     final String operation = requireNonNull(operations, "需要执行的动作名称不能为空");
     if (!isEnabled()) {
       LOG.error("适配器没开启，请先开启！");
       return ;
     }
-    LOG.info("车辆[{}]开始执行自定义指令集合[{}]操作", vehicleName, operation);
+    LOG.info("车辆[{}]开始执行自定义指令集合[{}]操作", deviceId, operation);
     try {
       //设置为执行状态
       getProcessModel().setVehicleState(Vehicle.State.EXECUTING);
@@ -629,12 +638,18 @@ public class RobotCommAdapter
         @Override
         public void run() {
           try {
-            AppContext.getCustomActionsQueue().get(operation).execute();
+            IAction action = ActionHelper.duang().getCustomActionsQueue().get(operation);
+            if (ToolsKit.isNotEmpty(action)) {
+              action.execute();
+            } else  {
+              LOG.info("根据[{}]查找不到对应的动作指令处理类", operation);
+            }
           } catch (Exception e) {
             LOG.error("执行自定义动作组合指令时出错: " + e.getMessage(), e);
           }
         }
       });
+      LAST_CMD_MAP.put(deviceId, cmd);
       CUSTOM_ACTIONS_MAP.put(operation, operation);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -650,14 +665,15 @@ public class RobotCommAdapter
     getProcessModel().setVehicleState(Vehicle.State.IDLE);
     // 取消单步执行状态
     getProcessModel().setSingleStepModeEnabled(false);
-    MovementCommand cmd = getSentQueue().poll();
+    MovementCommand cmd = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
 //        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
     System.out.println("cmd: " + cmd);
     //移除指定动作的名称
     if(ToolsKit.isNotEmpty(actionKey)) {
       CUSTOM_ACTIONS_MAP.remove(actionKey);
     }
-    System.out.println("#################deviceId: "+ deviceId+",                    getName: " + getName());
+    System.out.println("#################deviceId: "+ deviceId+"                    getName: " + getName());
+    LAST_CMD_MAP.remove(deviceId);
     getProcessModel().commandExecuted(cmd);
   }
 

@@ -125,7 +125,7 @@ public class RequestResponseMatcher {
 
     String cmdKey = protocol.getCommandKey();
     // 如果不是报告卡号的指令则退出
-    if (!ProtocolUtils.isReportStateProtocol(cmdKey)) {
+    if (!(ProtocolUtils.isRptacProtocol(cmdKey) || ProtocolUtils.isRptrtpProtocol(cmdKey))) {
       LOG.info("不是报告卡号的指令，退出处理");
       return false;
     }
@@ -137,6 +137,20 @@ public class RequestResponseMatcher {
       return false;
     }
     StateRequest currentRequest = (StateRequest)queue.peek();
+    // 如果最后一个指令是预停车的(s)，则需要判断参数是否以1结尾
+    if (currentRequest.isPreStop()) {
+      if (ProtocolUtils.isRptrtpProtocol(cmdKey)) {
+        if (!protocol.getParams().endsWith("1")) {
+          LOG.info("车辆 [" + deviceId + "]预停车不成功，[" + protocol.getParams() + "]最后一位参数不为1");
+          return false;
+        }
+        LOG.info("车辆 [" + deviceId + "]预停车成功");
+      } else {
+        LOG.info("车辆 [" + deviceId + "]最后一个指令是预停车，等待预停车到位指令[{}]上报再作处理", "rptrtp");
+        return false;
+      }
+    }
+
     // 如果上报的卡号与队列中的第1位是一致的
     if (currentRequest != null && response.containsPoint(currentRequest)) {
       queue.remove();

@@ -2,7 +2,9 @@ package com.robot.agv;
 
 import com.robot.agv.config.OpenAgvConfigure;
 import com.robot.mvc.dispatch.route.RouteHelper;
+import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.helper.ClassHelper;
+import com.robot.mvc.helper.IocHelper;
 import org.opentcs.guing.RunPlantOverview;
 import org.opentcs.kernel.RunKernel;
 import org.opentcs.kernelcontrolcenter.RunKernelControlCenter;
@@ -15,10 +17,11 @@ public class Duang {
 
     public static void main(String[] args) {
         Duang duang = new Duang();
-
-        ClassHelper.duang();
-        RouteHelper.getRoutes();
         try {
+            ClassHelper.duang();
+            RouteHelper.duang().getRoutes();
+            ActionHelper.duang().getActions();
+            IocHelper.duang().ioc();
             duang.startOpenTcs();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

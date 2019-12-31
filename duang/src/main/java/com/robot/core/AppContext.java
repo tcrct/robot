@@ -38,15 +38,7 @@ public class AppContext {
         return isHandshakeListener;
     }
 
-    /**自定义指令操作集合*/
-    private static final Map<String, IAction> CUSTOM_ACTION_QUEYE = new HashMap<>();
-    /**
-     * 自定义的指令队列集合
-     * @return
-     */
-    public static Map<String, IAction> getCustomActionsQueue() {
-        return CUSTOM_ACTION_QUEYE;
-    }
+
 
 
     /**所有工站/设备动作请求*/

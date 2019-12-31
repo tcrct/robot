@@ -1,6 +1,6 @@
 package com.robot.service.common.requests.set;
 
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 启动--手动测试用
@@ -9,7 +9,7 @@ import com.robot.service.common.BaseRequest;
  *
  * @author Laotang
  */
-public class SetMovRequest extends BaseRequest {
+public class SetMovRequest extends ActionRequest {
 
     public SetMovRequest(String deviceId, String param) {
         super(deviceId, param);

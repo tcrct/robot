@@ -14,6 +14,8 @@ import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.dispatch.route.RouteHelper;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.numes.RobotEnum;
+import com.robot.service.common.ActionRequest;
+import com.robot.service.common.ActionResponse;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
@@ -50,7 +52,7 @@ public class DispatchFactory {
      */
     public Object execute(Request request, TelegramSender sender) {
         if (SERVICE_METHOD_MAP.isEmpty()) {
-            SERVICE_METHOD_MAP.putAll(RouteHelper.getRoutes());
+            SERVICE_METHOD_MAP.putAll(RouteHelper.duang().getRoutes());
         }
 
         // 返回对象
@@ -61,12 +63,21 @@ public class DispatchFactory {
                 throw new RobotException("非移动车辆请求的协议对象不能为空，返回null退出处理！");
             }
             response = new OrderResponse(request);
-        } else {
+        }
+        else if (request instanceof StateRequest){
             response= new StateResponse(request);
         }
+        else if (request instanceof  ActionRequest) {
+            response= new ActionResponse(request) {
+                @Override
+                public String cmd() {
+                    return request.getProtocol().getCommandKey();
+                }
+            };
+        }
 
-
-        if (ToolsKit.isNotEmpty(protocol)) {
+        // 如果协议对象不为空且不是调度系统主动发送的，则要进行应答回复
+        if (ToolsKit.isNotEmpty(protocol) && !request.isRobotSend()) {
             // 线程进行应答回复
             ThreadUtil.execute(new AnswerHandler(protocol, sender));
             // 如果是r方向，则不需要进行到Service
@@ -77,11 +88,17 @@ public class DispatchFactory {
             }
         }
 
+        // 如果是调度系统发起的请求并且是ActionRequest请求，暂不进行业务逻辑处理，直接发送指令返回
+        if (request.isRobotSend() && (request instanceof ActionRequest)){
+            sender.sendTelegram(request);
+            return response;
+        }
+
         // 线程进行业务处理
         FutureTask<Response> futureTask = (FutureTask<Response>) ThreadUtil.execAsync(new BusinessHandler(request, response));
         try {
             response =  futureTask.get(3000L, TimeUnit.MILLISECONDS);
-            if (response.isResponseTo(request)) {
+            if ((response.getStatus() == HttpStatus.HTTP_OK) && response.isResponseTo(request)) {
                 // 将返回内容更新到request
                 request.updateRequestContent(response);
                 // 如果sender不为null且不是StateRequest请求，且不是上报卡号的报文

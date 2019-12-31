@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
 public abstract class Response
     extends Telegram {
 
-  private Protocol protocol;
+  protected Protocol protocol;
 
   /**
    * 构造函数
@@ -52,7 +52,7 @@ public abstract class Response
   public  boolean containsPoint(@NonNull Request request) {
     requireNonNull(request, "request");
     // 提交上来的点名称
-    String postPoint = RobotUtil.getPoint(getProtocol());
+    String postPoint = RobotUtil.getReportPoint(getProtocol());
     //
     String point = "";
     if ((request instanceof StateRequest) &&

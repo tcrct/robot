@@ -3,7 +3,7 @@ package com.robot.utils;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.core.AppContext;
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,21 +118,21 @@ public class ActionsQueue {
      */
     public void add2Top(String actionKey, Request request) {
         Queue<Request> queue = getQueue(actionKey);
-        BaseRequest baseRequest = (BaseRequest)queue.peek();
-        Double index = baseRequest.getIndex();
+        ActionRequest actionRequest = (ActionRequest)queue.peek();
+        Double index = actionRequest.getIndex();
         if(index >= 1d) {
             index--;
         }
         if (index < 0d) {
             index = 0d;
         }
-        add2Queue(queue, (BaseRequest)request,actionKey, index);
+        add2Queue(queue, (ActionRequest)request,actionKey, index);
     }
 
-    private void add2Queue(Queue<Request> queue, BaseRequest baseRequest, String actionKey, Double index) {
-        baseRequest.setIndex(index);
+    private void add2Queue(Queue<Request> queue, ActionRequest actionRequest, String actionKey, Double index) {
+        actionRequest.setIndex(index);
         if(ToolsKit.isNotEmpty(queue)) {
-            queue.add(baseRequest);
+            queue.add(actionRequest);
             sort(queue);
             put(actionKey, queue);
         }
@@ -143,9 +143,9 @@ public class ActionsQueue {
      */
     public void add2Bottom(String actionKey, Request request) {
         Queue<Request> queue = getQueue(actionKey);
-        BaseRequest baseRequest = (BaseRequest)request;
+        ActionRequest actionRequest = (ActionRequest)request;
         double index = (Integer.valueOf(queue.size()).doubleValue());
-        add2Queue(queue, baseRequest,actionKey, index);
+        add2Queue(queue, actionRequest,actionKey, index);
     }
 
     /**
@@ -153,9 +153,9 @@ public class ActionsQueue {
      */
     public void add2QueueByIndex(String actionKey, Request request) {
         Queue<Request> queue = getQueue(actionKey);
-        BaseRequest baseRequest = (BaseRequest)request;
-        double index = baseRequest.getIndex();
-        add2Queue(queue, baseRequest,actionKey, index);
+        ActionRequest actionRequest = (ActionRequest)request;
+        double index = actionRequest.getIndex();
+        add2Queue(queue, actionRequest,actionKey, index);
     }
 
     /**
@@ -168,7 +168,7 @@ public class ActionsQueue {
         Collections.sort(requestList, new Comparator<Request>() {
             @Override
             public int compare(Request o1, Request o2) {
-                if(((BaseRequest)o1).getIndex() < ((BaseRequest)o2).getIndex()) {
+                if(((ActionRequest)o1).getIndex() < ((ActionRequest)o2).getIndex()) {
                     return -1;
                 }
                 return 1;

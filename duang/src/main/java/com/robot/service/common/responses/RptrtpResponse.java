@@ -1,7 +1,7 @@
 package com.robot.service.common.responses;
 
 
-import com.robot.service.common.BaseResponse;
+import com.robot.service.common.ActionResponse;
 
 /**
  *上报动作到位信息
@@ -9,7 +9,7 @@ import com.robot.service.common.BaseResponse;
  *
  * Created by laotang on 2019/10/15.
  */
-public class RptrtpResponse extends BaseResponse {
+public class RptrtpResponse extends ActionResponse {
 
     public RptrtpResponse(String deviceId, String paramEnum) {
         super(deviceId, paramEnum);

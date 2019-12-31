@@ -1,14 +1,14 @@
 package com.robot.service.common.requests;
 
 import com.robot.agv.vehicle.telegrams.Protocol;
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 下发路径指令
  *
  * @author Laotang
  */
-public class VehicleMoveRequest extends BaseRequest {
+public class VehicleMoveRequest extends ActionRequest {
 
     public static final String CMD_FIELD = "VM_REQ";
     public static final String DEFAULT_PARAM = "duangduangduang";

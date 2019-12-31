@@ -30,7 +30,18 @@ public class A010Service extends BaseService {
      * @return
      */
     public String rptAc(Request request, Response response) {
-        LOG.info("车辆[{}]行驶到达[{}]卡号", request.getProtocol().getDeviceId(), RobotUtil.getPoint(request.getProtocol()));
+        LOG.info("车辆[{}]行驶到达[{}]卡号", request.getProtocol().getDeviceId(), RobotUtil.getReportPoint(request.getProtocol()));
+        return request.getRawContent();
+    }
+
+    /**
+     * 预停车到位
+     * @param request
+     * @param response
+     * @return
+     */
+    public String rptRtp(Request request, Response response) {
+        LOG.info("车辆[{}]接收到预停车到位协议：[{}]", request.getProtocol().getDeviceId(), request.getRawContent());
         return request.getRawContent();
     }
 

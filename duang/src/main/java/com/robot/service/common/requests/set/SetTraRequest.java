@@ -1,6 +1,6 @@
 package com.robot.service.common.requests.set;
 
-import com.robot.service.common.BaseRequest;
+import com.robot.service.common.ActionRequest;
 
 /**
  * 设置循迹方式--手动测试用
@@ -14,7 +14,7 @@ import com.robot.service.common.BaseRequest;
  *
  * @author Laotang
  */
-public class SetTraRequest extends BaseRequest {
+public class SetTraRequest extends ActionRequest {
 
     public SetTraRequest(String deviceId, String param) {
         super(deviceId, param);

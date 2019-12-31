@@ -18,6 +18,10 @@ public abstract class Request
   protected Protocol protocol;
   /**验证码*/
   private String code;
+  /**是否服务器发送，为true是由服务器发送请求*/
+  private boolean isRobotSend;
+  /**是否为等待回复请求*/
+  private boolean isActionResponse;
 
   public Request() {
     super("");
@@ -57,5 +61,21 @@ public abstract class Request
       return ProtocolUtils.converterString(protocol);
     }
     return "";
+  }
+
+  public boolean isRobotSend() {
+    return isRobotSend;
+  }
+
+  public void setRobotSend(boolean robotSend) {
+    isRobotSend = robotSend;
+  }
+
+  public boolean isActionResponse() {
+    return isActionResponse;
+  }
+
+  public void setActionResponse(boolean actionResponse) {
+    isActionResponse = actionResponse;
   }
 }
