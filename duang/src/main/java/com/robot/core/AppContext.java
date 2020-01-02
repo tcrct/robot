@@ -5,11 +5,15 @@ import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.utils.SettingUtils;
 import org.opentcs.components.kernel.services.TCSObjectService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class AppContext {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AppContext.class);
 
     /**
      * 通讯适配器
@@ -58,6 +62,7 @@ public class AppContext {
      */
     private static NetChannelType CHANNEL_TYPE = null;
     public  static void setNetChannelType(NetChannelType channelType) {
+        LOG.info("Robot适配器的网络渠道类型为: {}", channelType);
         CHANNEL_TYPE = channelType;
     }
     public static NetChannelType getNetChannelType() {

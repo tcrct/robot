@@ -702,7 +702,6 @@ public class RobotCommAdapter
     if (ToolsKit.isEmpty(type)) {
       type =  NetChannelType.UDP;
     }
-    LOG.info("Robot适配器的网络渠道类型为: {}", type);
     return type;
   }
 
