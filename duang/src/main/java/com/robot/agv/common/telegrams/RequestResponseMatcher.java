@@ -89,8 +89,10 @@ public class RequestResponseMatcher {
       // 添加到应答(握手)队列
       if (AppContext.isHandshakeListener() &&
               RobotEnum.UP_LINK.getValue().equals(request.getProtocol().getDirection())) {
-        LOG.info("添加到握手队列中的报文: {}", request.getRawContent());
-        HandshakeTelegram.duang().add(new HandshakeTelegramDto(new StateResponse(request)));
+        LOG.info("握手队列中需要重复发送的报文: {}", request.getRawContent());
+        StateResponse stateResponse = new StateResponse(request);
+        LOG.info("添加到握手队列等待上报的报文: {}, 验证码: {}", stateResponse.getRawContent(), stateResponse.getCode());
+        HandshakeTelegram.duang().add(new HandshakeTelegramDto(request, stateResponse));
       }
     }
     else {

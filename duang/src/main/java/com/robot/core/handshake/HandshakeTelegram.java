@@ -104,19 +104,18 @@ public class HandshakeTelegram {
     public void remove(String deviceId, String code) {
         requireNonNull(deviceId, "设备ID不能为空");
         requireNonNull(code, "标识字段不能为空，握手消息唯一标识字段");
-        LinkedBlockingQueue<HandshakeTelegramDto> queue = requireNonNull(HANDSHAKE_TELEGRAM_QUEUE.get(deviceId), "handshake queue is null");
-        HandshakeTelegramDto toBeDeleteDto = requireNonNull(queue.peek(), "handshake telegram dto is null");
-        Response response = requireNonNull(toBeDeleteDto.getResponse(), "response in null");
-        String handshakeKey = response.getHandshakeCode(); //程序计算出来的握手验证码
+        LinkedBlockingQueue<HandshakeTelegramDto> queue = HANDSHAKE_TELEGRAM_QUEUE.get(deviceId);
         if (ToolsKit.isEmpty(queue)) {
             throw new RobotException("该车辆["+deviceId+"]对应的握手队列不存在！");
         }
+        HandshakeTelegramDto toBeDeleteDto = requireNonNull(queue.peek(), "handshake telegram dto is null");
+        Response response = requireNonNull(toBeDeleteDto.getResponse(), "response in null");
+        String handshakeKey = response.getCode(); //.getHandshakeCode(); //程序计算出来的握手验证码
         if (ToolsKit.isEmpty(handshakeKey)) {
             throw new RobotException("握手key不能为空");
         }
         if (!handshakeKey.equals(code)) {
             LOG.info("系统队列中的request报文: {}", toBeDeleteDto.getRequest().getRawContent());
-            LOG.info("系统队列中的response报文: {}", toBeDeleteDto.getResponse().getRawContent());
             throw new RobotException("提交上来的报文handshakeKey[" + code + "]与系统队列中handshakeKey[" + handshakeKey + "]不一致！");
         }
         //回调并移除报文

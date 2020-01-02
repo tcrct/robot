@@ -34,9 +34,8 @@ public class HandshakeTelegramDto implements Serializable {
         this(dto.getRequest(), dto.getResponse(),dto.getCallback(), dto.getActionKey());
     }
 
-    public HandshakeTelegramDto(Response response) {
-        this.request = (response instanceof StateResponse)
-                ? new StateRequest((StateResponse)response) : new OrderRequest((OrderResponse)response) ;
+    public HandshakeTelegramDto(Request request, Response response) {
+        this.request = request;
         this.response = response;
     }
 

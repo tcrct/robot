@@ -1,5 +1,6 @@
 package com.robot.utils;
 
+import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.core.AppContext;
@@ -7,6 +8,7 @@ import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
+import com.robot.service.common.ActionResponse;
 import org.opentcs.data.model.Point;
 import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
@@ -118,6 +120,31 @@ public class RobotUtil {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 模拟设备返回信息与验证码
+     * @param response
+     * @return
+     */
+    public static ActionResponse simulation(Response response){
+        java.util.Objects.requireNonNull(response, "response is null");
+        Protocol protocol = response.getProtocol();
+        if (ToolsKit.isEmpty(protocol)) {
+            LOG.info("模拟设备返回信息时，响应对象里的协议对象为空，返回响应对象");
+            return (ActionResponse)response;
+        }
+        // 更改方向
+        protocol.setDirection(RobotEnum.DOWN_LINK.getValue());
+        // 计算出验证码
+        String code = CrcUtil.CrcVerify_Str(ProtocolUtils.builderCrcString(protocol));
+        protocol.setCode(code);
+        return new ActionResponse(protocol) {
+            @Override
+            public String cmd() {
+                return protocol.getCommandKey();
+            }
+        };
     }
 
 }

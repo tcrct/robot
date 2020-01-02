@@ -118,7 +118,9 @@ public class ProtocolUtils {
             direction = RobotEnum.DOWN_LINK.getValue();
         }
         protocol.setDirection(direction);
-        return CrcUtil.CrcVerify_Str(builderCrcString(protocol));
+        String code =  CrcUtil.CrcVerify_Str(builderCrcString(protocol));
+        protocol.setCode(code);
+        return code;
     }
 
     /**

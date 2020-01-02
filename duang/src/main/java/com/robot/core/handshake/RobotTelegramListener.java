@@ -49,7 +49,7 @@ public class RobotTelegramListener implements ActionListener {
                     }
                     else {
                         Protocol protocol = response.getProtocol();
-                        LOG.info("正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
+                        LOG.info("正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码为["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
 //                        clearAdvanceReportTelegram(response);
                     }
                 }

@@ -20,7 +20,7 @@ public abstract class Request extends Telegram {
   /**验证码*/
   private String code;
   /**是否服务器发送，为true是由服务器发送请求*/
-  private boolean isRobotSend;
+  private boolean isRobotSend = false;
   /**是否为等待回复请求*/
   private boolean isActionResponse;
 

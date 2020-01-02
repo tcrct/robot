@@ -5,6 +5,8 @@ package com.robot.agv.vehicle.telegrams;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.numes.RobotEnum;
+import com.robot.utils.CrcUtil;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
@@ -64,10 +66,9 @@ public class StateResponse
 
   public StateResponse(Request request) {
     super(request.getProtocol());
-    super.id = request.getId();
     requireNonNull(request, "报文请求不能为空");
-
-//    decodeTelegramContent(protocol);
+    super.id = request.getId();
+    decodeTelegramContent(request.getProtocol());
   }
 
 /**
@@ -167,14 +168,23 @@ public class StateResponse
             ProtocolUtils.DIRECTION_RESPONSE.equalsIgnoreCase(protocol.getDirection());
   }
 
-  private void decodeTelegramContent(String telegramData) {
-//    id = Ints.fromBytes((byte) 0, (byte) 0, rawContent[3], rawContent[4]);
-//    positionId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[5], rawContent[6]);
-//    operatingState = decodeOperatingState((char) rawContent[7]);
-//    loadState = decodeLoadState((char) rawContent[8]);
-//    lastReceivedOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[9], rawContent[10]);
-//    currentOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[11], rawContent[12]);
-//    lastFinishedOrderId = Ints.fromBytes((byte) 0, (byte) 0, rawContent[13], rawContent[14]);
+  private void decodeTelegramContent(Protocol reqProtocol) {
+    if (ToolsKit.isEmpty(reqProtocol)) {
+      return;
+    }
+    String direction = RobotEnum.UP_LINK.getValue().equalsIgnoreCase(reqProtocol.getDirection())
+            ? RobotEnum.DOWN_LINK.getValue() : reqProtocol.getDirection();
+    super.protocol  = null;
+    super.protocol  = new Protocol.Builder()
+            .commandKey(reqProtocol.getCommandKey())
+            .direction(direction)
+            .params(reqProtocol.getParams())
+            .deviceId(reqProtocol.getDeviceId())
+            .build();
+    super.rawContent = ProtocolUtils.converterString(super.protocol);
+    String code = CrcUtil.CrcVerify_Str(ProtocolUtils.builderCrcString(super.protocol));
+    super.protocol.setCode(code);
+    super.code = code;
   }
 
   private OperatingState decodeOperatingState(char operatingStateRaw) {

@@ -67,7 +67,7 @@ public class DispatchFactory {
             response = new OrderResponse(request);
         }
         //如果是移动请求,发送移动命令
-        else if (request instanceof StateRequest){
+        else if (request instanceof StateRequest) {
             response= new StateResponse(request);
         }
         // 如果是动作请求，发送设备动作
@@ -81,9 +81,7 @@ public class DispatchFactory {
         }
 
         // 如果协议对象不为空且不是调度系统主动发送的，则要进行应答回复
-        if (ToolsKit.isNotEmpty(protocol) &&
-                (request instanceof OrderRequest) &&
-                !request.isRobotSend()) {
+        if (ToolsKit.isNotEmpty(protocol) && !request.isRobotSend()) {
             // 如果是车辆/设备主动发送的请求则进行应答回复
             if (RobotEnum.UP_LINK.getValue().equalsIgnoreCase(protocol.getDirection())) {
                 ThreadUtil.execute(new AnswerHandler(protocol, sender));
@@ -99,7 +97,8 @@ public class DispatchFactory {
         // 如果是调度系统发起的请求并且是ActionRequest请求，暂不进行业务逻辑处理，直接发送指令返回
         if (request.isRobotSend() && (request instanceof ActionRequest)) {
             sender.sendTelegram(request);
-            return response;
+            // 计算设备/车辆响应的协议内容及验证码，存放在response里返回，让日志显示
+            return RobotUtil.simulation(response);
         }
 
         // 线程进行业务处理

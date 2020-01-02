@@ -55,6 +55,7 @@ public class OrderRequest extends Request {
 
   public OrderRequest(Protocol protocol) {
     super(protocol);
+    this.setRobotSend(false);
     this.code = protocol.getCode();
   }
 

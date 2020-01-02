@@ -85,7 +85,7 @@ public abstract class Response
 
   @Override
   public String getCode() {
-    return getProtocol().getCode();
+    return  (ToolsKit.isEmpty(code)) ? getProtocol().getCode() : code;
   }
 
   /**
