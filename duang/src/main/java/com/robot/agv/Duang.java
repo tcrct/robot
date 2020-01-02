@@ -1,10 +1,13 @@
 package com.robot.agv;
 
 import com.robot.agv.config.OpenAgvConfigure;
+import com.robot.agv.vehicle.net.NetChannelType;
+import com.robot.core.AppContext;
 import com.robot.mvc.dispatch.route.RouteHelper;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.helper.ClassHelper;
 import com.robot.mvc.helper.IocHelper;
+import org.opentcs.App;
 import org.opentcs.guing.RunPlantOverview;
 import org.opentcs.kernel.RunKernel;
 import org.opentcs.kernelcontrolcenter.RunKernelControlCenter;
@@ -18,6 +21,7 @@ public class Duang {
     public static void main(String[] args) {
         Duang duang = new Duang();
         try {
+            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
             ClassHelper.duang();
             RouteHelper.duang().getRoutes();
             ActionHelper.duang().getActions();

@@ -2,7 +2,7 @@ package com.robot.core;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.vehicle.RobotCommAdapter;
-import com.robot.mvc.interfaces.IAction;
+import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.utils.SettingUtils;
 import org.opentcs.components.kernel.services.TCSObjectService;
 
@@ -38,9 +38,6 @@ public class AppContext {
         return isHandshakeListener;
     }
 
-
-
-
     /**所有工站/设备动作请求*/
     private static final Map<String ,Request> ALL_ACTION_REQUEST = new HashMap<>();
     // 所有工站/设备的动作请求，CRC验证码作为key
@@ -54,5 +51,16 @@ public class AppContext {
     public static Map<String, Request> getAdvanceReportMap() {
 //        logger.info("ADVANCE_REPORT_MAP size: " + ADVANCE_REPORT_MAP.size());
         return ADVANCE_REPORT_MAP;
+    }
+
+    /**
+     * 设置通讯类型
+     */
+    private static NetChannelType CHANNEL_TYPE = null;
+    public  static void setNetChannelType(NetChannelType channelType) {
+        CHANNEL_TYPE = channelType;
+    }
+    public static NetChannelType getNetChannelType() {
+        return CHANNEL_TYPE;
     }
 }
