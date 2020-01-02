@@ -3,6 +3,7 @@ package com.robot.mvc.dispatch;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.numes.RobotEnum;
+import com.robot.utils.CrcUtil;
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.OrderRequest;
 import com.robot.agv.vehicle.telegrams.Protocol;
@@ -23,7 +24,13 @@ public class AnswerHandler implements Runnable {
     private TelegramSender sender;
 
     public AnswerHandler(Protocol protocol, TelegramSender sender) {
-        this.protocol = protocol;
+        this.protocol = new Protocol.Builder()
+                .deviceId(protocol.getDeviceId())
+                .commandKey(protocol.getCommandKey())
+                .direction(protocol.getDirection())
+                .params(protocol.getParams())
+                .crc(protocol.getCode())
+                .build();
         this.sender = sender;
     }
 
@@ -34,9 +41,9 @@ public class AnswerHandler implements Runnable {
             //更改方向
             protocol.setDirection(ProtocolUtils.DIRECTION_RESPONSE);
             // 重新计算验证码
-            protocol.setCode(ProtocolUtils.builderCrcString(protocol));
+            protocol.setCode(CrcUtil.CrcVerify_Str(ProtocolUtils.builderCrcString(protocol)));
             OrderRequest orderRequest = new OrderRequest(protocol);
-            LOG.info("发送应答报文[{}]", orderRequest.getRawContent());
+//            LOG.info("发送应答报文[{}]", orderRequest.getRawContent());
             sender.sendTelegram(orderRequest);
         }
     }

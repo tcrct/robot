@@ -110,10 +110,9 @@ public class RequestResponseMatcher {
   }
 
   /**
-   * Returns <code>true</code> if the response matches to the first request in the queue.
-   * If it matches, the request will be removed.
+   * 对比匹配
    *
-   * @param response The response to match
+   * @param response 响应请求，车辆 或设备提交上来的请求
    * @return <code>true</code> if the response matches to the first request in the queue.
    */
   public boolean tryMatchWithCurrentRequest(@Nonnull StateResponse response) {
@@ -138,6 +137,7 @@ public class RequestResponseMatcher {
       LOG.info("根据[{}]查找不到对应的移动命令队列", deviceId);
       return false;
     }
+    //队列里的第一位请求元素
     StateRequest currentRequest = (StateRequest)queue.peek();
     // 如果最后一个指令是预停车的(s)，则需要判断参数是否以1结尾
     if (currentRequest.isPreStop()) {

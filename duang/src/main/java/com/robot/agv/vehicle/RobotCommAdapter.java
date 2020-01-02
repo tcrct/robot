@@ -12,11 +12,13 @@ import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.send.LoadAction;
 import com.robot.agv.common.telegrams.*;
+import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.RobotTelegramListener;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
+import com.robot.numes.RobotEnum;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.SettingUtils;
 import com.robot.agv.vehicle.exchange.RobotProcessModelTO;
@@ -173,6 +175,10 @@ public class RobotCommAdapter
     if ("A010".equals(getName())) {
       getProcessModel().setVehiclePosition("1");
     }
+
+      if ("A009".equals(getName())) {
+          getProcessModel().setVehiclePosition("237");
+      }
     getProcessModel().setVehicleIdle(true);
     getProcessModel().setVehicleState(Vehicle.State.IDLE);
 
@@ -489,12 +495,20 @@ public class RobotCommAdapter
     // Update the request's id
 //    telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
 
+      Protocol protocol = telegram.getProtocol();
+
+      if (RobotEnum.UP_LINK.getValue().equals(protocol.getDirection()) &&
+              protocol.getCommandKey().startsWith("rpt")) {
+          LOG.info("报文内容[{}]的指令为[{}]，属于等待回复请求，退出发送！", telegram.getRawContent(), protocol.getCommandKey());
+          return;
+      }
 
     if (NetChannelType.SERIALPORT.equals(AppContext.getNetChannelType())) {
-      String deviceId  = telegram.getProtocol().getDeviceId();
+      String deviceId  = protocol.getDeviceId();
       telegram.addSerialPortToRwaContent(deviceId);
       LOG.info("发送报文内容[{}]，到车辆/设备[{}]", telegram.getRawContent(), deviceId);
     }
+
     channelManager.send(telegram);
 
     // If the telegram is an order, remember it.

@@ -9,10 +9,7 @@ import com.robot.numes.RobotEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -232,5 +229,28 @@ public class ProtocolUtils {
             }
         }
         return DEVICE_FLAG_SET;
+    }
+
+
+    public static List<String> getTelegram2List(String telegram) {
+//        String telegram = "##,,A002,,s,,setrout,,mf400::mf708,,721a,,ZZ##,,A002,,s,,setrout,,mf400::mf708,,721b,,ZZ##,,A002,,s,,setrout,,mf400::mf708,,721c,,ZZ";
+
+//        A030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZA030##,,A030,,s,,rpterr,,0040,,d229,,ZZA030##,,A030,,s,,rptmag,,0::0::1::1,,ff8a,,ZZ
+
+        List<String> returnTelegramList = null;
+        String splitString = RobotEnum.SEPARATOR.getValue() + RobotEnum.FRAME_END.getValue();
+        List<String> telegramList = StrUtil.splitTrim(telegram, splitString);
+        if (ToolsKit.isNotEmpty(telegramList)) {
+            returnTelegramList = new ArrayList<>(telegramList.size());
+            for (String telegramItem : telegramList) {
+                String telegramData = telegramItem + splitString;
+                if(!checkTelegramFormat(telegramData)) {
+                    LOG.info("报文["+telegramData+"]格式不正确");
+                    continue;
+                }
+                returnTelegramList.add(telegramData);
+            }
+        }
+        return returnTelegramList;
     }
 }

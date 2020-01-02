@@ -106,7 +106,7 @@ public class HandshakeTelegram {
         requireNonNull(code, "标识字段不能为空，握手消息唯一标识字段");
         LinkedBlockingQueue<HandshakeTelegramDto> queue = HANDSHAKE_TELEGRAM_QUEUE.get(deviceId);
         if (ToolsKit.isEmpty(queue)) {
-            LOG .info("该车辆[{}]对应的握手队列不存在！", deviceId);
+            LOG .info("该车辆[{}]对应的握手队列不存在或该队列没有任何元素！", deviceId);
             return;
         }
         HandshakeTelegramDto toBeDeleteDto = requireNonNull(queue.peek(), "handshake telegram dto is null");

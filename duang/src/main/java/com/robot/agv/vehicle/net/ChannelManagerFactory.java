@@ -18,6 +18,8 @@ import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * 网络通讯管理工厂
  *
@@ -54,6 +56,17 @@ public class ChannelManagerFactory {
     public static void onIncomingTelegram(ConnectionEventListener<Response> eventListener, TelegramSender telegramSender, String telegramData) {
         java.util.Objects.requireNonNull(telegramData, "报文协议内容不能为空");
 
+        List<String> telegramDataList = ProtocolUtils.getTelegram2List(telegramData);
+        if (ToolsKit.isEmpty(telegramDataList)) {
+            return;
+        }
+        for (String data :  telegramDataList) {
+            doTelegram(eventListener, telegramSender, data);
+        }
+
+    }
+
+    private static void doTelegram(ConnectionEventListener<Response> eventListener, TelegramSender telegramSender, String telegramData) {
         //将接收到的报文内容转换为Protocol对象
         Protocol protocol = null;
         try {
@@ -86,7 +99,7 @@ public class ChannelManagerFactory {
         // 如果请求报文里包含rptac,rptrtp关键字，则认为是State请求
         // State请求是需要进入到RobotCommAdapter进行处理的，其它请求则直接进入到对应的车辆的Service处理
         if (ProtocolUtils.isRptacProtocol(protocol.getCommandKey()) ||
-                        ProtocolUtils.isRptrtpProtocol(protocol.getCommandKey())) {
+                ProtocolUtils.isRptrtpProtocol(protocol.getCommandKey())) {
             eventListener.onIncomingTelegram(new StateResponse(protocol));
         }
     }

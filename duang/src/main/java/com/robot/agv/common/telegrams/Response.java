@@ -10,6 +10,8 @@ import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
 import javax.annotation.Nonnull;
@@ -19,8 +21,9 @@ import javax.annotation.Nonnull;
  *
  * @author Mats Wilhelm (Fraunhofer IML)
  */
-public abstract class Response
-    extends Telegram {
+public abstract class Response extends Telegram {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Response.class);
 
   protected Protocol protocol;
 
@@ -46,7 +49,7 @@ public abstract class Response
 
   /**
    * 仅用于tryMatchWithCurrentRequest
-   * @param request
+   * @param request 队列中第一位的请求元素
    * @return
    */
   public  boolean containsPoint(@NonNull Request request) {
@@ -60,8 +63,12 @@ public abstract class Response
       StateRequest stateRequest = (StateRequest)request;
       point = stateRequest.getNextPointName();
     }
+//    LOG.info("{}", request instanceof StateRequest);
+//    LOG.info("cmdkey: {}", request.getProtocol().getCommandKey());
+      boolean isOK = point.equals(postPoint);
+      LOG.info("队列中第一位元素的点: {}， 提交上来的点: {}, 两个点匹配结果: {}",  point, postPoint, isOK);
 
-    return point.equals(postPoint);
+    return isOK;
   }
 
   /**

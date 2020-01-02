@@ -82,16 +82,19 @@ public class DispatchFactory {
 
         // 如果协议对象不为空且不是调度系统主动发送的，则要进行应答回复
         if (ToolsKit.isNotEmpty(protocol) && !request.isRobotSend()) {
+            String direction = protocol.getDirection();
+            String deviceId = protocol.getDeviceId();
+            String code = protocol.getCode();
+            String cmdKey = protocol.getCommandKey();
             // 如果是车辆/设备主动发送的请求则进行应答回复
-            if (RobotEnum.UP_LINK.getValue().equalsIgnoreCase(protocol.getDirection())) {
+            if (RobotEnum.UP_LINK.getValue().equalsIgnoreCase(direction)) {
                 ThreadUtil.execute(new AnswerHandler(protocol, sender));
             }
             // 如果是r方向或者是rpt的请求指令，则将握手队列中对应的元素移除，停止重复发送
-            if (RobotEnum.DOWN_LINK.getValue().equals(protocol.getDirection()) ||
-                    (RobotEnum.UP_LINK.getValue().equals(protocol.getDirection()) &&
-                            protocol.getCommandKey().startsWith("rpt"))) {
+            if (RobotEnum.DOWN_LINK.getValue().equals(direction) ||
+                    (RobotEnum.UP_LINK.getValue().equals(direction) && cmdKey.startsWith("rpt"))) {
                 // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
-                HandshakeTelegram.duang().remove(protocol.getDeviceId(), protocol.getCode());
+                HandshakeTelegram.duang().remove(deviceId, code);
                 return response;
             }
         }
