@@ -489,7 +489,11 @@ public class RobotCommAdapter
     // Update the request's id
 //    telegram.updateRequestContent(globalRequestCounter.getAndIncrement());
 
-//    LOG.info("车辆{}: Sending request '{}'", getName(), telegram);
+
+    if (NetChannelType.SERIALPORT.equals(AppContext.getNetChannelType())) {
+      telegram.addSerialPortToRwaContent(telegram.getProtocol().getDeviceId());
+      LOG.info("发送报文内容[{}]，到车辆[{}]'", telegram.getRawContent(), getName());
+    }
     channelManager.send(telegram);
 
     // If the telegram is an order, remember it.

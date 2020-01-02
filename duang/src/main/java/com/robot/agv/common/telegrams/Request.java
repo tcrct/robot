@@ -3,6 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
+import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.utils.ToolsKit;
@@ -62,6 +63,16 @@ public abstract class Request extends Telegram {
       return ToolsKit.isEmpty(rawContent) ? ProtocolUtils.converterString(protocol) : rawContent;
     }
     return "";
+  }
+
+  /**
+  * 如果是串口网络协议，则添加串口地址到协议文本的最前端位置
+  * */
+  public void addSerialPortToRwaContent(String serialPort) {
+    if (ToolsKit.isEmpty(serialPort)) {
+      return;
+    }
+    super.rawContent = serialPort + rawContent;
   }
 
   public boolean isRobotSend() {

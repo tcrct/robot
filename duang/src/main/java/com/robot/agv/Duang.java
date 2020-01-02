@@ -21,7 +21,6 @@ public class Duang {
     public static void main(String[] args) {
         Duang duang = new Duang();
         try {
-
             ClassHelper.duang();
             RouteHelper.duang().getRoutes();
             ActionHelper.duang().getActions();
