@@ -491,8 +491,9 @@ public class RobotCommAdapter
 
 
     if (NetChannelType.SERIALPORT.equals(AppContext.getNetChannelType())) {
-      telegram.addSerialPortToRwaContent(telegram.getProtocol().getDeviceId());
-      LOG.info("发送报文内容[{}]，到车辆[{}]'", telegram.getRawContent(), getName());
+      String deviceId  = telegram.getProtocol().getDeviceId();
+      telegram.addSerialPortToRwaContent(deviceId);
+      LOG.info("发送报文内容[{}]，到车辆/设备[{}]", telegram.getRawContent(), deviceId);
     }
     channelManager.send(telegram);
 

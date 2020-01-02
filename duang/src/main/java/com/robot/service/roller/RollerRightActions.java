@@ -3,6 +3,7 @@ package com.robot.service.roller;
 import com.robot.mvc.annotations.Action;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.service.common.BaseActions;
+import com.robot.service.common.requests.VehicleMoveRequest;
 import com.robot.service.common.requests.set.SetOutRequest;
 import com.robot.service.common.requests.set.SetVmotRequest;
 import com.robot.service.common.responses.RptMtResponse;
@@ -83,7 +84,7 @@ public class RollerRightActions extends BaseActions {
                 new RptMtResponse(DEVICE_ID, "1::0::0::0::0::0"),
 //                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"1").build()),
                 //将车辆移走
-//                new VehicleMoveRequest(VEHICLE_ID),
+                new VehicleMoveRequest(VEHICLE_ID),
                 // 继续执行以下指令
                 new RptMtResponse(DEVICE_ID, "1::0::1::1::0::0"),
 //                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"1").element(2,"1").element(3,"1").build()),

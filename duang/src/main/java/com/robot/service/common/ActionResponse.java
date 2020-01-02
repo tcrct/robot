@@ -5,6 +5,7 @@ import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.numes.RobotEnum;
+import com.robot.utils.CrcUtil;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.ToolsKit;
 
@@ -40,7 +41,7 @@ public abstract class ActionResponse extends Response implements ICommand {
         super.protocol = java.util.Objects.requireNonNull(protocol, "协议对象不能为空");
         // 设置为上行，模拟成车辆提交
         protocol.setDirection(RobotEnum.UP_LINK.getValue());
-        super.code = getHandshakeCode();
+        super.code = CrcUtil.CrcVerify_Str(ProtocolUtils.builderCrcString(protocol)); //getHandshakeCode();
         super.rawContent = ProtocolUtils.converterString(protocol);
         ActionRequest actionRequest = new ActionRequest(protocol) {
             @Override

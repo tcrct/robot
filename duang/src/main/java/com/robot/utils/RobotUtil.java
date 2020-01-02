@@ -134,11 +134,13 @@ public class RobotUtil {
             LOG.info("模拟设备返回信息时，响应对象里的协议对象为空，返回响应对象");
             return (ActionResponse)response;
         }
-        // 更改方向
-        protocol.setDirection(RobotEnum.DOWN_LINK.getValue());
-        // 计算出验证码
-        String code = CrcUtil.CrcVerify_Str(ProtocolUtils.builderCrcString(protocol));
-        protocol.setCode(code);
+        // 如果不是rpt开头的指令，则更改方向
+        if (!protocol.getCommandKey().startsWith("rpt")) {
+            protocol.setDirection(RobotEnum.DOWN_LINK.getValue());
+            // 计算出验证码
+            String code = CrcUtil.CrcVerify_Str(ProtocolUtils.builderCrcString(protocol));
+            protocol.setCode(code);
+        }
         return new ActionResponse(protocol) {
             @Override
             public String cmd() {

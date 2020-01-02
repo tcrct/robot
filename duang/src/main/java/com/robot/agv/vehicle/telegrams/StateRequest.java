@@ -54,8 +54,7 @@ public class StateRequest extends Request {
    * @param response 响应对象
    */
   public StateRequest(StateResponse response) {
-    super(response.getProtocol());
-    this.id = response.getId();
+    this(response.getProtocol());
   }
 
   /**
@@ -76,6 +75,7 @@ public class StateRequest extends Request {
   public StateRequest(MovementCommand command, RobotProcessModel model) {
     this.command = command;
     this.model= model;
+    super.id = IdUtil.objectId();
     encodeTelegramContent();
   }
 

@@ -3,6 +3,7 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
+import cn.hutool.core.util.IdUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.numes.RobotEnum;
@@ -83,6 +84,7 @@ public class StateResponse
       this.positionId = RobotUtil.getReportPoint(protocol);
       this.lastFinishedOrderId = positionId;
     }
+    super.id = IdUtil.objectId();
 //    decodeTelegramContent(protocol);
   }
   /**

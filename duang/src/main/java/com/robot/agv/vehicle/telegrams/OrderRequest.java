@@ -3,6 +3,7 @@
  */
 package com.robot.agv.vehicle.telegrams;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
@@ -49,14 +50,14 @@ public class OrderRequest extends Request {
   private OrderAction destinationAction;
 
   public OrderRequest(OrderResponse response) {
-    super(response.getProtocol());
-    this.code = protocol.getCode();
+    this(response.getProtocol());
   }
 
   public OrderRequest(Protocol protocol) {
     super(protocol);
     this.setRobotSend(false);
     this.code = protocol.getCode();
+    super.id = IdUtil.objectId();
   }
 
   /**

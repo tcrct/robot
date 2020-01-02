@@ -3,6 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
+import cn.hutool.core.util.IdUtil;
 import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.telegrams.Protocol;
@@ -27,6 +28,7 @@ public abstract class Request extends Telegram {
 
   public Request() {
     super("");
+    this.id = IdUtil.objectId();
   }
 
   /**
@@ -70,6 +72,10 @@ public abstract class Request extends Telegram {
   * */
   public void addSerialPortToRwaContent(String serialPort) {
     if (ToolsKit.isEmpty(serialPort)) {
+      return;
+    }
+    // 如果不是##开头的字符串，则直接退出
+    if (!rawContent.startsWith(RobotEnum.FRAME_HEAD.getValue())) {
       return;
     }
     super.rawContent = serialPort + rawContent;

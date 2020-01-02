@@ -86,8 +86,10 @@ public class DispatchFactory {
             if (RobotEnum.UP_LINK.getValue().equalsIgnoreCase(protocol.getDirection())) {
                 ThreadUtil.execute(new AnswerHandler(protocol, sender));
             }
-            // 如果是r方向，则将握手队列中对应的元素移除，停止重复发送
-            if (RobotEnum.DOWN_LINK.getValue().equals(protocol.getDirection())) {
+            // 如果是r方向或者是rpt的请求指令，则将握手队列中对应的元素移除，停止重复发送
+            if (RobotEnum.DOWN_LINK.getValue().equals(protocol.getDirection()) ||
+                    (RobotEnum.UP_LINK.getValue().equals(protocol.getDirection()) &&
+                            protocol.getCommandKey().startsWith("rpt"))) {
                 // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
                 HandshakeTelegram.duang().remove(protocol.getDeviceId(), protocol.getCode());
                 return response;
