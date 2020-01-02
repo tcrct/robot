@@ -57,12 +57,12 @@ public class BusinessHandler implements Callable {
         try {
             Route route = RouteHelper.duang().getRoutes().get(deviceId);
             if (null == route) {
-                throw new NullPointerException("与车辆或设备["+deviceId+"]对应的Service没有实现");
+                return emptyRouteOrMehtod(deviceId, "");
             }
             Method method = route.getMethodMap().get(methodName.toLowerCase());
             // 如果Service里没有实现该指令对应的方法，则执行公用的duang方法，直接返回响应协议，防止抛出异常
             if (ToolsKit.isEmpty(method)) {
-              throw new NullPointerException("["+deviceId+"Service."+methodName+"]没找到");
+                return emptyRouteOrMehtod(deviceId, methodName);
             }
             Object resultObj = ReflectUtil.invoke(route.getInjectObject(), method, request, response);
             if (response.isResponseTo(request)) {
@@ -72,5 +72,24 @@ public class BusinessHandler implements Callable {
             throw new RobotException(e.getMessage(), e);
         }
         return response;
+    }
+
+    /***
+     * 如果没有实现对应的类或方法时，直接返回response
+     * @param deviceId  车辆或设备
+     * @param methodName 方法名称
+     * @return
+     */
+    private Response emptyRouteOrMehtod(String deviceId, String methodName) {
+        if (ToolsKit.isEmpty(methodName)) {
+            LOG.info("与车辆或设备[{}]对应的Service没有实现", deviceId);
+        } else {
+            LOG.info("与车辆或设备[{}]对应的Service里没有找到[{}]", deviceId, methodName);
+        }
+        if (response.isResponseTo(request) ) {
+            response.write(request.getRawContent());
+            return response;
+        }
+        return null;
     }
 }
