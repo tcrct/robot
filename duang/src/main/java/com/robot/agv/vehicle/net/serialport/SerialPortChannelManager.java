@@ -10,6 +10,7 @@ import com.robot.agv.vehicle.net.ChannelManagerFactory;
 import com.robot.agv.vehicle.net.IChannelManager;
 import com.robot.agv.vehicle.net.serialport.rxtx.DataAvailableListener;
 import com.robot.agv.vehicle.net.serialport.rxtx.SerialPortManager;
+import com.robot.utils.ToolsKit;
 import gnu.io.SerialPort;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
     public void initialize() {
         mCommList = serialPortManager.findPorts();
 
-        if(ArrayUtil.isEmpty(mCommList)) {
+        if(ToolsKit.isEmpty(mCommList)) {
             throw new NullPointerException("没有找到可用的串串口！");
         }
         initialize = true;

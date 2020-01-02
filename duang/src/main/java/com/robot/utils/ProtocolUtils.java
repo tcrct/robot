@@ -159,7 +159,7 @@ public class ProtocolUtils {
      * @return 正确返回true
      */
     public static boolean checkTelegramFormat(String telegramData) {
-        return StrUtil.startWith(telegramData, START_PREFIX) &&
+        return telegramData.contains(START_PREFIX) &&
                         telegramData.contains(SEPARATOR) &&
                         StrUtil.endWith(telegramData, END_SUFFIX);
     }

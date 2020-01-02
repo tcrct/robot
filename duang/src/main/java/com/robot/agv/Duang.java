@@ -21,11 +21,12 @@ public class Duang {
     public static void main(String[] args) {
         Duang duang = new Duang();
         try {
-            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
+
             ClassHelper.duang();
             RouteHelper.duang().getRoutes();
             ActionHelper.duang().getActions();
             IocHelper.duang().ioc();
+            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
             duang.startOpenTcs();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
