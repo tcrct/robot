@@ -48,9 +48,7 @@ public class A033Service extends BaseService {
         if (after.endsWith("49")) {
             lastProtocolParam.setAfter("ef49");
         }
-        String str =  getProtocolString(stateRequest, protocolParamList);
-        System.out.println("############: " + str);
-        return str;
+        return getProtocolString(stateRequest, protocolParamList);
     }
 
     /**
