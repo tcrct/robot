@@ -104,10 +104,12 @@
     </point>
     <point name="50" xPosition="32000" yPosition="3500" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="50 --- 49"/>
+        <property name="orientation" value="b"/>
         <property name="stopMode" value="s"/>
     </point>
     <point name="51" xPosition="31500" yPosition="14000" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="51 --- 49"/>
+        <property name="orientation" value="b"/>
         <property name="stopMode" value="s"/>
     </point>
     <point name="700" xPosition="46500" yPosition="49000" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
@@ -802,5 +804,5 @@
             <property name="POSITION_Y" value="31750"/>
         </modelLayoutElement>
     </visualLayout>
-    <property name="tcs:modelFileLastModified" value="2019-12-18T08:15:36.962Z"/>
+    <property name="tcs:modelFileLastModified" value="2020-01-03T06:31:02.209Z"/>
 </model>

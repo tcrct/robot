@@ -1,6 +1,7 @@
 package com.robot.service.smt2;
 
 import com.robot.core.Sensor;
+import com.robot.mvc.annotations.Action;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.service.common.BaseActions;
 import com.robot.service.common.requests.get.GetMtRequest;
@@ -19,6 +20,7 @@ import java.util.List;
  *
  * @author Laotang
  */
+@Action
 public class SmtRightActions extends BaseActions {
     /**动作组合名称，要与工厂概述中的动作名称一样*/
     private static final String ACTION_KEY = "Smt2Right";
