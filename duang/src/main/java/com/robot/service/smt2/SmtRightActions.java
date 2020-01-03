@@ -1,7 +1,9 @@
 package com.robot.service.smt2;
 
+import com.robot.core.Sensor;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.service.common.BaseActions;
+import com.robot.service.common.requests.get.GetMtRequest;
 import com.robot.service.common.requests.set.SetOutRequest;
 import com.robot.service.common.requests.set.SetVmotRequest;
 import com.robot.service.common.responses.RptMtResponse;
@@ -57,10 +59,15 @@ public class SmtRightActions extends BaseActions {
         requestList.addAll(Arrays.asList(
                 new SetVmotRequest(VEHICLE_ID, "2::730"),
                 new RptVmotResponse(VEHICLE_ID, "2::730"),
+                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
+                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"0").build()),
                 new SetOutRequest(DEVICE_ID, "2::1"),
                 new SetVmotRequest(VEHICLE_ID, "1::-1"),
-                // 等待传感器回传参数
-                new RptMtResponse(DEVICE_ID, "0::1::0::0::0::0"),
+                //确认货物到达指定位置
+                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"1").build()),
+                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
+                // 等待传感器回传参数  1::0::0::0::0::0  下层有货等待
+                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"1").build()), // 等待传感器返回结果，第1位的参数为0时代表没有货物
                 new SetVmotRequest(VEHICLE_ID, "2::20"),
                 new RptVmotResponse(VEHICLE_ID, "2::20"),
                 new SetVmotRequest(VEHICLE_ID, "1::1"),

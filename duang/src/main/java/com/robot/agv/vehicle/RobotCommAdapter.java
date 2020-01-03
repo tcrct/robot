@@ -179,6 +179,11 @@ public class RobotCommAdapter
       if ("A009".equals(getName())) {
           getProcessModel().setVehiclePosition("237");
       }
+
+      if ("A033".equals(getName())) {
+          getProcessModel().setVehiclePosition("49");
+      }
+
     getProcessModel().setVehicleIdle(true);
     getProcessModel().setVehicleState(Vehicle.State.IDLE);
 
