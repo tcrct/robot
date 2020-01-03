@@ -37,20 +37,42 @@ public class BaseService implements IService {
             throw new RobotException("该请求不是移动命令请求");
         }
         StateRequest stateRequest =(StateRequest)request;
-        MovementCommand command = stateRequest.getCommand();
-        RobotProcessModel processModel = stateRequest.getModel();
+        List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response);
+        return getProtocolString(stateRequest, protocolParamList);
+    }
+
+    /**
+     * 取移动命令
+     * @param stateRequest
+     * @return
+     */
+    protected MovementCommand getCommand(StateRequest stateRequest) {
+        MovementCommand command =  stateRequest.getCommand();
         if(ToolsKit.isEmpty(command)) {
             throw new RobotException("移动命令队列不能为空!");
         }
+        return command;
+    }
+
+    /**
+     * 取车辆模型数据
+     * @param stateRequest
+     * @return
+     */
+    protected RobotProcessModel getModel(StateRequest stateRequest) {
+        RobotProcessModel processModel =  stateRequest.getModel();
         if (ToolsKit.isEmpty(processModel)) {
             throw new RobotException("车辆模型对象不能为空!");
         }
+        return processModel;
+    }
 
+    protected List<ProtocolParam> getProtocolParamList(StateRequest stateRequest, Response response) {
+        MovementCommand command = getCommand(stateRequest);
         List<ProtocolParam> protocolParamList = new ArrayList<>();
         String startPointName = null;
         String endPointName = null;
-        // 确定车辆
-        String deviceId = processModel.getName();
+
         Route.Step step= command.getStep();
         // 当前点
         String currentPointName = step.getSourcePoint().getName();
@@ -64,8 +86,14 @@ public class BaseService implements IService {
         endPointName = stateRequest.getDestinationId();
         ProtocolParam travelParam = buildAgvTravelParamString(startPointName, currentPointName, nextPointName, endPointName, stateRequest);
         protocolParamList.add(travelParam);
+        return protocolParamList;
+    }
+
+    protected String getProtocolString(StateRequest stateRequest, List<ProtocolParam> protocolParamList) {
         // 组装成参数字符串
         String travelParamString = RobotUtil.buildProtocolParamString(protocolParamList);
+        // 确定车辆
+        String deviceId = getModel(stateRequest).getName();
         // 根据规则组建下发路径指令的协议指令
         Protocol protocol = new Protocol.Builder()
                 .deviceId(deviceId)
