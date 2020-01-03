@@ -46,7 +46,7 @@ public class StateRequesterTask {
   @Inject
   public StateRequesterTask(@Nonnull @Assisted ActionListener stateRequestAction) {
     this.stateRequestAction = requireNonNull(stateRequestAction, "stateRequestAction");
-    setRequestInterval(SettingUtils.getInt("com.robot.core.handshake.interval", "adapter", requestInterval));
+    setRequestInterval(SettingUtils.getInt("handshake.interval", "adapter", requestInterval));
   }
 
   public void enable() {

@@ -50,7 +50,7 @@ public class RobotProcessModel extends VehicleProcessModel {
   /**
    * The time to wait between periodic state request telegrams.
    */
-  private int stateRequestInterval = 500;
+  private int stateRequestInterval = 2000;
   /**
    * How long (in ms) we tolerate not hearing from the vehicle before we consider communication
    * dead.

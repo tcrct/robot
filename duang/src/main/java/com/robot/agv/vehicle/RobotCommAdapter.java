@@ -202,7 +202,7 @@ public class RobotCommAdapter
     channelManager.terminate();
     channelManager = null;
     // 清空握手队列
-    HandshakeTelegram.getHandshakeTelegramQueue().get(getName()).clear();
+    HandshakeTelegram.getHandshakeTelegramQueue(getName()).clear();
     orderIds.clear();
     LOG.info("车辆[{}]停用通讯成功", getName());
   }

@@ -65,25 +65,23 @@ public class SmtLeftActions extends BaseActions {
     public void add(List<ICommand> requestList) {
         requestList.addAll(Arrays.asList(
 //                new ServiceRequest(DEVICE_ID, new ServiceAction.Builder().service(RptMtServiceImpl.class).method(RptMtService.CHECK_SENSOR_VALUE_METHODNAME).params(DEVICE_ID, "0", "0").build()),
-                // 入口处是否有货物
-                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
+                // 入口处是否有货物，下层第二个传感器第1位参数为0，代表没有货物
                 new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"0").build()),
                 new SetVmotRequest(VEHICLE_ID, "2::10"),
                 new SetOutRequest(DEVICE_ID, "1::1"),
                 new SetVmotRequest(VEHICLE_ID, "1::-2"),
                 new SetOutRequest(DEVICE_ID, "1::0"),
-                // 等待设备入料底部第2个传感器回传参数（左->右），1代表有货物
-//                new RptMtResponse(DEVICE_ID, "1::0::0::0::0::0"),
+                // 等待设备入料底部第2个传感器回传参数，第1位参数为1，代表有货物
                 new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"1").build()),
                 new SetVmotRequest(VEHICLE_ID, "2::715"),
                 new RptVmotResponse(VEHICLE_ID, "2::715"),
-                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
-                // 上层第1个传感器是否有货，即货物在等待转移到车辆上  0::1::0::0::0::0
+//                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
+                // 上层第1个传感器第2个参数为1，代表有货物在等待转移到车辆上
                 new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"1").build()),
                 new SetVmotRequest(VEHICLE_ID, "1::2"),
 //                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"0").build()),
                 new SetOutRequest(DEVICE_ID, "2::1"),
-                // 上层第1个传感器是否没货，即货物已经移到车辆上 "0::0::0::0::0::0"
+                // 上层第1个传感器第2位参数为0，代表货物已经移到车辆上 ，没有货物
                 new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"0").build()),
                 // 车辆传感器(预停车后，必须要回复一下rptmt指令，若不然，车辆会不响应指令运作的)
 //                new RptMtResponse(VEHICLE_ID, "0::1::0::0::0::0"),

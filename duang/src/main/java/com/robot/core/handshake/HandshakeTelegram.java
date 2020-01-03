@@ -1,6 +1,8 @@
 package com.robot.core.handshake;
 
+import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.core.Sensor;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.interfaces.ICallback;
 import com.robot.utils.ToolsKit;
@@ -31,8 +33,11 @@ public class HandshakeTelegram {
      */
     private final static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> HANDSHAKE_TELEGRAM_QUEUE = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> getHandshakeTelegramQueue() {
-        return HANDSHAKE_TELEGRAM_QUEUE;
+    public static LinkedBlockingQueue<HandshakeTelegramDto> getHandshakeTelegramQueue(String deviceId) {
+        if (ToolsKit.isEmpty(deviceId)) {
+            return null;
+        }
+        return HANDSHAKE_TELEGRAM_QUEUE.get(deviceId);
     }
 
     private static HandshakeTelegram handshakeTelegram = new HandshakeTelegram();
@@ -130,7 +135,12 @@ public class HandshakeTelegram {
         HandshakeTelegramDto telegramDto = new HandshakeTelegramDto(toBeDeleteDto);
         // 再移除第一位元素对象
         queue.remove();
-        LOG.info("移除车辆[" + deviceId + "]的握手报文[" + telegramDto.getRequest().getRawContent() + "] 成功！");
+        Request request = telegramDto.getRequest();
+        LOG.info("移除车辆[" + deviceId + "]的握手报文[" +request.getRawContent() + "] 成功！");
+        if( request.isRobotSend() && request.isActionResponse() &&
+                "rptmt".equalsIgnoreCase(request.getProtocol().getCommandKey())) {
+            Sensor.removeSensor(deviceId);
+        }
          /*
         String crcCode = "";
         try {

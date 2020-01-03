@@ -61,13 +61,10 @@ public class SmtRightActions extends BaseActions {
         requestList.addAll(Arrays.asList(
                 new SetVmotRequest(VEHICLE_ID, "2::730"),
                 new RptVmotResponse(VEHICLE_ID, "2::730"),
-                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
+                // 没有货物
                 new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"0").build()),
                 new SetOutRequest(DEVICE_ID, "2::1"),
                 new SetVmotRequest(VEHICLE_ID, "1::-1"),
-                //确认货物到达指定位置
-                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"1").build()),
-                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态
                 // 等待传感器回传参数  1::0::0::0::0::0  下层有货等待
                 new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"1").build()), // 等待传感器返回结果，第1位的参数为0时代表没有货物
                 new SetVmotRequest(VEHICLE_ID, "2::20"),

@@ -19,6 +19,7 @@ import com.robot.agv.vehicle.exchange.commands.SetStateRequestIntervalCommand;
 import com.robot.agv.vehicle.telegrams.OrderRequest;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateResponse;
+import com.robot.utils.SettingUtils;
 import org.opentcs.components.kernel.services.VehicleService;
 import org.opentcs.customizations.ServiceCallWrapper;
 import org.opentcs.drivers.vehicle.AdapterCommand;
@@ -233,7 +234,7 @@ public class StatusPanel
     txtGetStateInterval.setEditable(false);
     txtGetStateInterval.setColumns(4);
     txtGetStateInterval.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    txtGetStateInterval.setText("500");
+    txtGetStateInterval.setText("2000");
     txtGetStateInterval.setMinimumSize(new java.awt.Dimension(38, 20));
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 1;

@@ -109,10 +109,17 @@ public class Sensor implements java.io.Serializable {
     public static Sensor getSensor(String deviceId) {
         LinkedList<Sensor> sensors = SENSOR_MAP.get(deviceId);
         if (Optional.ofNullable(sensors).isPresent() && !sensors.isEmpty()) {
-            return sensors.poll(); //取出并移除顶部位置
+            return sensors.peek(); //取出并移除顶部位置
         }
-        SENSOR_MAP.remove(deviceId);
         return null;
+    }
+
+    public static void removeSensor(String deviceId) {
+        LinkedList<Sensor> sensors = SENSOR_MAP.get(deviceId);
+        if (Optional.ofNullable(sensors).isPresent() && !sensors.isEmpty()) {
+            Sensor sensor = sensors.remove(); //移除顶部位置
+            LOG.info("移除设备[{}]顶部传感器缓存[{}]成功", deviceId, sensor.toString());
+        }
     }
 
     public static void setSensor(String deviceId, Sensor sensor) {

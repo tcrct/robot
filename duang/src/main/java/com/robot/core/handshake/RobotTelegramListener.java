@@ -4,9 +4,13 @@ import cn.hutool.core.thread.ThreadUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
+import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.telegrams.Protocol;
+import com.robot.mvc.helper.ActionHelper;
 import com.robot.service.common.ActionRequest;
 import com.robot.service.common.ActionResponse;
+import com.robot.service.common.requests.get.GetMagRequest;
+import com.robot.service.common.requests.get.GetMtRequest;
 import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +31,31 @@ public class RobotTelegramListener implements ActionListener {
     private static final Logger LOG = LoggerFactory.getLogger(RobotTelegramListener.class);
 
     private TelegramSender sender;
+    private String deviceId;  // 设备ID
+    private String vehicleId; //车辆 ID
 
-    public RobotTelegramListener(TelegramSender telegramSender) {
-        this.sender = telegramSender;
+    public RobotTelegramListener(RobotCommAdapter adapter) {
+        this.sender = adapter;
+        this.vehicleId = adapter.getName();
+        this.deviceId = ActionHelper.duang().getVehicelDeviceMap().get(vehicleId);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Iterator<Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>>> iterator = HandshakeTelegram.getHandshakeTelegramQueue().entrySet().iterator();
+        doActionPerformed(deviceId);
+        doActionPerformed(vehicleId);
+    }
+
+    private void doActionPerformed(String key) {
+        LinkedBlockingQueue<HandshakeTelegramDto> queue = HandshakeTelegram.getHandshakeTelegramQueue(key);
+        if (null == queue || queue.isEmpty()) {
+            return;
+        }
+        Iterator<HandshakeTelegramDto> iterator = queue.iterator();
         while (null != iterator && iterator.hasNext()) {
-            Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>> entry = iterator.next();
-            LinkedBlockingQueue<HandshakeTelegramDto> value = entry.getValue();
-            if(ToolsKit.isNotEmpty(value) && peekTelegramQueueDto(value).isPresent()){
-                HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
+            HandshakeTelegramDto queueDto = iterator.next();
+            if(ToolsKit.isNotEmpty(queueDto)){
+//                HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
                 Request request = queueDto.getRequest();
                 Response response = queueDto.getResponse();
                 if(ToolsKit.isNotEmpty(queueDto) && ToolsKit.isNotEmpty(request) && ToolsKit.isNotEmpty(response)) {
@@ -50,6 +66,12 @@ public class RobotTelegramListener implements ActionListener {
                     else {
                         Protocol protocol = response.getProtocol();
                         LOG.info("正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码为["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
+
+                        if (request.isActionResponse() && request.isRobotSend() &&
+                                "rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
+                            LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
+                            sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
+                        }
 //                        clearAdvanceReportTelegram(response);
                     }
                 }

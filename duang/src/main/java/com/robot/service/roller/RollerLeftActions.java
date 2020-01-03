@@ -26,7 +26,6 @@ public class RollerLeftActions extends BaseActions {
     /**设备的串口模块名称*/
     private static final String DEVICE_ID = "B030";
 
-
     /**
      * 注明该动作名称，要与openTCS里的位置类研->动作一致
      * 系统用于确定车辆到达指定位置后执行的动作指令

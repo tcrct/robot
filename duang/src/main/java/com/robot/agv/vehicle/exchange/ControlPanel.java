@@ -877,9 +877,9 @@ public class ControlPanel
    * @param telegram The order request
    */
   private void updateLastOrderTextFields(OrderRequest telegram) {
-    if (telegram != null) {
+    if (telegram != null && telegram.getProtocol() != null && !"rptmt".equalsIgnoreCase(telegram.getProtocol().getCommandKey())) {
       lastDestinationTextField.setText(String.valueOf(telegram.getDestinationId()));
-      lastActionTextField.setText(telegram.getDestinationAction().toString());
+      lastActionTextField.setText(telegram.getDestinationAction()+"");
       lastOrderIdTextField.setText(telegram.getId());
       repeatLastOrderButton.setEnabled(processModel.isCommAdapterConnected());
     }

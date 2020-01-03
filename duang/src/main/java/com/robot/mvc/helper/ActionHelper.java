@@ -1,10 +1,7 @@
 package com.robot.mvc.helper;
 
-import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
-import com.robot.core.AppContext;
 import com.robot.mvc.annotations.Action;
-import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
@@ -24,6 +21,12 @@ public class ActionHelper {
 
     /**自定义指令操作集合*/
     private final Map<String, IAction> CUSTOM_ACTION_QUEYE = new HashMap<>();
+
+    public Map<String, String> getVehicelDeviceMap() {
+        return VEHICLE_DEVICE_MAP;
+    }
+
+    private final Map<String, String> VEHICLE_DEVICE_MAP = new HashMap<>();
     /**
      * 自定义的指令队列集合
      * @return
@@ -46,6 +49,7 @@ public class ActionHelper {
                 if (ToolsKit.isNotEmpty(actionAonn) && ToolsKit.isNotEmpty(actionAonn.name())) {
                     key = actionAonn.name();
                 }
+                VEHICLE_DEVICE_MAP.put(action.vehicleId(), action.deviceId());
                 CUSTOM_ACTION_QUEYE.put(key, action);
             }
         } catch (Exception e) {
