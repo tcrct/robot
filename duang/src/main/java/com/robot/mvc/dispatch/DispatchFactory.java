@@ -92,7 +92,7 @@ public class DispatchFactory {
             // 如果是r方向或者是rpt的请求指令，则将握手队列中对应的元素移除，停止重复发送
             if (RobotEnum.DOWN_LINK.getValue().equals(direction) ||
                     (RobotEnum.UP_LINK.getValue().equals(direction) && cmdKey.startsWith("rpt"))) {
-                // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
+                // 如果是rptmt指令
                 if ("rptmt".equalsIgnoreCase(cmdKey)) {
                     Sensor sensor = Sensor.getSensor(deviceId);
                     if (ToolsKit.isNotEmpty(sensor) && sensor.isWith(protocol.getParams())) {
@@ -101,6 +101,7 @@ public class DispatchFactory {
                         LOG.info("车辆/设备[{}]传感器验证参数code为[{}]", deviceId, code);
                     }
                 }
+                // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
                 HandshakeTelegram.duang().remove(deviceId, code);
                 return response;
             }

@@ -8,13 +8,17 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+
+import com.robot.core.AppContext;
 import org.opentcs.access.KernelServicePortal;
+import org.opentcs.customizations.ApplicationEventBus;
 import org.opentcs.data.TCSObjectReference;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.VehicleCommAdapterDescription;
 import org.opentcs.drivers.vehicle.management.VehicleCommAdapterPanel;
 import org.opentcs.drivers.vehicle.management.VehicleCommAdapterPanelFactory;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
+import org.opentcs.util.event.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +55,12 @@ public class RobotCommAdapterPanelFactory
    */
   @Inject
   public RobotCommAdapterPanelFactory(KernelServicePortal servicePortal,
+                                      @ApplicationEventBus EventSource eventSource,
                                       AdapterPanelComponentsFactory componentsFactory) {
     this.servicePortal = requireNonNull(servicePortal, "servicePortal");
     this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
+    AppContext.setKernelServicePortal(servicePortal);
+    AppContext.setEventSource(eventSource);
   }
 
   @Override

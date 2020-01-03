@@ -4,7 +4,9 @@ import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.utils.SettingUtils;
+import org.opentcs.access.KernelServicePortal;
 import org.opentcs.components.kernel.services.TCSObjectService;
+import org.opentcs.util.event.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,5 +69,21 @@ public class AppContext {
     }
     public static NetChannelType getNetChannelType() {
         return CHANNEL_TYPE;
+    }
+
+    private static KernelServicePortal kernelServicePortal;
+    public static void setKernelServicePortal(KernelServicePortal servicePortal) {
+        kernelServicePortal = servicePortal;
+    }
+    public static KernelServicePortal getKernelServicePortal() {
+        return kernelServicePortal ;
+    }
+
+    private static EventSource eventSource;
+    public static void setEventSource(EventSource event) {
+        eventSource = event;
+    }
+    public static EventSource getEventSource() {
+        return eventSource;
     }
 }

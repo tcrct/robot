@@ -20,6 +20,7 @@ import org.opentcs.access.SslParameterSet;
 import org.opentcs.components.kernel.KernelExtension;
 import org.opentcs.data.ObjectExistsException;
 import org.opentcs.data.ObjectUnknownException;
+import org.opentcs.kernel.extensions.servicewebapi.console.ConsoleRequestHandler;
 import org.opentcs.kernel.extensions.servicewebapi.v1.V1RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,10 @@ public class ServiceWebApi
    * Whether this kernel extension is initialized.
    */
   private boolean initialized;
+    /**
+     * 控制中心(web)端请求处理器
+     */
+    private final ConsoleRequestHandler consoleRequestHandler;
 
   /**
    * Creates a new instance.
@@ -81,11 +86,13 @@ public class ServiceWebApi
   public ServiceWebApi(ServiceWebApiConfiguration configuration,
                        SslParameterSet sslParamSet,
                        Authenticator authenticator,
-                       V1RequestHandler v1RequestHandler) {
+                       V1RequestHandler v1RequestHandler,
+                       ConsoleRequestHandler consoleRequestHandler) {
     this.configuration = requireNonNull(configuration, "configuration");
     this.authenticator = requireNonNull(authenticator, "authenticator");
     this.v1RequestHandler = requireNonNull(v1RequestHandler, "v1RequestHandler");
     this.sslParamSet = requireNonNull(sslParamSet, "sslParamSet");
+    this.consoleRequestHandler = requireNonNull(consoleRequestHandler, "consoleRequestHandler");
   }
 
   @Override
@@ -141,7 +148,8 @@ public class ServiceWebApi
 
     // Register routes for API versions here.
     service.path("/v1", () -> v1RequestHandler.addRoutes(service));
-
+    //  注册控制中心请求路由到处理器，所有以/console的请求视为控制中心的请求
+    service.path("/console", () -> consoleRequestHandler.addRoutes(service));
     service.exception(IllegalArgumentException.class, (exception, request, response) -> {
                     response.status(400);
                     response.type(HttpConstants.CONTENT_TYPE_APPLICATION_JSON_UTF8);

@@ -508,12 +508,12 @@ public class RobotCommAdapter
           return;
       }
 
+    String deviceId  = protocol.getDeviceId();
     if (NetChannelType.SERIALPORT.equals(AppContext.getNetChannelType())) {
-      String deviceId  = protocol.getDeviceId();
       telegram.addSerialPortToRwaContent(deviceId);
-      LOG.info("发送报文内容[{}]，到车辆/设备[{}]", telegram.getRawContent(), deviceId);
     }
 
+    LOG.info("发送报文内容[{}]，到车辆/设备[{}]", telegram.getRawContent(), deviceId);
     channelManager.send(telegram);
 
     // If the telegram is an order, remember it.

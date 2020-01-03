@@ -9,7 +9,9 @@ import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionResponse;
+import org.opentcs.data.model.Location;
 import org.opentcs.data.model.Point;
+import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,15 @@ import java.util.Map;
 public class RobotUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(RobotUtil.class);
+
+
+    /***
+     * 根据线名称取openTCS线路图上的车辆
+     */
+    public static Vehicle getVehicle(String vehicleName){
+        java.util.Objects.requireNonNull(vehicleName, "车辆名称不能为空");
+        return AppContext.getOpenTcsObjectService().fetchObject(Vehicle.class, vehicleName);
+    }
 
     /***
      * 根据点名称取openTCS线路图上的点
@@ -40,6 +51,14 @@ public class RobotUtil {
         } else{
             throw new RobotException("取上报卡号时，协议["+ProtocolUtils.converterString(protocol)+"]指令不符， 不是上报卡号[rptac/rptrtp]指令");
         }
+    }
+
+    /***
+     * 根据线名称取openTCS线路图上的车辆
+     */
+    public static Location getLocation(String locationName){
+        java.util.Objects.requireNonNull(locationName, "位置名称不能为空");
+        return AppContext.getOpenTcsObjectService().fetchObject(Location.class, locationName);
     }
 
     /**
