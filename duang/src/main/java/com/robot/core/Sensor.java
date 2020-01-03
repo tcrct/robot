@@ -111,6 +111,7 @@ public class Sensor implements java.io.Serializable {
         if (Optional.ofNullable(sensors).isPresent() && !sensors.isEmpty()) {
             return sensors.poll(); //取出并移除顶部位置
         }
+        SENSOR_MAP.remove(deviceId);
         return null;
     }
 
