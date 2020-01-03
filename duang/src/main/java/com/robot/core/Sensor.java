@@ -1,7 +1,11 @@
 package com.robot.core;
 
+import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.numes.RobotEnum;
 import com.robot.utils.CrcUtil;
+import com.robot.utils.ToolsKit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -19,11 +23,13 @@ import java.util.*;
  */
 public class Sensor implements java.io.Serializable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Sensor.class);
+
     private static final String LINK_CHARACTER = "_";
     private static final String SQLIT_CHARACTER = "|";
 
     //传感器集合,key为车辆/设备ID，value为传感器对象
-    private static Map<String, Sensor> SENSOR_MAP = new HashMap<>();
+    private static Map<String, LinkedList<Sensor>> SENSOR_MAP = new HashMap<>();
 
     private Map<Integer, String> map = new TreeMap<>();
 
@@ -55,14 +61,16 @@ public class Sensor implements java.io.Serializable {
         }
         // 个数不等
         if(booleanList.size() != map.size()) {
+            LOG.info("个数不等，返回false");
             return false;
         }
         for(Boolean b : booleanList) {
             if(!b) {
+                LOG.info("传感器提交上来与指定位置的数值不一致，返回false");
                 return false;
             }
         }
-
+        LOG.info("传感器提交上来与指定位置的数值一致，返回true");
         return true;
     }
 
@@ -95,13 +103,25 @@ public class Sensor implements java.io.Serializable {
         if(sb.length() > 1) {
             resultString = sb.substring(0, sb.length()-1);
         }
-        // 计算验证码
-        setCode(CrcUtil.CrcVerify_Str(resultString));
         return resultString;
     }
 
-    public static Map<String, Sensor> getSensorMap() {
-        return SENSOR_MAP;
+    public static Sensor getSensor(String deviceId) {
+        LinkedList<Sensor> sensors = SENSOR_MAP.get(deviceId);
+        if (Optional.ofNullable(sensors).isPresent() && !sensors.isEmpty()) {
+            return sensors.poll(); //取出并移除顶部位置
+        }
+        return null;
+    }
+
+    public static void setSensor(String deviceId, Sensor sensor) {
+        LinkedList<Sensor> sensors = SENSOR_MAP.get(deviceId);
+        if (ToolsKit.isEmpty(sensors)) {
+            sensors = new LinkedList<>();
+        }
+        sensors.add(sensor); //取出并移除顶部位置
+        SENSOR_MAP.put(deviceId, sensors);
+        LOG.info("车辆/设备[{}]添加到传感器缓存成功, {}", deviceId, sensor.toString());
     }
 
     public String getCode() {

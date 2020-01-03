@@ -7,10 +7,8 @@ import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.*;
-import com.robot.core.AppContext;
 import com.robot.core.Sensor;
 import com.robot.core.handshake.HandshakeTelegram;
-import com.robot.core.handshake.HandshakeTelegramDto;
 import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.dispatch.route.RouteHelper;
 import com.robot.mvc.exceptions.RobotException;
@@ -96,12 +94,11 @@ public class DispatchFactory {
                     (RobotEnum.UP_LINK.getValue().equals(direction) && cmdKey.startsWith("rpt"))) {
                 // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
                 if ("rptmt".equalsIgnoreCase(cmdKey)) {
-                    Sensor sensor = Sensor.getSensorMap().get(deviceId);
+                    Sensor sensor = Sensor.getSensor(deviceId);
                     if (ToolsKit.isNotEmpty(sensor) && sensor.isWith(protocol.getParams())) {
                         // 取出传感器里的code
                         code = sensor.getCode();
-                        // 删除缓存
-                        Sensor.getSensorMap().remove(deviceId);
+                        LOG.info("车辆/设备[{}]传感器验证参数code为[{}]", deviceId, code);
                     }
                 }
                 HandshakeTelegram.duang().remove(deviceId, code);
