@@ -1,5 +1,6 @@
 package com.robot.service.common.responses;
 
+import com.robot.core.Sensor;
 import com.robot.service.common.ActionResponse;
 
 /**
@@ -8,8 +9,15 @@ import com.robot.service.common.ActionResponse;
  */
 public class RptMtResponse extends ActionResponse {
 
-    public RptMtResponse(String deviceId, String paramEnum) {
-        super(deviceId, paramEnum);
+    public RptMtResponse(String deviceId, String params) {
+        super(deviceId, params);
+    }
+
+    // 传感器对象作参数时
+    public RptMtResponse(String deviceId, Sensor sensor) {
+        super(deviceId, sensor.toString());
+        // 加入到缓存
+        Sensor.getSensorMap().put(deviceId, sensor);
     }
 
     @Override

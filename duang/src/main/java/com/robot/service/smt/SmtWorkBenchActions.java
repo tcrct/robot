@@ -1,6 +1,7 @@
 package com.robot.service.smt;
 
 
+import com.robot.core.Sensor;
 import com.robot.mvc.annotations.Action;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.service.common.BaseActions;
@@ -64,18 +65,21 @@ public class SmtWorkBenchActions extends BaseActions {
     @Override
     public void add(List<ICommand> requestList) {
         requestList.addAll(Arrays.asList(
+                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态，下层入料口是否有货
+                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"0").build()), // 等待传感器返回结果，第1位的参数为0时代表没有货物
                 new SetVmotRequest(VEHICLE_ID, "2::15"),
                 new RptVmotResponse(VEHICLE_ID, "2::15"),
                 new SetOutRequest(DEVICE_ID, "1::1"),
                 new SetVmotRequest(VEHICLE_ID, "1::-2"),
-                new RptMtResponse(DEVICE_ID, "1::1::0::0::0::1"), //到底部第一个与第二个传感器之间
-                new SetVmotRequest(VEHICLE_ID, "2::715"), //上升
+                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(0,"1").element(5,"1").build()),//经过底部第一个与第二个传感器之间
+//                new RptMtResponse(DEVICE_ID, "1::1::0::0::0::1"), //经过底部第一个与第二个传感器之间
                 new SetVmotRequest(VEHICLE_ID, "1::0"),//车辆履带停
                 new SetOutRequest(DEVICE_ID, "1::0"),//设备履带停
-//                new GetMtRequest(DEVICE_ID, "0"), //是否需要请求？？
-                new RptVmotResponse(VEHICLE_ID, "2::715"),//上升到位
-//                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"1").build()),
+                new GetMtRequest(DEVICE_ID, "0"), //查询物料状态，上层出料口是否有货
+                new RptMtResponse(DEVICE_ID, new Sensor.Builder().element(1,"1").build()),  //传感器的第2位参数为1时，代表有货
 //                new RptMtResponse(DEVICE_ID, "0::1::0::0::0::0"),//转送到位
+                new SetVmotRequest(VEHICLE_ID, "2::715"), //上升
+                new RptVmotResponse(VEHICLE_ID, "2::715"),//上升到位
                 new SetVmotRequest(VEHICLE_ID, "1::2"), //车辆履带转动，入料
                 new SetOutRequest(DEVICE_ID, "2::1"),//设备履带转动,入料
                 new RptVmotResponse(VEHICLE_ID, "1::2"),  // 货物到位

@@ -209,6 +209,7 @@ public abstract  class BaseActions implements IAction {
             LOG.info("指令集为空，退出");
             return ;
         }
+        // 模拟发送，先经过Service处理，得到response后，再加入到握手队列
         Response response = SendRequest.duang().send((ActionRequest) request, sender);
         if(AppContext.isHandshakeListener()) {
             ICallback<String> callback = new ICallback<String>() {
