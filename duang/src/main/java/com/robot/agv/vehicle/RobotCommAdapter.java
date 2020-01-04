@@ -314,6 +314,18 @@ public class RobotCommAdapter
             .setStateRequestInterval(getProcessModel().getStateRequestInterval());
   }
 
+    /**
+     * 重写父类里的是否可以发送下一条指令
+     *
+     * 已发送的命令数小于车辆的容量，并且队列中至少有一个命令正在等待发送
+     * 并且不是单步模式
+     * @return true可以发送
+     */
+    @Override
+    protected synchronized boolean canSendNextCommand() {
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
+    }
+
   /**发送移动命令*/
   @Override
   public synchronized void sendCommand(MovementCommand cmd)
@@ -691,7 +703,7 @@ public class RobotCommAdapter
     if(ToolsKit.isNotEmpty(actionKey)) {
       CUSTOM_ACTIONS_MAP.remove(actionKey);
     }
-    System.out.println("#################deviceId: "+ deviceId+"                    getName: " + getName());
+    LOG.info("#################deviceId: "+ deviceId+"                    getName: " + getName());
     LAST_CMD_MAP.remove(deviceId);
     getProcessModel().commandExecuted(cmd);
   }

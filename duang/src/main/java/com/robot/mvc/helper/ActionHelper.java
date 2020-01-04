@@ -22,11 +22,12 @@ public class ActionHelper {
     /**自定义指令操作集合*/
     private final Map<String, IAction> CUSTOM_ACTION_QUEYE = new HashMap<>();
 
-    public Map<String, String> getVehicelDeviceMap() {
+    public Map<String, List<String>> getVehicelDeviceMap() {
         return VEHICLE_DEVICE_MAP;
     }
 
-    private final Map<String, String> VEHICLE_DEVICE_MAP = new HashMap<>();
+    /**车辆与设备的映射集合，key为车辆，value为设备数组*/
+    private final Map<String, List<String>> VEHICLE_DEVICE_MAP = new HashMap<>();
     /**
      * 自定义的指令队列集合
      * @return
@@ -49,7 +50,12 @@ public class ActionHelper {
                 if (ToolsKit.isNotEmpty(actionAonn) && ToolsKit.isNotEmpty(actionAonn.name())) {
                     key = actionAonn.name();
                 }
-                VEHICLE_DEVICE_MAP.put(action.vehicleId(), action.deviceId());
+               List<String> deviceIdList = VEHICLE_DEVICE_MAP.get(action.vehicleId());
+                if (ToolsKit.isEmpty(deviceIdList)) {
+                    deviceIdList = new ArrayList<>();
+                }
+                deviceIdList.add(action.deviceId());
+                VEHICLE_DEVICE_MAP.put(action.vehicleId(), deviceIdList);
                 CUSTOM_ACTION_QUEYE.put(key, action);
             }
         } catch (Exception e) {

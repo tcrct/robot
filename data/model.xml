@@ -271,7 +271,7 @@
         <link point="50"/>
         <property name="tcs:defaultLocationSymbol" value="WORKING_GENERIC"/>
     </location>
-    <location name="SmtWorkBench" xPosition="24000" yPosition="25000" zPosition="0" type="InjectionMolding">
+    <location name="SmtWorkBench" xPosition="24000" yPosition="25000" zPosition="0" type="Smt">
         <link point="123"/>
         <property name="tcs:defaultLocationSymbol" value="WORKING_GENERIC"/>
     </location>
@@ -279,7 +279,7 @@
         <link point="705"/>
         <property name="tcs:defaultLocationSymbol" value="LOAD_TRANSFER_GENERIC"/>
     </location>
-    <location name="StartPoint" xPosition="5500" yPosition="28500" zPosition="0" type="InjectionMolding">
+    <location name="StartPoint" xPosition="5500" yPosition="28500" zPosition="0" type="Smt">
         <link point="237"/>
         <property name="tcs:defaultLocationSymbol" value="WORKING_GENERIC"/>
     </location>
@@ -804,5 +804,5 @@
             <property name="POSITION_Y" value="31750"/>
         </modelLayoutElement>
     </visualLayout>
-    <property name="tcs:modelFileLastModified" value="2020-01-03T06:31:02.209Z"/>
+    <property name="tcs:modelFileLastModified" value="2020-01-04T02:37:19.523Z"/>
 </model>

@@ -17,10 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -31,19 +28,23 @@ public class RobotTelegramListener implements ActionListener {
     private static final Logger LOG = LoggerFactory.getLogger(RobotTelegramListener.class);
 
     private TelegramSender sender;
-    private String deviceId;  // 设备ID
-    private String vehicleId; //车辆 ID
+    private List<String> deviceIds = new ArrayList<>();  // 车辆，设备ID
 
     public RobotTelegramListener(RobotCommAdapter adapter) {
         this.sender = adapter;
-        this.vehicleId = adapter.getName();
-        this.deviceId = ActionHelper.duang().getVehicelDeviceMap().get(vehicleId);
+        String vehicleId = adapter.getName();
+        deviceIds.add(vehicleId);
+        List<String> deviceIdList = ActionHelper.duang().getVehicelDeviceMap().get(vehicleId);
+        if (ToolsKit.isNotEmpty(deviceIdList)) {
+            this.deviceIds.addAll(deviceIdList);
+        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        doActionPerformed(deviceId);
-        doActionPerformed(vehicleId);
+        for (String deviceId : deviceIds) {
+            doActionPerformed(deviceId);
+        }
     }
 
     private void doActionPerformed(String key) {
