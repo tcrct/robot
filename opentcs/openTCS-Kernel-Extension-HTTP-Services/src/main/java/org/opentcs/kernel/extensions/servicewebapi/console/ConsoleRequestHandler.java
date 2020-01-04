@@ -28,7 +28,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * Handles requests and produces responses for version 1 of the web API.
  *
- * @author Stefan Walter (Fraunhofer IML)
+ * @author Laotang
+ * @blame Robot
  */
 public class ConsoleRequestHandler
         implements RequestHandler {

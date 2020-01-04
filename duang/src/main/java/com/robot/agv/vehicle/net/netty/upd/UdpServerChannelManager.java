@@ -124,11 +124,13 @@ public class UdpServerChannelManager<O, I> {
             LOG.warn("UdpServerChannelManager is not initalized!");
             return;
         }
-        this.channelFuture.channel().close();
-        this.bootstrap.config().group().shutdownGracefully();
-        this.initialized = false;
-        this.channelFuture = null;
-        LOG.warn("UdpServerChannelManager is disconnect!");
+        if (channelFuture != null) {
+            this.channelFuture.channel().close();
+            this.bootstrap.config().group().shutdownGracefully();
+            this.initialized = false;
+            this.channelFuture = null;
+            LOG.warn("UdpServerChannelManager is disconnect!");
+        }
     }
 
     public boolean isConnected() {

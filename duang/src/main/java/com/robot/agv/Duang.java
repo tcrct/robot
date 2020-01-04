@@ -25,8 +25,8 @@ public class Duang {
             RouteHelper.duang().getRoutes();
             ActionHelper.duang().getActions();
             IocHelper.duang().ioc();
-            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
-//            AppContext.setNetChannelType(NetChannelType.UDP);
+//            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
+            AppContext.setNetChannelType(NetChannelType.UDP);
             duang.startOpenTcs();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

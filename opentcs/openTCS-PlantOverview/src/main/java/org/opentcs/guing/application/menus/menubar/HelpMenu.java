@@ -15,6 +15,7 @@ import javax.swing.JMenuItem;
 import org.opentcs.guing.application.OperationMode;
 import org.opentcs.guing.application.action.ViewActionMap;
 import org.opentcs.guing.application.action.app.AboutAction;
+import org.opentcs.guing.application.action.app.ShowRoomAction;
 import org.opentcs.guing.util.I18nPlantOverview;
 import org.opentcs.guing.util.ResourceBundleUtil;
 
@@ -30,6 +31,7 @@ public class HelpMenu
    * A menu item for showing the application's "about" panel.
    */
   private final JMenuItem menuItemAbout;
+  private final JMenuItem menuItemShowRoom;
 
   /**
    * Creates a new instance.
@@ -47,6 +49,11 @@ public class HelpMenu
     this.setMnemonic('?');
 
     menuItemAbout = add(actionMap.get(AboutAction.ID));
+    menuItemShowRoom = add(actionMap.get(ShowRoomAction.ID));
+
+    add(menuItemAbout);
+    add(menuItemShowRoom);
+
   }
 
   /**

@@ -1,30 +1,30 @@
-//package com.robot.service.console;
-//
-//
-//import com.google.inject.Inject;
-//import com.robot.core.AppContext;
-//import com.robot.mvc.annotations.Controller;
-//import com.robot.mvc.annotations.Mapping;
-//import io.netty.handler.codec.http.HttpHeaderNames;
-//import org.opentcs.components.kernel.services.VehicleService;
-//import spark.QueryParamsMap;
-//import spark.Request;
-//import spark.Response;
-//
-///**
-// * 将请求到spark服务器的请求转向到该类进行处理
-// * 流程步骤如下：
-// * 1，请求到达spark后，在 org.opentcs.kernel.extensions.servicewebapi.console.ConsoleRequestHandler 类将请求转到该类
-// * 2，ConsoleController类 Method 的 Mapping注解值，必须要与请求到spark的 URI  一致，如有多个注解必须写在第一位，否则会导致请求失败
-// * 3，再通过反射调用注入的Service类，处理后将结果返回，最后通过spark返回到客户端
-// *
-// * 如更改了该Controller的路径，须在ConsoleRequestHandler里同步更改 CONTROLLER_CLASS_NAME 常量值
-// *
-// */
-//
-//@Controller
-//public class ConsoleController {
-//
+package com.robot.service.console;
+
+
+import com.google.inject.Inject;
+import com.robot.core.AppContext;
+import com.robot.mvc.annotations.Controller;
+import com.robot.mvc.annotations.Mapping;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import org.opentcs.components.kernel.services.VehicleService;
+import spark.QueryParamsMap;
+import spark.Request;
+import spark.Response;
+
+/**
+ * 将请求到spark服务器的请求转向到该类进行处理
+ * 流程步骤如下：
+ * 1，请求到达spark后，在 org.opentcs.kernel.extensions.servicewebapi.console.ConsoleRequestHandler 类将请求转到该类
+ * 2，ConsoleController类 Method 的 Mapping注解值，必须要与请求到spark的 URI  一致，如有多个注解必须写在第一位，否则会导致请求失败
+ * 3，再通过反射调用注入的Service类，处理后将结果返回，最后通过spark返回到客户端
+ *
+ * 如更改了该Controller的路径，须在ConsoleRequestHandler里同步更改 CONTROLLER_CLASS_NAME 常量值
+ *
+ */
+
+@Controller
+public class ConsoleController {
+
 //    @Inject
 //    private ConsoleService consoleService;
 //
@@ -229,5 +229,5 @@
 //            return null;
 //        }
 //    }
-//
-//}
+
+}
