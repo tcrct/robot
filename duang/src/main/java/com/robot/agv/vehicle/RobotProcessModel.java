@@ -402,6 +402,14 @@ public class RobotProcessModel extends VehicleProcessModel {
   }
 
   /**
+   *返回此通信适配器的单步模式标志
+   *@return 如果返回true为单步模式
+   */
+  public synchronized boolean isSingleStepModeEnabled() {
+    return singleStepModeEnabled;
+  }
+
+  /**
    * Model attributes specific to this implementation.
    */
   public static enum Attribute {
