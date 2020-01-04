@@ -368,6 +368,7 @@ public class LoopbackCommunicationAdapter
         if (!isTerminated()) {
           // Set the vehicle's state back to IDLE, but only if there aren't 
           // any more movements to be processed.
+          //将车辆状态重新设置为空闲，但前提是没有任何要处理的移动。
           if (getSentQueue().size() <= 1 && getCommandQueue().isEmpty()) {
             getProcessModel().setVehicleState(Vehicle.State.IDLE);
           }
@@ -379,6 +380,11 @@ public class LoopbackCommunicationAdapter
             // have, so we only peek() at the beginning of this method and
             // poll() here. If sentCmd is null, the queue was probably cleared
             // and we shouldn't report anything back.
+            /**
+             * 如果同时清除了命令队列，内核可能会惊讶地听到我们执行了一个不应该执行的命令，
+             * 因此我们只在这个方法的开头使用peek（）和poll（）。
+             * 如果sentCmd为空，则队列可能已清除，我们不应报告任何内容
+             */
             if (sentCmd != null && sentCmd.equals(curCommand)) {
               // Let the vehicle manager know we've finished this command.
               getProcessModel().commandExecuted(curCommand);
@@ -394,6 +400,8 @@ public class LoopbackCommunicationAdapter
      * then the vehicle's state is failure and some false movement
      * must be simulated. In the other case normal step
      * movement will be simulated.
+     *
+     * 模拟车辆的运动。如果方法参数为空，则车辆状态为故障，必须模拟一些错误移动。在另一种情况下，将模拟正常的步进运动。
      *
      * @param step A step
      * @throws InterruptedException If an exception occured while sumulating
@@ -423,6 +431,7 @@ public class LoopbackCommunicationAdapter
                                                                          orientation));
       // Advance the velocity controller by small steps until the
       // controller has processed all way entries.
+      //将速度控制器小步前进，直到控制器处理完所有路径条目
       while (getProcessModel().getVelocityController().hasWayEntries() && !isTerminated()) {
         WayEntry wayEntry = getProcessModel().getVelocityController().getCurrentWayEntry();
         Uninterruptibles.sleepUninterruptibly(ADVANCE_TIME, TimeUnit.MILLISECONDS);
@@ -431,6 +440,7 @@ public class LoopbackCommunicationAdapter
         if (wayEntry != nextWayEntry) {
           // Let the vehicle manager know that the vehicle has reached
           // the way entry's destination point.
+          // 让车辆管理员知道车辆已到达道路入口点
           getProcessModel().setVehiclePosition(wayEntry.getDestPointName());
         }
       }
@@ -438,6 +448,7 @@ public class LoopbackCommunicationAdapter
 
     /**
      * Simulates an operation.
+     * 模拟操作
      *
      * @param operation A operation
      * @throws InterruptedException If an exception occured while simulating

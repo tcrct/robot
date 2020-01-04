@@ -44,8 +44,12 @@ import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
 import org.opentcs.drivers.vehicle.MovementCommand;
+import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 import org.opentcs.drivers.vehicle.VehicleProcessModel;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
+import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntry;
+import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntryPool;
+import org.opentcs.kernel.vehicles.LocalVehicleControllerPool;
 import org.opentcs.util.ExplainedBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +95,8 @@ public class RobotCommAdapter
 
   private TCSObjectService objectService;
 
+  private VehicleEntryPool vehicleEntryPool;
+
   /**
    * 自定义动作是否运行
    * 如果key存在，则正在运行该指定的动作组合
@@ -109,11 +115,13 @@ public class RobotCommAdapter
   public RobotCommAdapter(@Assisted Vehicle vehicle,
                           StateMapper stateMapper,
                           TCSObjectService objectService,
+                          VehicleEntryPool vehicleEntryPool,
                           RobotAdapterComponentsFactory componentsFactory) {
     super(new RobotProcessModel(vehicle), 3, 2, LoadAction.CHARGE);
     this.stateMapper = requireNonNull(stateMapper, "orderMapper");
     this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
     this.objectService = requireNonNull(objectService, "objectService");
+    this.vehicleEntryPool = requireNonNull(vehicleEntryPool, "vehicleEntryPool");
     AppContext.setCommAdapter(this);
   }
 
@@ -680,20 +688,23 @@ public class RobotCommAdapter
    */
   public void executeNextMoveCmd(String deviceId, String actionKey) {
     LOG.info("成功执行自定义指令完成，则检查是否有下一订单，如有则继续执行");
+    VehicleCommAdapter commAdapter = vehicleEntryPool.getEntryFor(deviceId).getCommAdapter();
+    RobotProcessModel processModel = (RobotProcessModel) commAdapter.getProcessModel();
     //车辆设置为空闲状态，执行下一个移动指令
-    getProcessModel().setVehicleState(Vehicle.State.IDLE);
+    processModel.setVehicleState(Vehicle.State.IDLE);
     // 取消单步执行状态
-    getProcessModel().setSingleStepModeEnabled(false);
-    MovementCommand cmd = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
+    processModel.setSingleStepModeEnabled(false);
+//    MovementCommand cmd = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
+    MovementCommand cmd =  commAdapter.getSentQueue().poll();
 //        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
     System.out.println("cmd: " + cmd);
     //移除指定动作的名称
     if(ToolsKit.isNotEmpty(actionKey)) {
       CUSTOM_ACTIONS_MAP.remove(actionKey);
     }
-    System.out.println("#################deviceId: "+ deviceId+"                    getName: " + getName());
+    LOG.info("#################deviceId: "+ deviceId+"                    getName: " + processModel.getName());
     LAST_CMD_MAP.remove(deviceId);
-    getProcessModel().commandExecuted(cmd);
+    processModel.commandExecuted(cmd);
   }
 
   /**
