@@ -1,11 +1,14 @@
 package com.robot.mvc.interfaces;
 
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * 模板接口
  * 定义算法的结构
  *
  * @author Laotang
+ * @blame Android Team
  */
 public interface IAction {
 
@@ -27,6 +30,6 @@ public interface IAction {
     /**
      *执行操作
      */
-    void execute() throws Exception;
+    boolean execute() throws Exception;
 
 }

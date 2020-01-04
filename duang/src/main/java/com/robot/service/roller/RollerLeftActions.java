@@ -76,7 +76,6 @@ public class RollerLeftActions extends BaseActions {
                 new RptVmotResponse(VEHICLE_ID, "1::-1"),
                 new SetOutRequest(DEVICE_ID, "3::0"),
                 new SetOutRequest(DEVICE_ID, "1::0")
-
         ));
     }
 }

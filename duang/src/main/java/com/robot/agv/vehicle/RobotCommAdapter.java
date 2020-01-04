@@ -16,7 +16,6 @@ import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.RobotTelegramListener;
-import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
@@ -34,8 +33,8 @@ import java.beans.PropertyChangeEvent;
 import java.util.*;
 
 import static java.util.Objects.requireNonNull;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.FutureTask;
+
+import java.util.concurrent.*;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -44,16 +43,11 @@ import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
-import org.opentcs.data.order.Route;
 import org.opentcs.drivers.vehicle.*;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
-import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntry;
 import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntryPool;
-import org.opentcs.kernel.vehicles.LocalVehicleControllerPool;
-import org.opentcs.kernel.vehicles.VehicleCommAdapterRegistry;
 import org.opentcs.util.CyclicTask;
 import org.opentcs.util.ExplainedBoolean;
-import org.opentcs.virtualvehicle.VelocityController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,8 +92,6 @@ public class RobotCommAdapter
   private StateRequesterTask stateRequesterTask;
 
   private TCSObjectService objectService;
-
-  private CyclicTask vehicleSimulationTask;
 
   /**
    * 自定义动作是否运行
@@ -214,8 +206,6 @@ public class RobotCommAdapter
     // 清空握手队列
     HandshakeTelegram.getHandshakeTelegramQueue(getName()).clear();
     orderIds.clear();
-    vehicleSimulationTask.terminate();
-    vehicleSimulationTask = null;
     super.disable();
     LOG.info("车辆[{}]停用通讯成功", getName());
   }
@@ -253,7 +243,7 @@ public class RobotCommAdapter
 
   /**判断车辆是否已经连接，已经连接返回true*/
   @Override
-  protected synchronized boolean isVehicleConnected() {
+  protected boolean isVehicleConnected() {
     return channelManager != null && channelManager.isConnected();
   }
 
@@ -513,7 +503,7 @@ public class RobotCommAdapter
   }
 
   @Override
-  public synchronized void sendTelegram(Request telegram) {
+  public void sendTelegram(Request telegram) {
     requireNonNull(telegram, "telegram");
     if (!isVehicleConnected()) {
       LOG.debug("{}: Not connected - not sending request '{}'",
@@ -686,8 +676,7 @@ public class RobotCommAdapter
             IAction action = ActionHelper.duang().getCustomActionsQueue().get(operation);
             if (ToolsKit.isNotEmpty(action)) {
               action.execute();
-              executeNextMoveCmd(deviceId, operation);
-            } else  {
+            } else {
               LOG.info("根据[{}]查找不到对应的动作指令处理类", operation);
             }
           } catch (Exception e) {
@@ -695,6 +684,13 @@ public class RobotCommAdapter
           }
         }
       });
+//      // 如果工作站执行时间超过10分钟，则放弃等待
+//      Boolean isExecuteSuccess = (Boolean) futureTask.get();
+////      // 成功执行完，返回true
+//      if (isExecuteSuccess) {
+//        executeNextMoveCmd(deviceId, operation);
+//      }
+
 //      LAST_CMD_MAP.put(deviceId, cmd);
       CUSTOM_ACTIONS_MAP.put(operation, operation);
     } catch (Exception e) {

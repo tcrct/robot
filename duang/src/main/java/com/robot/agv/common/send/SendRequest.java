@@ -21,7 +21,7 @@ public class SendRequest {
         initDispatchFactory();
     }
 
-    public static synchronized SendRequest duang() {
+    public static SendRequest duang() {
         if (null == sendRequest) {
             sendRequest = new SendRequest();
         }

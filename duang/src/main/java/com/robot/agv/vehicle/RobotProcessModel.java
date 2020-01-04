@@ -133,7 +133,7 @@ public class RobotProcessModel extends VehicleProcessModel {
     return lastOrderSent;
   }
 
-  public synchronized void setLastOrderSent(@Nullable OrderRequest telegram) {
+  public void setLastOrderSent(@Nullable OrderRequest telegram) {
     OrderRequest oldValue = this.lastOrderSent;
     lastOrderSent = telegram;
 

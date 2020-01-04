@@ -60,7 +60,7 @@ public class RollerRightActions extends BaseActions {
 //    }
 
 
-    /**
+    /***
      * 添加该指令集的请求动作，动作顺序以存放顺序一致，即在位置靠前的先执行。
      *
      * 工作顺序：

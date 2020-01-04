@@ -1,5 +1,6 @@
 package com.robot.service.common;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
@@ -9,6 +10,7 @@ import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.HandshakeTelegramDto;
+import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.mvc.interfaces.ICallback;
 import com.robot.mvc.interfaces.ICommand;
@@ -22,11 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 指令集算法基类
  *
  * @author Laotang
+ * @blame Android Team
  */
 public abstract  class BaseActions implements IAction {
 
@@ -41,14 +45,13 @@ public abstract  class BaseActions implements IAction {
     private HandshakeTelegram handshakeTelegram;
     /**车辆是否已经提前移走*/
     private boolean isVehicleMove = false;
-
     public BaseActions() {
         actionsQueue = ActionsQueue.duang();
         handshakeTelegram = HandshakeTelegram.duang(); // AppContext.getAgvConfigure().getHandshakeTelegramQueue();
     }
 
     @Override
-    public void execute() throws Exception {
+    public boolean execute() throws Exception {
         if(ToolsKit.isEmpty(sender)) {
             adapter = AppContext.getCommAdapter();
             sender = adapter.getSender();
@@ -60,8 +63,14 @@ public abstract  class BaseActions implements IAction {
         String vehicleId = vehicleId();
         add(requestList);
         putQueue(actionKey, vehicleId, requestList);
-        sendTelegram(actionKey);
-        LOG.info("车辆[{}]对应的工作站[{}]的所有{}动作已经完成！", vehicleId, deviceId(), actionKey);
+        try {
+            sendTelegram(actionKey);
+            LOG.info("车辆[{}]对应的工作站[{}]的所有{}动作已经完成！", vehicleId, deviceId(), actionKey);
+            return true;
+        }catch (Exception e) {
+            throw new RobotException("设备["+deviceId()+"]执行["+actionKey+"]工站任务时出错: " + e.getMessage(), e);
+        }
+
     }
 
     private void putQueue(String actionKey, String vehicleId, List<ICommand> requestList) throws Exception {
