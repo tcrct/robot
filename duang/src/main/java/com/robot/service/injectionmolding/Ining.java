@@ -67,7 +67,7 @@ public class Ining extends BaseActions {
                 new SetVmotRequest(VEHICLE_ID, "1::-1"),
                 new RptVmotResponse(VEHICLE_ID, "1::-1"),
                 //车辆离开
-                new VehicleMoveRequest(VEHICLE_ID),
+//                new VehicleMoveRequest(VEHICLE_ID),
                 new SetVmotRequest(DEVICE_ID, "1::3"),
                 new SetVmotRequest(DEVICE_ID, "2::1")
         ));

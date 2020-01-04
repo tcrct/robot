@@ -61,6 +61,7 @@ public abstract  class BaseActions implements IAction {
         add(requestList);
         putQueue(actionKey, vehicleId, requestList);
         sendTelegram(actionKey);
+        LOG.info("车辆[{}]对应的工作站[{}]的所有{}动作已经完成！", vehicleId, deviceId(), actionKey);
     }
 
     private void putQueue(String actionKey, String vehicleId, List<ICommand> requestList) throws Exception {
@@ -108,12 +109,12 @@ public abstract  class BaseActions implements IAction {
         actionsQueue.getAllRequest();
     }
 
-    private void sendTelegram(String actionKey) {
+    private void sendTelegram(String actionKey) throws Exception {
         Queue<Request> queue = Objects.requireNonNull(actionsQueue.getQueue(actionKey), "根据"+actionKey+"查找指令队列不能为空");
         Request request = peekRequest(queue).isPresent() ? peekRequest(queue).get() : null;
         if(null == request) {
             LOG.info("指令集为空，退出");
-            return ;
+            return;
         }
         Protocol protocol = request.getProtocol();
         // 先判断是否为VehicleMoveRequest，如果是，则作特殊处理，移动车辆指令发送后，系统会执行下发路径指令到车辆
@@ -124,7 +125,7 @@ public abstract  class BaseActions implements IAction {
                     // 移除当前的指令，即移除当前第一个位置的移动车辆指令
                     if (remove(queue)) {
                         // 取出下一位置的指令继续执行，这里会执行车辆自有的重发机制
-                        adapter.executeNextMoveCmd(protocol.getDeviceId(), actionKey);
+//                        adapter.executeNextMoveCmd(protocol.getDeviceId(), actionKey);
                         isVehicleMove = true;
                         // 取出下一位
                         request = peekRequest(queue).isPresent() ? peekRequest(queue).get() : null;
@@ -207,7 +208,7 @@ public abstract  class BaseActions implements IAction {
         if(null == request) {
             ActionsQueue.duang().clearVerificationCodeMap(actionKey);
             LOG.info("指令集为空，退出");
-            return ;
+            return;
         }
         // 模拟发送，先经过Service处理，得到response后，再加入到握手队列
         Response response = SendRequest.duang().send((ActionRequest) request, sender);
@@ -267,7 +268,7 @@ public abstract  class BaseActions implements IAction {
     private void executeMoveVehicleCmd(String deviceId, String actionKey) {
         actionsQueue.remove(actionKey);
         if(!isVehicleMove) {
-            adapter.executeNextMoveCmd(deviceId, actionKey);
+//            adapter.executeNextMoveCmd(deviceId, actionKey);
         }
     }
 
@@ -288,6 +289,7 @@ public abstract  class BaseActions implements IAction {
      *
      * @return 动作名称
      */
+    @Override
     public abstract String actionKey();
 
 //    /**

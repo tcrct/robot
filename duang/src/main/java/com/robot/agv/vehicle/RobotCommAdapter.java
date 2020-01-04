@@ -16,6 +16,7 @@ import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.RobotTelegramListener;
+import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
@@ -34,6 +35,7 @@ import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -42,15 +44,16 @@ import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
-import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
-import org.opentcs.drivers.vehicle.MovementCommand;
-import org.opentcs.drivers.vehicle.VehicleCommAdapter;
-import org.opentcs.drivers.vehicle.VehicleProcessModel;
+import org.opentcs.data.order.Route;
+import org.opentcs.drivers.vehicle.*;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
 import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntry;
 import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntryPool;
 import org.opentcs.kernel.vehicles.LocalVehicleControllerPool;
+import org.opentcs.kernel.vehicles.VehicleCommAdapterRegistry;
+import org.opentcs.util.CyclicTask;
 import org.opentcs.util.ExplainedBoolean;
+import org.opentcs.virtualvehicle.VelocityController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +61,7 @@ import org.slf4j.LoggerFactory;
  * An example implementation for a communication adapter.
  *
  * @author Mats Wilhelm (Fraunhofer IML)
+ * @blame Android Team
  */
 public class RobotCommAdapter
         extends BasicVehicleCommAdapter
@@ -95,7 +99,7 @@ public class RobotCommAdapter
 
   private TCSObjectService objectService;
 
-  private VehicleEntryPool vehicleEntryPool;
+  private CyclicTask vehicleSimulationTask;
 
   /**
    * 自定义动作是否运行
@@ -121,7 +125,6 @@ public class RobotCommAdapter
     this.stateMapper = requireNonNull(stateMapper, "orderMapper");
     this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
     this.objectService = requireNonNull(objectService, "objectService");
-    this.vehicleEntryPool = requireNonNull(vehicleEntryPool, "vehicleEntryPool");
     AppContext.setCommAdapter(this);
   }
 
@@ -174,7 +177,7 @@ public class RobotCommAdapter
     if (!channelManager.isInitialized()) {
         channelManager.initialize();
     }
-    super.enable();
+
     LOG.info("车辆[{}]通讯管理器启用成功", getName());
 
     if ("A006".equals(getName())) {
@@ -191,9 +194,10 @@ public class RobotCommAdapter
       if ("A033".equals(getName())) {
           getProcessModel().setVehiclePosition("49");
       }
-
     getProcessModel().setVehicleIdle(true);
     getProcessModel().setVehicleState(Vehicle.State.IDLE);
+    super.enable();
+
 
   }
 
@@ -205,13 +209,14 @@ public class RobotCommAdapter
     if (!isEnabled()) {
       return;
     }
-
-    super.disable();
     channelManager.terminate();
     channelManager = null;
     // 清空握手队列
     HandshakeTelegram.getHandshakeTelegramQueue(getName()).clear();
     orderIds.clear();
+    vehicleSimulationTask.terminate();
+    vehicleSimulationTask = null;
+    super.disable();
     LOG.info("车辆[{}]停用通讯成功", getName());
   }
 
@@ -625,6 +630,7 @@ public class RobotCommAdapter
       return;
     }
 
+
     // 遍历队列，将在这个订单之前的所有移动命令移除
     Iterator<MovementCommand> cmdIter = getSentQueue().iterator();
     boolean finishedAll = false;
@@ -680,6 +686,7 @@ public class RobotCommAdapter
             IAction action = ActionHelper.duang().getCustomActionsQueue().get(operation);
             if (ToolsKit.isNotEmpty(action)) {
               action.execute();
+              executeNextMoveCmd(deviceId, operation);
             } else  {
               LOG.info("根据[{}]查找不到对应的动作指令处理类", operation);
             }
@@ -688,7 +695,7 @@ public class RobotCommAdapter
           }
         }
       });
-      LAST_CMD_MAP.put(deviceId, cmd);
+//      LAST_CMD_MAP.put(deviceId, cmd);
       CUSTOM_ACTIONS_MAP.put(operation, operation);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -700,23 +707,21 @@ public class RobotCommAdapter
    */
   public void executeNextMoveCmd(String deviceId, String actionKey) {
     LOG.info("成功执行自定义指令完成，则检查是否有下一订单，如有则继续执行");
-    VehicleCommAdapter commAdapter = vehicleEntryPool.getEntryFor(deviceId).getCommAdapter();
-    RobotProcessModel processModel = (RobotProcessModel) commAdapter.getProcessModel();
+    RobotProcessModel processModel = getProcessModel();
     //车辆设置为空闲状态，执行下一个移动指令
     processModel.setVehicleState(Vehicle.State.IDLE);
     // 取消单步执行状态
     processModel.setSingleStepModeEnabled(false);
 //    MovementCommand cmd = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
-    MovementCommand cmd =  commAdapter.getSentQueue().poll();
+    MovementCommand cmd =  getSentQueue().poll();
 //        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
     System.out.println("cmd: " + cmd);
     //移除指定动作的名称
     if(ToolsKit.isNotEmpty(actionKey)) {
       CUSTOM_ACTIONS_MAP.remove(actionKey);
     }
-    LOG.info("#################deviceId: "+ deviceId+"                    getName: " + getName());
     LOG.info("#################deviceId: "+ deviceId+"                    getName: " + processModel.getName());
-    LAST_CMD_MAP.remove(deviceId);
+//    LAST_CMD_MAP.remove(deviceId);
     processModel.commandExecuted(cmd);
   }
 
@@ -774,5 +779,6 @@ public class RobotCommAdapter
     }
     return 0;
   }
-
 }
+
+
