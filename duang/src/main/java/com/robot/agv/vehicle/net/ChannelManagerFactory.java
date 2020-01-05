@@ -5,14 +5,16 @@ import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
+import com.robot.agv.vehicle.net.netty.upd.UdpServerManager;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.serialport.SerialPortChannelManager;
 import com.robot.agv.vehicle.net.netty.tcp.TcpChannelManager;
-import com.robot.agv.vehicle.net.netty.upd.UdpChannelManager;
+import com.robot.agv.vehicle.net.netty.upd.UdpClientManager;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateResponse;
+import com.robot.utils.SettingUtils;
 import com.robot.utils.ToolsKit;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ public class ChannelManagerFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChannelManagerFactory.class);
     private static Object dispatchFactory = null;
+    private static UdpServerManager udpServerManager = null;
     /**
      * 取通讯渠道管理器
      * @param adapter   适配器
@@ -40,7 +43,25 @@ public class ChannelManagerFactory {
             return new TcpChannelManager(adapter);
         }
         else if (NetChannelType.UDP.equals(type)) {
-            return new UdpChannelManager(adapter);
+            if (null == udpServerManager) {
+                udpServerManager = new UdpServerManager(adapter);
+                String host = SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
+                Integer port = SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
+                if (!udpServerManager.isInitialized()) {
+                    udpServerManager.initialize();
+                    if (!udpServerManager.isConnected()) {
+                        udpServerManager.connect(host, port);
+                        if (udpServerManager.isConnected()) {
+                            LOG.info("Robot UDP服务器链接[{}:{}]成功", host, port);
+                        } else {
+                            LOG.info("Robot UDP服务器链接[{}:{}]失败", host, port);
+                        }
+                    }
+                }
+            }
+            LOG.info("连接车辆[{}], [{}]成功", adapter.getProcessModel().getName(),
+                    adapter.getProcessModel().getVehicleHost()+":"+adapter.getProcessModel().getVehiclePort());
+            return new UdpClientManager(adapter);
         }
         else if (NetChannelType.SERIALPORT.equals(type)) {
             return new SerialPortChannelManager(adapter);

@@ -100,7 +100,8 @@
 			<artifactId>seralport</artifactId>
 			<version>1.6.0_10</version>
 			<scope>system</scope>
-			<systemPath>${project.basedir}/libs/RXTXcomm.jar</systemPath>
+			<!--<systemPath>${project.basedir}/libs/RXTXcomm.jar</systemPath>-->
+			<systemPath>C:/workspace/java/robot/libs/RXTXcomm.jar</systemPath>
 		</dependency>
 
 		<!-- CGLIB -->

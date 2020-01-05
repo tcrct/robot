@@ -15,17 +15,18 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * UPD方式
+ * UPD Client Manager
  */
-public class UdpChannelManager implements IChannelManager<Request, Response> {
+public class UdpClientManager implements IChannelManager<Request, Response> {
 
     private RobotCommAdapter robotCommAdapter;
-    private UdpServerChannelManager udpServerChannelManager;
+    private UdpClientChannelManager channelManager;
 
 
-    public UdpChannelManager(RobotCommAdapter commAdapter) {
+    public UdpClientManager(RobotCommAdapter commAdapter) {
         robotCommAdapter = commAdapter;
-        udpServerChannelManager = new UdpServerChannelManager(commAdapter,
+
+        channelManager = new UdpClientChannelManager(commAdapter,
                 this::getChannelHandlers,
                 commAdapter.getProcessModel().getVehicleIdleTimeout(),
                 commAdapter.getProcessModel().isLoggingEnabled());
@@ -42,23 +43,23 @@ public class UdpChannelManager implements IChannelManager<Request, Response> {
 
     @Override
     public void initialize() {
-        udpServerChannelManager.initialized();
+        channelManager.initialized();
     }
 
     @Override
     public boolean isInitialized() {
-        return udpServerChannelManager.isInitialized();
+        return channelManager.isInitialized();
     }
 
     @Override
     public void terminate() {
-        udpServerChannelManager.terminate();
+        channelManager.terminate();
     }
 
     @Override
     public void connect(String host, int port) {
         try {
-            udpServerChannelManager.connect(host, port);
+            channelManager.connect(host, port);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,26 +67,26 @@ public class UdpChannelManager implements IChannelManager<Request, Response> {
 
     @Override
     public void disconnect() {
-        udpServerChannelManager.disconnect();
+        channelManager.disconnect();
     }
 
     @Override
     public boolean isConnected() {
-        return udpServerChannelManager.isConnected();
+        return channelManager.isConnected();
     }
 
     @Override
     public void setLoggingEnabled(boolean enable) {
-        udpServerChannelManager.setLoggingEnabled(enable);
+        channelManager.setLoggingEnabled(enable);
     }
 
     @Override
     public void scheduleConnect(@Nonnull String host, int port, long delay) {
-        udpServerChannelManager.scheduleConnect(host, port, delay);
+        channelManager.scheduleConnect(host, port, delay);
     }
 
     @Override
     public void send(Request telegram) {
-        udpServerChannelManager.send(telegram.getRawContent());
+        channelManager.send(telegram.getRawContent());
     }
 }

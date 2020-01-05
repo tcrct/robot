@@ -34,6 +34,9 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
     private List<String> mCommList = null;
 
     public SerialPortChannelManager(RobotCommAdapter adapter) {
+        if (adapter.isEnabled()) {
+            return;
+        }
         this.eventListener = (ConnectionEventListener<Response>)adapter;
         this.sender =(TelegramSender)adapter;
         serialPortManager = new SerialPortManager();

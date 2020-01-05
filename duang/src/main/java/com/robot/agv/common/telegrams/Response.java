@@ -3,7 +3,7 @@
  */
 package com.robot.agv.common.telegrams;
 
-import com.mongodb.lang.NonNull;
+import javax.annotation.Nonnull;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.utils.ProtocolUtils;
@@ -52,7 +52,7 @@ public abstract class Response extends Telegram {
    * @param request 队列中第一位的请求元素
    * @return
    */
-  public  boolean containsPoint(@NonNull Request request) {
+  public  boolean containsPoint(@Nonnull Request request) {
     requireNonNull(request, "request");
     // 提交上来的点名称
     String postPoint = RobotUtil.getReportPoint(getProtocol());

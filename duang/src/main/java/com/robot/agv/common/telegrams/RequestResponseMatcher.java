@@ -13,7 +13,6 @@ import static java.util.Objects.requireNonNull;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
-import com.mongodb.lang.NonNull;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.agv.vehicle.telegrams.StateResponse;
@@ -22,7 +21,6 @@ import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.HandshakeTelegramDto;
 import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
-import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +59,7 @@ public class RequestResponseMatcher {
    * 将请求对象加入到队列中
    * @param request 请求对象
    */
-  public void enqueueRequest(@NonNull String deviceId, @Nonnull Request request) {
+  public void enqueueRequest(@Nonnull String deviceId, @Nonnull Request request) {
     requireNonNull(request, "请求对象不能为空");
     LinkedList<Request> linkedList = requests.get(deviceId);
     boolean emptyQueueBeforeEnqueue = ToolsKit.isEmpty(linkedList) ? true : linkedList.isEmpty();

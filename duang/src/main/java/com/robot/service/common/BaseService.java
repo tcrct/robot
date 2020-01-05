@@ -72,7 +72,7 @@ public class BaseService implements IService {
         List<ProtocolParam> protocolParamList = new ArrayList<>();
         String startPointName = null;
         String endPointName = null;
-
+        String vehicleName = stateRequest.getModel().getName();
         Route.Step step= command.getStep();
         // 当前点
         String currentPointName = step.getSourcePoint().getName();
@@ -84,7 +84,7 @@ public class BaseService implements IService {
         String nextPointName =   step.getDestinationPoint().getName();
         // 最终目的点，即停车点
         endPointName = stateRequest.getDestinationId();
-        ProtocolParam travelParam = buildAgvTravelParamString(startPointName, currentPointName, nextPointName, endPointName, stateRequest);
+        ProtocolParam travelParam = buildAgvTravelParamString(vehicleName, startPointName, currentPointName, nextPointName, endPointName, stateRequest);
         protocolParamList.add(travelParam);
         return protocolParamList;
     }
@@ -108,7 +108,7 @@ public class BaseService implements IService {
      * 构建车辆行驶参数字符串
      * @return
      */
-    private ProtocolParam buildAgvTravelParamString(String startPointName, String currentPointName, String nextPointName,
+    private ProtocolParam buildAgvTravelParamString(String vehicleName, String startPointName, String currentPointName, String nextPointName,
                                                     String endPointName, StateRequest request) {
 
         // 在工厂概述里设置的点属性关键字，例如: {"direction":"l"}， 不填写的话就是直行,确定车辆的方向，左中右
@@ -117,20 +117,20 @@ public class BaseService implements IService {
         String orientation = SettingUtils.getStringByGroup("orientation", "point", "orientation");
 
         // 当前点的方向
-        String directionBefore = RobotUtil.getPointPropertiesValue(currentPointName, direction, RobotEnum.STAIGHT_LINE.getValue());
+        String directionBefore = RobotUtil.getPointPropertiesValue(vehicleName, currentPointName, direction, RobotEnum.STAIGHT_LINE.getValue());
         // 下一个点的方向
-        String directionAfter = RobotUtil.getPointPropertiesValue(nextPointName, direction, RobotEnum.STAIGHT_LINE.getValue());
+        String directionAfter = RobotUtil.getPointPropertiesValue(vehicleName, nextPointName, direction, RobotEnum.STAIGHT_LINE.getValue());
         //如果下一个点是停车(结束)点
         if (endPointName.equals(nextPointName)) {
-            directionAfter = RobotUtil.getPointPropertiesValue(endPointName, stopMode, RobotEnum.STOP.getValue());
+            directionAfter = RobotUtil.getPointPropertiesValue(vehicleName, endPointName, stopMode, RobotEnum.STOP.getValue());
         }
         // 确定车辆是前进还是后退
-        String around = RobotUtil.getPointPropertiesValue(currentPointName, orientation, RobotEnum.FORWARD.getValue());
+        String around = RobotUtil.getPointPropertiesValue(vehicleName, currentPointName, orientation, RobotEnum.FORWARD.getValue());
 
         directionBefore += around + currentPointName;
         directionAfter += around + nextPointName;
-        Point.Type beforePointType = RobotUtil.getPoint(currentPointName).getType();
-        Point.Type afterPointType = RobotUtil.getPoint(nextPointName).getType();
+        Point.Type beforePointType = RobotUtil.getPoint(vehicleName, currentPointName).getType();
+        Point.Type afterPointType = RobotUtil.getPoint(vehicleName, nextPointName).getType();
         return new ProtocolParam(directionBefore, beforePointType, directionAfter, afterPointType);
     }
 

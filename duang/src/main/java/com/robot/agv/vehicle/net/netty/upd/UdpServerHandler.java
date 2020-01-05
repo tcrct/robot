@@ -14,7 +14,7 @@ import io.netty.util.CharsetUtil;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 
 
-public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private final static Log logger = LogFactory.get();
     private ConnectionEventListener eventListener;
@@ -22,7 +22,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private TelegramSender telegramSender;
 
 
-    public UdpHandler(UdpServerChannelManager manager, RobotCommAdapter adapter){
+    public UdpServerHandler(UdpServerChannelManager manager, RobotCommAdapter adapter){
         this.manager = manager;
         this.eventListener = (ConnectionEventListener)adapter;
         this.telegramSender = (TelegramSender)adapter;
@@ -50,6 +50,6 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)throws Exception {
         ctx.close();
-        logger.error("UdpHandler exception: " + cause.getMessage(), cause);
+        logger.error("UdpServerHandler exception: " + cause.getMessage(), cause);
     }
 }

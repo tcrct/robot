@@ -30,9 +30,9 @@ import static org.opentcs.util.Assertions.checkState;
  *  @param <O> The type of outgoing messages on this UdpServerChannelManager.
  * @param <I> The type of incoming messages on this UdpServerChannelManager.
  */
-public class UdpServerChannelManager<O, I> {
+public class UdpClientChannelManager<O, I> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UdpServerChannelManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UdpClientChannelManager.class);
 
     private Bootstrap bootstrap;
     private EventLoopGroup workerGroup;
@@ -47,7 +47,7 @@ public class UdpServerChannelManager<O, I> {
     private static int BUFFER_SIZE = 64 * 1024;
     private static final String LOGGING_HANDLER_NAME = "ChannelLoggingHandler";
 
-    public UdpServerChannelManager(@Nonnull RobotCommAdapter adapter,
+    public UdpClientChannelManager(@Nonnull RobotCommAdapter adapter,
                                    Supplier<List<ChannelHandler>> channelSupplier,
                                    int readTimeout,
                                    boolean enableLogging) {
@@ -72,16 +72,16 @@ public class UdpServerChannelManager<O, I> {
         this.bootstrap.option(ChannelOption.SO_RCVBUF, BUFFER_SIZE);
         // 设置UDP写缓冲区为64k
         this.bootstrap.option(ChannelOption.SO_SNDBUF, BUFFER_SIZE);
-        UdpServerHandler udpServerHandler = new UdpServerHandler(this, adapter);
+        UdpClientHandler udpHandler = new UdpClientHandler(this, adapter);
         this.bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
             @Override
             protected void initChannel(NioDatagramChannel ch) throws Exception {
-                Iterator channelIterator = ((List) UdpServerChannelManager.this.channelSupplier.get()).iterator();
+                Iterator channelIterator = ((List) UdpClientChannelManager.this.channelSupplier.get()).iterator();
                 while (channelIterator.hasNext()) {
                     ChannelHandler handler = (ChannelHandler) channelIterator.next();
                     ch.pipeline().addLast(new ChannelHandler[]{handler});
                 }
-                ch.pipeline().addLast(udpServerHandler);
+                ch.pipeline().addLast(udpHandler);
             }
         });
         initialized = true;
@@ -108,11 +108,11 @@ public class UdpServerChannelManager<O, I> {
             if (future.isSuccess()) {
                 this.initialized = true;
                 adapter.onConnect();
-                LOG.warn("UdpServerChannelManager connect is success:  {}:{}", host, port);
+                LOG.warn("UdpClientChannelManager connect is success:  {}:{}", host, port);
             }
             else {
                 adapter.onFailedConnectionAttempt();
-                LOG.error("UdpServerChannelManager connect fail");
+                LOG.error("UdpClientChannelManager connect fail");
             }
         });
         connectFuture = null;
@@ -120,7 +120,7 @@ public class UdpServerChannelManager<O, I> {
 
     public void disconnect() {
         if (!this.initialized) {
-            LOG.warn("UdpServerChannelManager is not initalized!");
+            LOG.warn("UdpClientChannelManager is not initalized!");
             return;
         }
         if (channelFuture != null) {
@@ -128,7 +128,7 @@ public class UdpServerChannelManager<O, I> {
             this.bootstrap.config().group().shutdownGracefully();
             this.initialized = false;
             this.channelFuture = null;
-            LOG.warn("UdpServerChannelManager is disconnect!");
+            LOG.warn("UdpClientChannelManager is disconnect!");
         }
     }
 
@@ -147,7 +147,7 @@ public class UdpServerChannelManager<O, I> {
         ChannelPipeline pipeline = channelFuture.channel().pipeline();
         if (enabled && pipeline.get(LOGGING_HANDLER_NAME) == null) {
             pipeline.addFirst(LOGGING_HANDLER_NAME,
-                    new LoggingHandler(UdpServerChannelManager.this.getClass()));
+                    new LoggingHandler(UdpClientChannelManager.this.getClass()));
         }
         else if (!enabled && pipeline.get(LOGGING_HANDLER_NAME) != null) {
             pipeline.remove(LOGGING_HANDLER_NAME);
@@ -170,7 +170,7 @@ public class UdpServerChannelManager<O, I> {
 
     public void send(O telegram) {
         if (!this.isConnected()) {
-            throw new IllegalArgumentException("Not initialized.");
+            throw new IllegalArgumentException("没有初始化.");
         }
         if (ObjectUtil.isEmpty(telegram)) {
             throw new IllegalArgumentException("广播的报文内容不能为空");
@@ -180,7 +180,7 @@ public class UdpServerChannelManager<O, I> {
         int port = adapter.getProcessModel().getVehiclePort();
         InetSocketAddress address = new InetSocketAddress(host, port);
         String telegramStr = telegram.toString();
-        LOG.info("upd server send client[{}][{}], telegram [{}] ",
+        LOG.info("send upd client [{}][{}], telegram [{}] ",
                 adapter.getProcessModel().getName(),
                 (address.getAddress().toString()+":"+address.getPort()),
                 telegramStr);

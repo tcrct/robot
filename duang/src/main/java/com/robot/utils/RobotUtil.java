@@ -29,15 +29,15 @@ public class RobotUtil {
      */
     public static Vehicle getVehicle(String vehicleName){
         java.util.Objects.requireNonNull(vehicleName, "车辆名称不能为空");
-        return AppContext.getOpenTcsObjectService().fetchObject(Vehicle.class, vehicleName);
+        return AppContext.getOpenTcsObjectService(vehicleName).fetchObject(Vehicle.class, vehicleName);
     }
 
     /***
      * 根据点名称取openTCS线路图上的点
      */
-    public static Point getPoint(String pointName){
+    public static Point getPoint(String vehicleName,String pointName){
         java.util.Objects.requireNonNull(pointName, "点名称不能为空");
-        return AppContext.getOpenTcsObjectService().fetchObject(Point.class, pointName);
+        return AppContext.getOpenTcsObjectService(vehicleName).fetchObject(Point.class, pointName);
     }
 
     /***
@@ -56,9 +56,9 @@ public class RobotUtil {
     /***
      * 根据线名称取openTCS线路图上的车辆
      */
-    public static Location getLocation(String locationName){
+    public static Location getLocation(String vehicleName, String locationName){
         java.util.Objects.requireNonNull(locationName, "位置名称不能为空");
-        return AppContext.getOpenTcsObjectService().fetchObject(Location.class, locationName);
+        return AppContext.getOpenTcsObjectService(vehicleName).fetchObject(Location.class, locationName);
     }
 
     /**
@@ -68,8 +68,8 @@ public class RobotUtil {
      * @param defaultValue 默认值
      * @return
      */
-    public static String getPointPropertiesValue(String pointName, String key, String defaultValue) {
-        Point point =  getPoint(pointName);
+    public static String getPointPropertiesValue(String vehicleName, String pointName, String key, String defaultValue) {
+        Point point =  getPoint(vehicleName, pointName);
         java.util.Objects.requireNonNull(point, "根据["+pointName+"]找不到对应的点对象");
         Map<String,String> pointMap = point.getProperties();
 

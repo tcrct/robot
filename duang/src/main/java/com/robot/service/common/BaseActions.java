@@ -52,15 +52,15 @@ public abstract  class BaseActions implements IAction {
 
     @Override
     public boolean execute() throws Exception {
-        if(ToolsKit.isEmpty(sender)) {
-            adapter = AppContext.getCommAdapter();
-            sender = adapter.getSender();
-        }
         //确认车辆没有提前移走
         isVehicleMove = false;
         List<ICommand> requestList = new ArrayList<>();
         String actionKey = actionKey();
         String vehicleId = vehicleId();
+        if(ToolsKit.isEmpty(sender)) {
+            adapter = AppContext.getCommAdapter(vehicleId);
+            sender = adapter.getSender();
+        }
         add(requestList);
         putQueue(actionKey, vehicleId, requestList);
         try {
@@ -134,7 +134,7 @@ public abstract  class BaseActions implements IAction {
                     // 移除当前的指令，即移除当前第一个位置的移动车辆指令
                     if (remove(queue)) {
                         // 取出下一位置的指令继续执行，这里会执行车辆自有的重发机制
-//                        adapter.executeNextMoveCmd(protocol.getDeviceId(), actionKey);
+                        adapter.executeNextMoveCmd(protocol.getDeviceId(), actionKey);
                         isVehicleMove = true;
                         // 取出下一位
                         request = peekRequest(queue).isPresent() ? peekRequest(queue).get() : null;
@@ -277,7 +277,7 @@ public abstract  class BaseActions implements IAction {
     private void executeMoveVehicleCmd(String deviceId, String actionKey) {
         actionsQueue.remove(actionKey);
         if(!isVehicleMove) {
-//            adapter.executeNextMoveCmd(deviceId, actionKey);
+            adapter.executeNextMoveCmd(deviceId, actionKey);
         }
     }
 

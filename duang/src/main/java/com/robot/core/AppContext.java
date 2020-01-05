@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AppContext {
 
@@ -20,19 +22,19 @@ public class AppContext {
     /**
      * 通讯适配器
      */
-    private static RobotCommAdapter COMM_ADAPTER;
+    private static Map<String, RobotCommAdapter> COMM_ADAPTER = new ConcurrentHashMap<>();
     public static void setCommAdapter(RobotCommAdapter commAdapter) {
-        COMM_ADAPTER = commAdapter;
+        COMM_ADAPTER.put(commAdapter.getName(), commAdapter);
     }
-    public static RobotCommAdapter getCommAdapter() {
-        return COMM_ADAPTER;
+    public static RobotCommAdapter getCommAdapter(String name) {
+        return COMM_ADAPTER.get(name);
     }
 
     /**
      * 大杀器----TCS的对象服务器
      */
-    public static TCSObjectService getOpenTcsObjectService(){
-        return getCommAdapter().getObjectService() ;
+    public static TCSObjectService getOpenTcsObjectService(String key){
+        return Optional.ofNullable(getCommAdapter(key).getObjectService()).orElseThrow(NullPointerException::new);
     }
 
 

@@ -124,7 +124,7 @@ public class ShowRoomService {
             transportOrderData.setIntendedVehicle(vehicleRef);
             for (LocationOperationDto dto : locationOperationDtos) {
                 DriveOrderStructure driveOrderStructure = new DriveOrderStructure();
-                driveOrderStructure.setDriveOrderLocation(RobotUtil.getLocation(dto.getLocation()).getReference());
+                driveOrderStructure.setDriveOrderLocation(RobotUtil.getLocation(dto.getVehicleName(), dto.getLocation()).getReference());
                 driveOrderStructure.setDriveOrderVehicleOperation(dto.getOperation());
                 transportOrderData.getDriveOrders().add(driveOrderStructure);
             }
