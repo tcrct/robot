@@ -92,6 +92,6 @@ public class VehicleEntryPool
   @Nullable
   public VehicleEntry getEntryFor(@Nonnull String vehicleName) {
     requireNonNull(vehicleName, "vehicleName");
-    return entries.get(vehicleName);
+    return  entries.get(vehicleName);
   }
 }
