@@ -13,6 +13,7 @@ import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 import org.opentcs.drivers.vehicle.VehicleCommAdapterDescription;
 import org.opentcs.drivers.vehicle.VehicleCommAdapterFactory;
+import org.opentcs.kernel.extensions.controlcenter.vehicles.VehicleEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +56,11 @@ public class RobotCommAdapterFactory
     @Override
     public void initialize() {
         if (initialized) {
-            LOG.info("Robot适配器重复初始化");
+            LOG.info("Robot适配器工厂重复初始化");
             return;
         }
         initialized = true;
-        LOG.info("Robot适配器初始化完成");
+        LOG.info("Robot适配器工厂初始化完成");
     }
 
     @Override
@@ -70,11 +71,11 @@ public class RobotCommAdapterFactory
     @Override
     public void terminate() {
         if (!initialized) {
-            LOG.warn("Robot适配器没有初始化");
+            LOG.warn("Robot适配器工厂没有初始化");
             return;
         }
         initialized = false;
-        LOG.info("Robot适配器终止");
+        LOG.info("Robot适配器工厂终止");
     }
 
     /**
@@ -130,6 +131,7 @@ public class RobotCommAdapterFactory
                 Integer.parseInt(vehicle.getProperty(PROPKEY_VEHICLE_PORT))
         );
         LOG.info(vehicle.getName() + "#############:  " + adapter.hashCode() + "             adapter: " + adapter.getProcessModel().getName());
+        // 加入到缓存集合
         AppContext.setCommAdapter(adapter);
         return adapter;
     }
