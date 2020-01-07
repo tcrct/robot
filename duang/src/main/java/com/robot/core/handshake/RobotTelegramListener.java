@@ -52,7 +52,7 @@ public class RobotTelegramListener implements ActionListener {
     private void doActionPerformed(String key) {
         LinkedBlockingQueue<HandshakeTelegramDto> queue = HandshakeTelegram.getHandshakeTelegramQueue(key);
         if (null == queue || queue.isEmpty()) {
-            LOG.info("车辆设备[{}]的报文监听器队列为空或不存在",key);
+            LOG.debug("车辆设备[{}]的报文监听器队列为空或不存在",key);
             return;
         }
         Iterator<HandshakeTelegramDto> iterator = queue.iterator();

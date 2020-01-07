@@ -6,7 +6,9 @@ import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.net.netty.upd.UdpServerManager;
+import com.robot.core.AppContext;
 import com.robot.mvc.exceptions.RobotException;
+import com.robot.mvc.helper.ActionHelper;
 import com.robot.utils.ProtocolUtils;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.serialport.SerialPortChannelManager;
@@ -20,7 +22,10 @@ import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 网络通讯管理工厂
@@ -83,12 +88,12 @@ public class ChannelManagerFactory {
             return;
         }
         for (String data :  telegramDataList) {
-            doTelegram(eventListener, telegramSender, data);
+            doTelegram(data);
         }
 
     }
 
-    private static void doTelegram(ConnectionEventListener<Response> eventListener, TelegramSender telegramSender, String telegramData) {
+    private static void doTelegram(String telegramData) {
         //将接收到的报文内容转换为Protocol对象
         Protocol protocol = null;
         try {
@@ -102,7 +107,31 @@ public class ChannelManagerFactory {
             LOG.warn("将报文内容{}转换为Protocol对象时出错, 退出该请求的处理: {}, {}", telegramData,e.getMessage(), e);
         }
 
-        // 将请求转到业务逻辑处理
+        String deviceId = protocol.getDeviceId();
+        if (deviceId.startsWith("B")) {
+            Map<String, Set<String>> actionMap = ActionHelper.duang().getVehicelDeviceMap();
+            if (ToolsKit.isNotEmpty(actionMap)) {
+               for (Iterator<Map.Entry<String,Set<String>>> iterator = actionMap.entrySet().iterator(); iterator.hasNext();) {
+                   Map.Entry<String,Set<String>> entry = iterator.next();
+                   Set<String> values = entry.getValue();
+                   if (ToolsKit.isNotEmpty(values) && values.contains(deviceId)) {
+                       deviceId = entry.getKey();
+                       LOG.info("与设备{}对应的车辆为{}", protocol.getDeviceId(), deviceId);
+                       break;
+                   }
+               }
+            }
+        }
+        RobotCommAdapter adapter = AppContext.getCommAdapter(deviceId);
+        if (ToolsKit.isEmpty(adapter)) {
+            LOG.error("车辆[{}]对应的适配器不存在", deviceId);
+            return;
+        }
+        ConnectionEventListener<Response> eventListener = (ConnectionEventListener<Response>)adapter;
+        TelegramSender telegramSender = (TelegramSender) adapter;
+
+
+                // 将请求转到业务逻辑处理
         Response response = SendRequest.duang().send(protocol, telegramSender);
         if (ToolsKit.isNotEmpty(response)) {
             if (response.getStatus() != HttpStatus.HTTP_OK) {

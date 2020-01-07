@@ -39,7 +39,7 @@ public class RequestResponseMatcher {
   /**
    * The actual queue of requests.
    */
-  private final Map<String, LinkedList<Request>> requests = new ConcurrentHashMap<>();
+  private final LinkedList<Request> requests = new LinkedList<>();
   /**
    * Sends the queued {@link Request}s.
    */
@@ -61,15 +61,10 @@ public class RequestResponseMatcher {
    */
   public void enqueueRequest(@Nonnull String deviceId, @Nonnull Request request) {
     requireNonNull(request, "请求对象不能为空");
-    LinkedList<Request> linkedList = requests.get(deviceId);
-    boolean emptyQueueBeforeEnqueue = ToolsKit.isEmpty(linkedList) ? true : linkedList.isEmpty();
+    boolean emptyQueueBeforeEnqueue = requests.isEmpty();
 
     LOG.info("加入到车辆[{}]移动队列的请求: {}", deviceId, request.getRawContent());
-    if (ToolsKit.isEmpty(linkedList)) {
-      linkedList = new LinkedList<>();
-    }
-    linkedList.add(request);
-    requests.put(deviceId, linkedList);
+    requests.add(request);
 
     if (emptyQueueBeforeEnqueue) {
       checkForSendingNextRequest(deviceId);
@@ -81,9 +76,14 @@ public class RequestResponseMatcher {
    */
   public void checkForSendingNextRequest(String deviceId) {
     LOG.info("Check for sending next request.");
-    if (peekCurrentRequest(deviceId).isPresent()) {
-      Request request = peekCurrentRequest(deviceId).get();
-      telegramSender.sendTelegram(peekCurrentRequest(deviceId).get());
+    if (peekCurrentRequest().isPresent()) {
+      Request request = peekCurrentRequest().get();
+      if (ToolsKit.isEmpty(request)){
+          LOG.info("{}待发送的请求不能为空", deviceId);
+          return;
+      }
+
+      telegramSender.sendTelegram(request);
       // 添加到应答(握手)队列
       if (AppContext.isHandshakeListener() &&
               RobotEnum.UP_LINK.getValue().equals(request.getProtocol().getDirection())) {
@@ -100,11 +100,9 @@ public class RequestResponseMatcher {
 
   /**
    * 根据指定的设备ID取Request对象
-   * @param deviceId 设备ID
    */
-  public Optional<Request> peekCurrentRequest(String deviceId) {
-    Queue queue = requests.get(deviceId);
-    return ToolsKit.isEmpty(queue) ? Optional.empty() : Optional.of((Request) queue.peek());
+  public Optional<Request> peekCurrentRequest() {
+      return Optional.ofNullable(requests.peek());
   }
 
   /**
@@ -130,13 +128,13 @@ public class RequestResponseMatcher {
     }
 
     String deviceId = protocol.getDeviceId();
-    LinkedList<Request> queue = requests.get(deviceId);
-    if (ToolsKit.isEmpty(queue)) {
-      LOG.info("根据[{}]查找不到对应的移动命令队列", deviceId);
+    Request request = requests.peek();
+    if (ToolsKit.isEmpty(request)) {
+      LOG.info("根据[{}]查找不到对应的移动命令请求或该队列为空: {}", deviceId, requests);
       return false;
     }
     //队列里的第一位请求元素
-    StateRequest currentRequest = (StateRequest)queue.peek();
+    StateRequest currentRequest = (StateRequest)request;
     // 如果最后一个指令是预停车的(s)，则需要判断参数是否以1结尾
     if (currentRequest.isPreStop()) {
       if (ProtocolUtils.isRptrtpProtocol(cmdKey)) {
@@ -153,7 +151,7 @@ public class RequestResponseMatcher {
 
     // 如果上报的卡号与队列中的第1位是一致的
     if (currentRequest != null && response.containsPoint(currentRequest)) {
-      queue.remove();
+        requests.remove();
       return true;
     }
 

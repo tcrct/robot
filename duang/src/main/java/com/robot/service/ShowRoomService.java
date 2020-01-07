@@ -35,10 +35,10 @@ public class ShowRoomService {
     public boolean runAll() {
         locationOperationMap.clear();
         try {
-//            A006(); //注塑机
-        A009(); //SMT
-//            A010(); // 滚筒
-        A033();  // SMT2
+            A006(); //注塑机
+            A009(); //SMT
+            A010(); // 滚筒
+            A033();  // SMT2
 
             // 创建批量订单
             createBatchOrderRequest(locationOperationMap);
@@ -134,7 +134,7 @@ public class ShowRoomService {
         batchGenerator.createOrderBatch();
         ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
                 AppContext.getKernelServicePortal().getPlantModelService(),
-                1,
+                3, //生成3份
                 batchGenerator);
         thresholdOrderGenTrigger.setTriggeringEnabled(true);
 

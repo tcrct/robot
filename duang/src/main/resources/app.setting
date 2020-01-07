@@ -20,7 +20,7 @@ vehicle.prestop.success.cmd=rptrtp
 [adapter]
 name=创智科技
 #重发指令时间间隔，毫秒作单位
-handshake.interval=2000
+handshake.interval=1000
 
 #车辆
 [vehicle]

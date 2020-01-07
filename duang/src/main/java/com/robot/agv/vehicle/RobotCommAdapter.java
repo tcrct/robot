@@ -493,9 +493,10 @@ public class RobotCommAdapter
 
         // 车辆状态设置为不空闲
         getProcessModel().setVehicleIdle(false);
+        StateResponse stateResponse = (StateResponse) response;
 
         // 检查响应是否与当前请求匹配，请求与响应应该是一一对应的
-        if (!requestResponseMatcher.tryMatchWithCurrentRequest((StateResponse) response)) {
+        if (!requestResponseMatcher.tryMatchWithCurrentRequest(stateResponse)) {
             // 如果不匹配则忽略消息
             LOG.error("该报文不存在系统的队列中或需要作预停车处理，忽略该报文退出");
             return;
