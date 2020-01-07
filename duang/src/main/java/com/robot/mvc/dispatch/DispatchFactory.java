@@ -82,7 +82,7 @@ public class DispatchFactory {
         // 如果协议对象不为空且不是调度系统主动发送的，则要进行应答回复
         if (ToolsKit.isNotEmpty(protocol) && !request.isRobotSend()) {
             String direction = protocol.getDirection();
-            String deviceId = protocol.getDeviceId();
+            final String deviceId = protocol.getDeviceId();
             String code = protocol.getCode();
             String cmdKey = protocol.getCommandKey();
             // 如果是车辆/设备主动发送的请求则进行应答回复
@@ -101,8 +101,14 @@ public class DispatchFactory {
                         LOG.info("车辆/设备[{}]传感器验证参数code为[{}]", deviceId, code);
                     }
                 }
+                final String removeCode= code;
                 // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
-                HandshakeTelegram.duang().remove(deviceId, code);
+                ThreadUtil.execAsync(new Runnable() {
+                    @Override
+                    public void run() {
+                        HandshakeTelegram.duang().remove(deviceId, removeCode);
+                    }
+                });
                 return response;
             }
         }

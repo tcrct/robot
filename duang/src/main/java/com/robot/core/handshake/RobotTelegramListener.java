@@ -1,15 +1,11 @@
 package com.robot.core.handshake;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.mvc.helper.ActionHelper;
-import com.robot.service.common.ActionRequest;
-import com.robot.service.common.ActionResponse;
-import com.robot.service.common.requests.get.GetMagRequest;
 import com.robot.service.common.requests.get.GetMtRequest;
 import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
