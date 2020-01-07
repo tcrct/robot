@@ -29,12 +29,13 @@ public class RobotTelegramListener implements ActionListener {
 
     private TelegramSender sender;
     private List<String> deviceIds = new ArrayList<>();  // 车辆，设备ID
+    private String vehicleId;
 
     public RobotTelegramListener(RobotCommAdapter adapter) {
         this.sender = adapter;
-        String vehicleId = adapter.getName();
+        vehicleId = adapter.getName();
         deviceIds.add(vehicleId);
-        List<String> deviceIdList = ActionHelper.duang().getVehicelDeviceMap().get(vehicleId);
+        Set<String> deviceIdList = ActionHelper.duang().getVehicelDeviceMap().get(vehicleId);
         if (ToolsKit.isNotEmpty(deviceIdList)) {
             this.deviceIds.addAll(deviceIdList);
         }
@@ -42,6 +43,7 @@ public class RobotTelegramListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        LOG.debug("{}########报文监听器#########{}: ",vehicleId, deviceIds);
         for (String deviceId : deviceIds) {
             doActionPerformed(deviceId);
         }
@@ -50,6 +52,7 @@ public class RobotTelegramListener implements ActionListener {
     private void doActionPerformed(String key) {
         LinkedBlockingQueue<HandshakeTelegramDto> queue = HandshakeTelegram.getHandshakeTelegramQueue(key);
         if (null == queue || queue.isEmpty()) {
+            LOG.info("车辆设备[{}]的报文监听器队列为空或不存在",key);
             return;
         }
         Iterator<HandshakeTelegramDto> iterator = queue.iterator();

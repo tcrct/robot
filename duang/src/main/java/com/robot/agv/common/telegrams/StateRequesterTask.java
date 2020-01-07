@@ -53,7 +53,7 @@ public class StateRequesterTask {
     if (stateRequestTimer != null) {
       return;
     }
-    LOG.debug("Starting state requester task.");
+    LOG.info("Starting state requester task.");
     stateRequestTimer = new Timer(requestInterval, stateRequestAction);
     stateRequestTimer.start();
   }
@@ -62,7 +62,7 @@ public class StateRequesterTask {
     if (stateRequestTimer == null) {
       return;
     }
-    LOG.debug("Stopping state requester task.");
+    LOG.info("Stopping state requester task.");
     stateRequestTimer.stop();
     stateRequestTimer = null;
   }

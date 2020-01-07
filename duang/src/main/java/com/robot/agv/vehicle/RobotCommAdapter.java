@@ -92,7 +92,7 @@ public class RobotCommAdapter
     /**
      * 任务定时器，定期将请求加入队列中
      */
-    private StateRequesterTask stateRequesterTask;
+    private static StateRequesterTask stateRequesterTask;
 
     private TCSObjectService objectService;
 

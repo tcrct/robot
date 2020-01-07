@@ -22,12 +22,12 @@ public class ActionHelper {
     /**自定义指令操作集合*/
     private final Map<String, IAction> CUSTOM_ACTION_QUEYE = new HashMap<>();
 
-    public Map<String, List<String>> getVehicelDeviceMap() {
+    public Map<String, Set<String>> getVehicelDeviceMap() {
         return VEHICLE_DEVICE_MAP;
     }
 
     /**车辆与设备的映射集合，key为车辆，value为设备数组*/
-    private final Map<String, List<String>> VEHICLE_DEVICE_MAP = new HashMap<>();
+    private final Map<String, Set<String>> VEHICLE_DEVICE_MAP = new HashMap<>();
     /**
      * 自定义的指令队列集合
      * @return
@@ -43,21 +43,28 @@ public class ActionHelper {
             return new HashMap<>();
         }
         try {
+            String vehicleId = "";
+            Set<String> deviceIdList = null;
             for (Class<?> clazz : actionClassList) {
                 IAction action = (IAction) ReflectUtil.newInstance(clazz);
                 String key = action.actionKey();
+                vehicleId = action.vehicleId();
                 Action actionAonn = clazz.getAnnotation(Action.class);
-                if (ToolsKit.isNotEmpty(actionAonn) && ToolsKit.isNotEmpty(actionAonn.name())) {
+                if (ToolsKit.isEmpty(actionAonn)) {
+                    continue;
+                }
+                if (ToolsKit.isNotEmpty(actionAonn.name())) {
                     key = actionAonn.name();
                 }
-               List<String> deviceIdList = VEHICLE_DEVICE_MAP.get(action.vehicleId());
+               deviceIdList = VEHICLE_DEVICE_MAP.get(vehicleId);
                 if (ToolsKit.isEmpty(deviceIdList)) {
-                    deviceIdList = new ArrayList<>();
+                    deviceIdList = new HashSet<>();
                 }
                 deviceIdList.add(action.deviceId());
-                VEHICLE_DEVICE_MAP.put(action.vehicleId(), deviceIdList);
                 CUSTOM_ACTION_QUEYE.put(key, action);
+                VEHICLE_DEVICE_MAP.put(vehicleId, deviceIdList);
             }
+
         } catch (Exception e) {
             LOG.error("取动作指令时发生异常:{}, {}", e.getMessage(), e);
         }
