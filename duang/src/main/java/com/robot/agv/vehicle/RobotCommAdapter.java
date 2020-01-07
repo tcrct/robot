@@ -241,7 +241,7 @@ public class RobotCommAdapter
         }
         // 根据车辆设置的host与port，连接车辆
         channelManager.connect(getHost(), getPort());
-        LOG.info("连接车辆[{}]成功", getName());
+        LOG.info("连接车辆[{}]成功: [{}]", getName(), (getHost()+":"+getPort()));
     }
 
     /**
