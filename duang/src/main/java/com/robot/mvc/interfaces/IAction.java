@@ -30,6 +30,6 @@ public interface IAction {
     /**
      *执行操作
      */
-    boolean execute() throws Exception;
+    void execute() throws Exception;
 
 }

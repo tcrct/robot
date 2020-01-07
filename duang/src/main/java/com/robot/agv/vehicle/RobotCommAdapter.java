@@ -120,7 +120,7 @@ public class RobotCommAdapter
         this.stateMapper = requireNonNull(stateMapper, "orderMapper");
         this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
         this.objectService = requireNonNull(objectService, "objectService");
-        AppContext.setCommAdapter(this);
+//        AppContext.setCommAdapter(this);
     }
 
     /**
@@ -240,9 +240,8 @@ public class RobotCommAdapter
             return;
         }
         // 根据车辆设置的host与port，连接车辆
-        if (NetChannelType.UDP.equals(getNetChannelType()) && channelManager.isConnected()) {
-            channelManager.connect(getHost(), getPort());
-        }
+        channelManager.connect(getHost(), getPort());
+        LOG.info("连接车辆[{}]成功", getName());
     }
 
     /**
@@ -345,7 +344,9 @@ public class RobotCommAdapter
      */
     @Override
     protected synchronized boolean canSendNextCommand() {
-        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
+         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
+//        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
+//        return true;
     }
 
     /**
@@ -638,8 +639,28 @@ public class RobotCommAdapter
                     currentState.getLastFinishedOrderId());
             return;
         }
+        MovementCommand cmd = getSentQueue().peek();
+        // 不是NOP，是最后一条指令并且自定义动作组合里包含该动作名称
+        if (!cmd.isWithoutOperation() &&
+                cmd.isFinalMovement() &&
+                RobotUtil.isContainActionsKey(cmd)) {
+            // 如果动作指令操作未运行则可以运行
+            String operation = cmd.getOperation();
+            if (!CUSTOM_ACTIONS_MAP.containsKey(operation)) {
+                LOG.info("车辆[" + getName() + "]对应位置[" + cmd.getStep().getSourcePoint().getName() + "]上的设备开始执行动作[" + operation + "]");
+                executeCustomCmds(cmd, getName(), operation);
+            } else {
+                LOG.info("不能重复执行该操作，因该动作指令已经运行，作丢弃处理！");
+            }
+        } else {
+            LOG.debug("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), cmd.getStep().getDestinationPoint().getName(), cmd);
+            MovementCommand curCommand = getSentQueue().poll();
+            if (cmd != null && cmd.equals(curCommand)) {
+                getProcessModel().commandExecuted(cmd);
+            }
+        }
 
-
+        /*
         // 遍历队列，将在这个订单之前的所有移动命令移除
         Iterator<MovementCommand> cmdIter = getSentQueue().iterator();
         boolean finishedAll = false;
@@ -669,6 +690,7 @@ public class RobotCommAdapter
             }
 //
         }
+         */
     }
 
     /**
@@ -723,13 +745,15 @@ public class RobotCommAdapter
      */
     public void executeNextMoveCmd(String deviceId, String actionKey) {
         LOG.info("成功执行自定义指令完成，则检查是否有下一订单，如有则继续执行");
-        RobotProcessModel processModel = getProcessModel();
+        RobotCommAdapter adapter = AppContext.getCommAdapter(deviceId);
+        RobotProcessModel processModel = adapter.getProcessModel();
         //车辆设置为空闲状态，执行下一个移动指令
         processModel.setVehicleState(Vehicle.State.IDLE);
         // 取消单步执行状态
         processModel.setSingleStepModeEnabled(false);
-//    MovementCommand cmd = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
-        MovementCommand cmd = AppContext.getCommAdapter(deviceId).getSentQueue().poll();
+//        MovementCommand cmd1 = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
+//        System.out.println("cmd1: " + cmd1);
+        MovementCommand cmd = adapter.getSentQueue().poll();
 //        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
         System.out.println("cmd: " + cmd);
         //移除指定动作的名称
@@ -738,7 +762,9 @@ public class RobotCommAdapter
         }
         LOG.info("#################deviceId: " + deviceId + "                    getName: " + processModel.getName());
 //    LAST_CMD_MAP.remove(deviceId);
-        processModel.commandExecuted(cmd);
+        if (null != cmd) {
+            processModel.commandExecuted(cmd);
+        }
     }
 
     /**
@@ -774,8 +800,8 @@ public class RobotCommAdapter
         if (NetChannelType.TCP.equals(getNetChannelType())) {
             return getProcessModel().getVehicleHost();
         } else if (NetChannelType.UDP.equals(getNetChannelType())) {
-//            return SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
-            return  getProcessModel().getVehicleHost();
+            return SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
+//            return  getProcessModel().getVehicleHost();
         } else if (NetChannelType.SERIALPORT.equals(getNetChannelType())) {
             return SettingUtils.getStringByGroup("name", NetChannelType.SERIALPORT.name().toLowerCase(), "COM6");
         }
@@ -786,8 +812,8 @@ public class RobotCommAdapter
         if (NetChannelType.TCP.equals(getNetChannelType())) {
             return getProcessModel().getVehiclePort();
         } else if (NetChannelType.UDP.equals(getNetChannelType())) {
-//            return SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
-            return getProcessModel().getVehiclePort();
+            return SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
+//            return getProcessModel().getVehiclePort();
         } else if (NetChannelType.SERIALPORT.equals(getNetChannelType())) {
             return SettingUtils.getInt("baudrate", NetChannelType.SERIALPORT.name().toLowerCase(), 38400);
         }
