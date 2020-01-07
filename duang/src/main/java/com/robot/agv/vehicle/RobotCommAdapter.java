@@ -50,7 +50,10 @@ import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import static java.util.Objects.requireNonNull;
 
 /**
- * An example implementation for a communication adapter.
+ * 通讯适配器
+ * 一车辆一适配器对象，有多少车辆就new多少个RobotCommAdapter对象
+ *
+ * 所以，在接收报文，发送报文，设备动作完成后需要调用适配器进行操作的，需要找出与车辆对应的适配器
  *
  * @author Mats Wilhelm (Fraunhofer IML)
  * @blame Android Team
