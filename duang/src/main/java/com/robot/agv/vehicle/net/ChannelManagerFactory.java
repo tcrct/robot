@@ -16,6 +16,7 @@ import com.robot.agv.vehicle.net.netty.tcp.TcpChannelManager;
 import com.robot.agv.vehicle.net.netty.upd.UdpClientManager;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateResponse;
+import com.robot.utils.RobotUtil;
 import com.robot.utils.SettingUtils;
 import com.robot.utils.ToolsKit;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
@@ -108,30 +109,20 @@ public class ChannelManagerFactory {
         }
 
         String deviceId = protocol.getDeviceId();
-        if (deviceId.startsWith("B")) {
-            Map<String, Set<String>> actionMap = ActionHelper.duang().getVehicelDeviceMap();
-            if (ToolsKit.isNotEmpty(actionMap)) {
-               for (Iterator<Map.Entry<String,Set<String>>> iterator = actionMap.entrySet().iterator(); iterator.hasNext();) {
-                   Map.Entry<String,Set<String>> entry = iterator.next();
-                   Set<String> values = entry.getValue();
-                   if (ToolsKit.isNotEmpty(values) && values.contains(deviceId)) {
-                       deviceId = entry.getKey();
-                       LOG.info("与设备{}对应的车辆为{}", protocol.getDeviceId(), deviceId);
-                       break;
-                   }
-               }
-            }
-        }
         RobotCommAdapter adapter = AppContext.getCommAdapter(deviceId);
         if (ToolsKit.isEmpty(adapter)) {
-            LOG.error("车辆[{}]对应的适配器不存在", deviceId);
-            return;
+            deviceId = RobotUtil.getAdapterByDeviceId(deviceId);
+            adapter = AppContext.getCommAdapter(deviceId);
+            if (ToolsKit.isEmpty(adapter)) {
+                LOG.error("车辆[{}]对应的适配器不存在", deviceId);
+                return;
+            }
         }
         ConnectionEventListener<Response> eventListener = (ConnectionEventListener<Response>)adapter;
         TelegramSender telegramSender = (TelegramSender) adapter;
 
 
-                // 将请求转到业务逻辑处理
+        // 将请求转到业务逻辑处理
         Response response = SendRequest.duang().send(protocol, telegramSender);
         if (ToolsKit.isNotEmpty(response)) {
             if (response.getStatus() != HttpStatus.HTTP_OK) {

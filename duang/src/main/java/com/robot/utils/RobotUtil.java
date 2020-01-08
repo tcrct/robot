@@ -16,8 +16,7 @@ import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RobotUtil {
 
@@ -167,6 +166,39 @@ public class RobotUtil {
                 return protocol.getCommandKey();
             }
         };
+    }
+
+
+    /**key为车辆或设备的标识号，value为车辆标识号，即适配器标识号*/
+    private static Map<String,String> ADPATER_KEY_MAP = new HashMap<>();
+    /**
+     * 根据车辆/设备的ID取适配器key
+     * 因为有些时候，是一车辆对应多设备。所以要确认关系。
+     *
+     * @param deviceId  车辆/设备的ID
+     * @return
+     */
+    public static String getAdapterByDeviceId(String deviceId) {
+        String key = ADPATER_KEY_MAP.get(deviceId);
+        if (ToolsKit.isEmpty(key)) {
+            Map<String, Set<String>> actionMap = ActionHelper.duang().getVehicelDeviceMap();
+            if (ToolsKit.isNotEmpty(actionMap)) {
+                for (Iterator<Map.Entry<String,Set<String>>> iterator = actionMap.entrySet().iterator(); iterator.hasNext();) {
+                    Map.Entry<String,Set<String>> entry = iterator.next();
+                    Set<String> values = entry.getValue();
+                    key = entry.getKey();
+                    if (deviceId.startsWith("B") && ToolsKit.isNotEmpty(values) && values.contains(deviceId)) {
+                        for (String value : values) {
+                            ADPATER_KEY_MAP.put(value, key);
+                        }
+                    } else {
+                        ADPATER_KEY_MAP.put(deviceId, key);
+                    }
+                }
+
+            }
+        }
+        return key;
     }
 
 }
