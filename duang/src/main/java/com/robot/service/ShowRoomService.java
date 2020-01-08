@@ -4,7 +4,6 @@ package com.robot.service;
 import com.robot.core.AppContext;
 import com.robot.service.dto.LocationOperationDto;
 import com.robot.utils.RobotUtil;
-import com.robot.utils.ToolsKit;
 import org.opentcs.access.KernelServicePortal;
 import org.opentcs.components.kernel.services.DispatcherService;
 import org.opentcs.components.kernel.services.TransportOrderService;
@@ -134,7 +133,7 @@ public class ShowRoomService {
         batchGenerator.createOrderBatch();
         ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
                 AppContext.getKernelServicePortal().getPlantModelService(),
-                3, //生成3份
+                1,
                 batchGenerator);
         thresholdOrderGenTrigger.setTriggeringEnabled(true);
 

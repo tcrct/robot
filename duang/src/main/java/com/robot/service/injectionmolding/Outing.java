@@ -3,6 +3,7 @@ package com.robot.service.injectionmolding;
 import com.robot.mvc.annotations.Action;
 import com.robot.mvc.interfaces.ICommand;
 import com.robot.service.common.BaseActions;
+import com.robot.service.common.requests.get.GetMtRequest;
 import com.robot.service.common.requests.set.SetVmotRequest;
 import com.robot.service.common.responses.RptVmotResponse;
 
@@ -56,6 +57,7 @@ public class Outing extends BaseActions {
     public void add(List<ICommand> requestList) {
         requestList.addAll(Arrays.asList(
                 new SetVmotRequest(DEVICE_ID, "2::1"),
+                new GetMtRequest(DEVICE_ID, "0"),
                 new RptVmotResponse(DEVICE_ID, "2::1"),
                 new SetVmotRequest(VEHICLE_ID, "1::1"),
                 new RptVmotResponse(VEHICLE_ID, "1::1"),

@@ -178,8 +178,8 @@
             <groupId>com.openAGV.seralport</groupId>
             <artifactId>seralport</artifactId>
             <version>1.0.0</version>
-            <!--      <scope>system</scope>-->
-            <!--      <systemPath>${project.basedir}/lib/RXTXcomm.jar</systemPath>-->
+          <scope>system</scope>
+          <systemPath>C:/workspace/java/robot/libs/RXTXcomm.jar</systemPath>
         </dependency>
         <!-- inject -->
         <dependency>

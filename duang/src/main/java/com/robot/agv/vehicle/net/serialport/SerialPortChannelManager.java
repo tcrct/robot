@@ -89,8 +89,9 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
                 SERIAL_PORT = SERIALPORT_MANAGER.openPort(serialPortName, baudrate);
                 //读监听
                 readListener();
-                LOG.info("串口连接并监听成功，名称[{}]，波特率[{}]", serialPortName, baudrate);
             }
+            eventListener.onConnect();
+            LOG.info("串口连接并监听成功，名称[{}]，波特率[{}]", serialPortName, baudrate);
         } catch (Exception e) {
             throw new RuntimeException("打开串口时失败，名称["+serialPortName+"]， 波特率["+baudrate+"], 串口可能已被占用！");
         }
@@ -129,7 +130,7 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
             LOG.error("串口未连接成功");
              return;
         }
-        eventListener.onConnect();
+//        eventListener.onConnect();
         SERIALPORT_MANAGER.addListener(SERIAL_PORT, new DataAvailableListener() {
             @Override
             public void dataAvailable() {

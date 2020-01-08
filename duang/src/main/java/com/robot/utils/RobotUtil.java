@@ -180,25 +180,22 @@ public class RobotUtil {
      */
     public static String getAdapterByDeviceId(String deviceId) {
         String key = ADPATER_KEY_MAP.get(deviceId);
-        if (ToolsKit.isEmpty(key)) {
+        if (ToolsKit.isEmpty(key) && deviceId.startsWith("B")) {
             Map<String, Set<String>> actionMap = ActionHelper.duang().getVehicelDeviceMap();
             if (ToolsKit.isNotEmpty(actionMap)) {
                 for (Iterator<Map.Entry<String,Set<String>>> iterator = actionMap.entrySet().iterator(); iterator.hasNext();) {
                     Map.Entry<String,Set<String>> entry = iterator.next();
                     Set<String> values = entry.getValue();
                     key = entry.getKey();
-                    if (deviceId.startsWith("B") && ToolsKit.isNotEmpty(values) && values.contains(deviceId)) {
+                    if (ToolsKit.isNotEmpty(values)) {
                         for (String value : values) {
                             ADPATER_KEY_MAP.put(value, key);
                         }
-                    } else {
-                        ADPATER_KEY_MAP.put(deviceId, key);
                     }
                 }
-
             }
         }
-        return key;
+        return ADPATER_KEY_MAP.get(deviceId);
     }
 
 }
