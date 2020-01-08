@@ -3,6 +3,7 @@ package com.robot.utils;
 import com.duangframework.db.mongodb.MongoDao;
 import com.duangframework.db.mongodb.MongodbConnectOptions;
 import com.duangframework.db.mongodb.MongodbDbClient;
+import com.mongodb.MongoClient;
 import com.robot.entity.Logs;
 import com.robot.mvc.exceptions.RobotException;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ public class DbKit {
 
     private static DbKit dbKit = new DbKit();
     private static Lock lock = new ReentrantLock();
-    private MongoDao<Logs> logsDao = null;
+    private static MongoDao<Logs> logsDao = null;
     private static MongodbDbClient mongodbDbClient = null;
 
     public static DbKit duang() {
@@ -31,12 +32,11 @@ public class DbKit {
                         .userName("admin")
                         .passWord("1b88ab6d")
                         .build());
+                MongoClient client = mongodbDbClient.getClient();
+                logsDao = new MongoDao<Logs>(mongodbDbClient.getClientId(), Logs.class);
             }
-
-            MongoDao<Logs> logsDao = new MongoDao<Logs>(mongodbDbClient.getClientId(), Logs.class);
             return dbKit;
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
             throw new RobotException(e.getMessage(), e);
         } finally {
             lock.unlock();

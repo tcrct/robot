@@ -104,14 +104,6 @@ public class ChannelManagerFactory {
                 return;
             }
             LOG.info("接收到的报文内容: " + telegramData);
-            final Protocol saveProtocol = protocol;
-            ThreadUtil.execAsync(new Runnable() {
-                @Override
-                public void run() {
-                    //将所有接收到的报文保存到数据库
-                    DbKit.duang().saveLogs(new Logs(saveProtocol));
-                }
-            });
         } catch (Exception e) {
             LOG.warn("将报文内容{}转换为Protocol对象时出错, 退出该请求的处理: {}, {}", telegramData,e.getMessage(), e);
         }

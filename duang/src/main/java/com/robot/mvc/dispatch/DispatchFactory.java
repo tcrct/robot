@@ -9,12 +9,14 @@ import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.*;
 import com.robot.core.Sensor;
 import com.robot.core.handshake.HandshakeTelegram;
+import com.robot.entity.Logs;
 import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.dispatch.route.RouteHelper;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionRequest;
 import com.robot.service.common.ActionResponse;
+import com.robot.utils.DbKit;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
@@ -56,7 +58,15 @@ public class DispatchFactory {
 
         // 返回对象
         Response response = null;
-        Protocol protocol = request.getProtocol();
+        final Protocol protocol = request.getProtocol();
+        // 保存到数据库
+//        ThreadUtil.execAsync(new Runnable() {
+//            @Override
+//            public void run() {
+//                //将所有接收到的报文保存到数据库
+//                DbKit.duang().saveLogs(new Logs(protocol));
+//            }
+//        });
 
         // 如果是订单请求，车辆主动上报的请求
         if (request instanceof OrderRequest) {
