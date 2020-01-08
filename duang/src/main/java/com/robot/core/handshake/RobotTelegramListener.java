@@ -1,5 +1,6 @@
 package com.robot.core.handshake;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
@@ -39,10 +40,15 @@ public class RobotTelegramListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        LOG.debug("{}########报文监听器#########{}: ",vehicleId, deviceIds);
-        for (String deviceId : deviceIds) {
-            doActionPerformed(deviceId);
-        }
+        ThreadUtil.execAsync(new Runnable() {
+            @Override
+            public void run() {
+                LOG.debug("{}########报文监听器#########{}: ",vehicleId, deviceIds);
+                for (String deviceId : deviceIds) {
+                    doActionPerformed(deviceId);
+                }
+            }
+        });
     }
 
     private void doActionPerformed(String key) {

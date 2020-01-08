@@ -1,5 +1,6 @@
 package com.robot.agv.vehicle.net;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
@@ -7,18 +8,16 @@ import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.net.netty.upd.UdpServerManager;
 import com.robot.core.AppContext;
+import com.robot.entity.Logs;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
-import com.robot.utils.ProtocolUtils;
+import com.robot.utils.*;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.serialport.SerialPortChannelManager;
 import com.robot.agv.vehicle.net.netty.tcp.TcpChannelManager;
 import com.robot.agv.vehicle.net.netty.upd.UdpClientManager;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateResponse;
-import com.robot.utils.RobotUtil;
-import com.robot.utils.SettingUtils;
-import com.robot.utils.ToolsKit;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,11 +98,20 @@ public class ChannelManagerFactory {
         Protocol protocol = null;
         try {
             protocol = ProtocolUtils.buildProtocol(telegramData);
+
             //如果协议对象为空或者不允许访问，则直接退出
             if (ToolsKit.isEmpty(protocol) || !ProtocolUtils.isAllowAccess(protocol.getDeviceId())) {
                 return;
             }
             LOG.info("接收到的报文内容: " + telegramData);
+            final Protocol saveProtocol = protocol;
+            ThreadUtil.execAsync(new Runnable() {
+                @Override
+                public void run() {
+                    //将所有接收到的报文保存到数据库
+                    DbKit.duang().saveLogs(new Logs(saveProtocol));
+                }
+            });
         } catch (Exception e) {
             LOG.warn("将报文内容{}转换为Protocol对象时出错, 退出该请求的处理: {}, {}", telegramData,e.getMessage(), e);
         }
