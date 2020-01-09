@@ -30,6 +30,7 @@ public class HandshakeTelegram {
     /**
      * 握手报文队队
      * 车辆为KEY， 队列为Value
+     * ConcurrentLinkedQueue：非阻塞队列
      */
     private final static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> HANDSHAKE_TELEGRAM_QUEUE = new java.util.concurrent.ConcurrentHashMap<>();
 
