@@ -10,10 +10,15 @@ import com.robot.numes.RobotEnum;
 import com.robot.service.common.BaseService;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
+import org.opentcs.components.kernel.services.DispatcherService;
+import org.opentcs.components.kernel.services.TransportOrderService;
+import org.opentcs.components.kernel.services.VehicleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 @Service
 public class A033Service extends BaseService {
