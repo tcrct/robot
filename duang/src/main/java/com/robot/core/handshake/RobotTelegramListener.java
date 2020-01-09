@@ -1,6 +1,8 @@
 package com.robot.core.handshake;
 
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
@@ -44,9 +46,15 @@ public class RobotTelegramListener implements ActionListener {
         ThreadUtil.execAsync(new Runnable() {
             @Override
             public void run() {
-                LOG.debug("{}########报文监听器#########{}: ",vehicleId, deviceIds);
+                LOG.debug("{}########报文监听器#########{}: ", vehicleId, deviceIds);
                 for (String deviceId : deviceIds) {
-                    doActionPerformed(deviceId);
+                    //间隔随机数，因为串口发送是单工的，所以需要间隔，即串口不能同时进行接收
+                    try {
+                        Thread.sleep(RandomUtil.randomInt(50, 100));
+                        doActionPerformed(deviceId);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
         });
