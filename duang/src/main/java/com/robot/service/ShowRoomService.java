@@ -1,6 +1,7 @@
 package com.robot.service;
 
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.robot.core.AppContext;
 import com.robot.service.dto.LocationOperationDto;
 import com.robot.utils.RobotUtil;
@@ -40,6 +41,7 @@ public class ShowRoomService {
             A033();  // SMT2
 
             // 创建批量订单
+
             createBatchOrderRequest(locationOperationMap);
             return true;
         } catch (Exception e) {
@@ -112,7 +114,7 @@ public class ShowRoomService {
         KernelServicePortal kernelServicePortal =  AppContext.getKernelServicePortal();
         TransportOrderService transportOrderService = kernelServicePortal.getTransportOrderService();
         DispatcherService dispatcherService = kernelServicePortal.getDispatcherService();
-        List<TransportOrderData> data = new ArrayList<>(map.size());
+        List<TransportOrderData> data = new ArrayList<>();
         for (Iterator<Map.Entry<String, List<LocationOperationDto>>> iterator = map.entrySet().iterator(); iterator.hasNext();) {
             Map.Entry<String, List<LocationOperationDto>> entry = iterator.next();
             String vehicleName = entry.getKey();
@@ -133,7 +135,7 @@ public class ShowRoomService {
         batchGenerator.createOrderBatch();
         ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
                 AppContext.getKernelServicePortal().getPlantModelService(),
-                1,
+                10,
                 batchGenerator);
         thresholdOrderGenTrigger.setTriggeringEnabled(true);
 

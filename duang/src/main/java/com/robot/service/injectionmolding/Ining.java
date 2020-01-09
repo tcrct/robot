@@ -69,6 +69,7 @@ public class Ining extends BaseActions {
                 //车辆离开
                 new VehicleMoveRequest(VEHICLE_ID),
                 new SetVmotRequest(DEVICE_ID, "1::3"),
+                //确定升降台在底部
                 new SetVmotRequest(DEVICE_ID, "2::1")
         ));
     }

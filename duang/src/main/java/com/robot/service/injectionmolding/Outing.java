@@ -56,9 +56,9 @@ public class Outing extends BaseActions {
     @Override
     public void add(List<ICommand> requestList) {
         requestList.addAll(Arrays.asList(
-                new SetVmotRequest(DEVICE_ID, "2::1"),
-                new GetMtRequest(DEVICE_ID, "0"),
-                new RptVmotResponse(DEVICE_ID, "2::1"),
+//                new SetVmotRequest(DEVICE_ID, "2::1"),
+//                new GetMtRequest(DEVICE_ID, "0"),
+//                new RptVmotResponse(DEVICE_ID, "2::1"),
                 new SetVmotRequest(VEHICLE_ID, "1::1"),
                 new RptVmotResponse(VEHICLE_ID, "1::1"),
                 new SetVmotRequest(DEVICE_ID, "2::2"),
