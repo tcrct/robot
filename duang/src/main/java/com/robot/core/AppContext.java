@@ -3,6 +3,7 @@ package com.robot.core;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.NetChannelType;
+import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.utils.SettingUtils;
 import org.opentcs.access.KernelServicePortal;
 import org.opentcs.components.kernel.services.TCSObjectService;
@@ -53,10 +54,10 @@ public class AppContext {
         return ALL_ACTION_REQUEST;
     }
 
-    /**所有超前上报的工站/设备动作请求集合*/
-    private static final Map<String ,Request> ADVANCE_REPORT_MAP = new HashMap<>();
-    // 所有超前提交的工站/设备动作请求，key为CRC验证码
-    public static Map<String, Request> getAdvanceReportMap() {
+    /**所有超前上报的工站/设备动作协议集合，rpt*开头的协议指令*/
+    private static final Map<String ,Protocol> ADVANCE_REPORT_MAP = new HashMap<>();
+    // 所有超前提交的工站/设备动作协议，key为CRC验证码
+    public static Map<String, Protocol> getAdvanceReportMap() {
 //        logger.info("ADVANCE_REPORT_MAP size: " + ADVANCE_REPORT_MAP.size());
         return ADVANCE_REPORT_MAP;
     }

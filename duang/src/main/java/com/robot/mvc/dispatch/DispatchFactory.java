@@ -7,6 +7,7 @@ import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.*;
+import com.robot.core.AppContext;
 import com.robot.core.Sensor;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.entity.Logs;
@@ -63,6 +64,10 @@ public class DispatchFactory {
         ThreadUtil.execAsync(new Runnable() {
             @Override
             public void run() {
+                // 将所有rpt开头的协议缓存起来，因为rpt*指令上报在某些场景下可能会比动作指令快，导致动作指令一直在等待上报
+                if (protocol.getCommandKey().startsWith("rpt")) {
+                    AppContext.getAdvanceReportMap().put(protocol.getCode(), protocol);
+                }
                 //将所有接收到的报文保存到数据库
                 DbKit.duang().saveLogs(new Logs(protocol));
             }
@@ -119,6 +124,7 @@ public class DispatchFactory {
                 ThreadUtil.execAsync(new Runnable() {
                     @Override
                     public void run() {
+                        AppContext.getAdvanceReportMap().remove(removeCode);
                         HandshakeTelegram.duang().remove(deviceId, removeCode);
                     }
                 });
