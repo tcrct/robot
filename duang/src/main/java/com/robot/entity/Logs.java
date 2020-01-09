@@ -35,11 +35,11 @@ public class Logs extends BaseEntity {
     private String code;
 
     public Logs() {
-        super(null, CURRENT_DATE, OPEN_AGV_FIELD, CURRENT_DATE, OPEN_AGV_FIELD, IdEntity.STATUS_FIELD_SUCCESS, OPEN_AGV_FIELD, DEPARTMENT_ID, PROJECT_ID, COMPANY_ID);
+        super(null, new Date(), OPEN_AGV_FIELD, new Date(), OPEN_AGV_FIELD, IdEntity.STATUS_FIELD_SUCCESS, OPEN_AGV_FIELD, DEPARTMENT_ID, PROJECT_ID, COMPANY_ID);
     }
 
     public Logs(Protocol protocol) {
-        super(null, CURRENT_DATE, OPEN_AGV_FIELD, CURRENT_DATE, OPEN_AGV_FIELD, IdEntity.STATUS_FIELD_SUCCESS, OPEN_AGV_FIELD, DEPARTMENT_ID, PROJECT_ID, COMPANY_ID);
+        super(null, new Date(), OPEN_AGV_FIELD, new Date(), OPEN_AGV_FIELD, IdEntity.STATUS_FIELD_SUCCESS, OPEN_AGV_FIELD, DEPARTMENT_ID, PROJECT_ID, COMPANY_ID);
         this.deviceId = protocol.getDeviceId();
         this.commandKey = protocol.getCommandKey();
         this.params = protocol.getParams();

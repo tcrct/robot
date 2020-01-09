@@ -109,7 +109,7 @@ public class Sensor implements java.io.Serializable {
     public static Sensor getSensor(String deviceId) {
         LinkedList<Sensor> sensors = SENSOR_MAP.get(deviceId);
         if (Optional.ofNullable(sensors).isPresent() && !sensors.isEmpty()) {
-            return sensors.peek(); //取出并移除顶部位置
+            return sensors.peek(); //取出顶部位置
         }
         return null;
     }
@@ -127,7 +127,7 @@ public class Sensor implements java.io.Serializable {
         if (ToolsKit.isEmpty(sensors)) {
             sensors = new LinkedList<>();
         }
-        sensors.add(sensor); //取出并移除顶部位置
+        sensors.add(sensor);
         SENSOR_MAP.put(deviceId, sensors);
         LOG.info("车辆/设备[{}]添加到传感器缓存成功, {}", deviceId, sensor.toString());
     }

@@ -1,9 +1,11 @@
 package com.robot.service.common;
 
+import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
+import com.robot.core.Sensor;
 import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
@@ -26,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.Objects.requireNonNull;

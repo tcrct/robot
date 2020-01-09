@@ -8,6 +8,7 @@ import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.service.common.requests.get.GetMtRequest;
+import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,7 @@ public class RobotTelegramListener implements ActionListener {
                                         || "rptvmot".equalsIgnoreCase(protocol.getCommandKey())
                                 )
                         ) {
+//                            RobotUtil.checkSensorStatus(protocol);
                             LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
                             sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
                         }

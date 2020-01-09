@@ -1,9 +1,13 @@
 package com.robot.utils;
 
+import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.core.AppContext;
+import com.robot.core.Sensor;
+import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
@@ -17,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RobotUtil {
 
@@ -198,4 +203,42 @@ public class RobotUtil {
         return ADPATER_KEY_MAP.get(deviceId);
     }
 
+
+    private static final Map<String, List<String>> SENSOR_STATUS_MAP = new ConcurrentHashMap();
+    public static void addSensorStatus(Protocol protocol) {
+        String params = protocol.getParams();
+        String deviceId = protocol.getDeviceId();
+        List<String> sensorList = SENSOR_STATUS_MAP.get(deviceId);
+        if (ToolsKit.isEmpty(sensorList)) {
+            sensorList = new ArrayList<>();
+        }
+
+        if (ToolsKit.isNotEmpty(sensorList)) {
+            sensorList.add(params);
+            SENSOR_STATUS_MAP.put(deviceId, sensorList);
+            LOG.info("车辆/设备[{}]添加传感器状态成功:{}", deviceId, sensorList);
+        }
+    }
+
+    public static boolean checkSensorStatus(Protocol protocol) {
+        String deviceId = protocol.getDeviceId();
+        Sensor sensor = Sensor.getSensor(deviceId);
+        String code = "";
+        if (ToolsKit.isNotEmpty(sensor) && sensor.isWith(protocol.getParams())) {
+            // 取出传感器里的code
+            code = sensor.getCode();
+            LOG.info("车辆/设备[{}]传感器验证参数code为[{}]", deviceId, code);
+        }
+        final String removeCode= code;
+        if (ToolsKit.isEmpty(removeCode)) {
+            return false;
+        }
+        ThreadUtil.execAsync(new Runnable() {
+            @Override
+            public void run() {
+                HandshakeTelegram.duang().remove(deviceId, removeCode);
+            }
+        });
+        return true;
+    }
 }

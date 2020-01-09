@@ -104,6 +104,9 @@ public class DispatchFactory {
                     (RobotEnum.UP_LINK.getValue().equals(direction) && cmdKey.startsWith("rpt"))) {
                 // 如果是rptmt指令
                 if ("rptmt".equalsIgnoreCase(cmdKey)) {
+//                    if (RobotEnum.UP_LINK.getValue().equals(direction)) {
+//                        RobotUtil.addSensorStatus(protocol);
+//                    }
                     Sensor sensor = Sensor.getSensor(deviceId);
                     if (ToolsKit.isNotEmpty(sensor) && sensor.isWith(protocol.getParams())) {
                         // 取出传感器里的code
