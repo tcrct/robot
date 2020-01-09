@@ -36,7 +36,7 @@ public class ShowRoomService {
     public boolean runAll() {
         locationOperationMap.clear();
         try {
-//            A006(); //注塑机
+            A006(); //注塑机
             A009(); //SMT
             A010(); // 滚筒
             A033();  // SMT2
@@ -136,7 +136,7 @@ public class ShowRoomService {
         batchGenerator.createOrderBatch();
 
         // tomeout
-        TimeoutOrderGenTrigger timeoutOrderGenTrigger = new TimeoutOrderGenTrigger(5*1000, batchGenerator);
+        TimeoutOrderGenTrigger timeoutOrderGenTrigger = new TimeoutOrderGenTrigger(60*1000, batchGenerator);
         timeoutOrderGenTrigger.setTriggeringEnabled(true);
 
         // threshold

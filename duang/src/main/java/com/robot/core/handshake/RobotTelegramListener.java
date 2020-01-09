@@ -74,7 +74,10 @@ public class RobotTelegramListener implements ActionListener {
                         LOG.info("正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码为["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
 
                         if (request.isActionResponse() && request.isRobotSend() &&
-                                "rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
+                                ("rptmt".equalsIgnoreCase(protocol.getCommandKey())
+                                        || "rptvmot".equalsIgnoreCase(protocol.getCommandKey())
+                                )
+                        ) {
                             LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
                             sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
                         }
