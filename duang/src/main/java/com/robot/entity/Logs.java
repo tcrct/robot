@@ -17,7 +17,7 @@ import java.util.Date;
 public class Logs extends BaseEntity {
 
     public static final String ENTITY_FIELD = "Sys_Log";
-    private static final String OPEN_AGV_FIELD = "openAGV";
+    private static final String OPEN_AGV_FIELD = "robot";
     private static final Date CURRENT_DATE = new Date();
     private static final String DEPARTMENT_ID = "softDev";
     private static final String PROJECT_ID = "showroom";

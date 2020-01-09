@@ -1,6 +1,5 @@
 package com.robot.agv.vehicle.net;
 
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;

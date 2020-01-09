@@ -60,13 +60,13 @@ public class DispatchFactory {
         Response response = null;
         final Protocol protocol = request.getProtocol();
         // 保存到数据库
-//        ThreadUtil.execAsync(new Runnable() {
-//            @Override
-//            public void run() {
-//                //将所有接收到的报文保存到数据库
-//                DbKit.duang().saveLogs(new Logs(protocol));
-//            }
-//        });
+        ThreadUtil.execAsync(new Runnable() {
+            @Override
+            public void run() {
+                //将所有接收到的报文保存到数据库
+                DbKit.duang().saveLogs(new Logs(protocol));
+            }
+        });
 
         // 如果是订单请求，车辆主动上报的请求
         if (request instanceof OrderRequest) {
@@ -141,6 +141,14 @@ public class DispatchFactory {
                 // 则直接发送报文到客户端
                 if (null != sender && !(request instanceof StateRequest)
                         && !ProtocolUtils.isStateProtocol(protocol.getCommandKey())) {
+                    // 保存到数据库
+                    ThreadUtil.execAsync(new Runnable() {
+                        @Override
+                        public void run() {
+                            //将所有接收到的报文保存到数据库
+                            DbKit.duang().saveLogs(new Logs(protocol));
+                        }
+                    });
                     sender.sendTelegram(request);
                 }
             }

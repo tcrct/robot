@@ -1,5 +1,6 @@
 package com.robot.utils;
 
+import com.duangframework.db.DbClientFatory;
 import com.duangframework.db.mongodb.MongoDao;
 import com.duangframework.db.mongodb.MongodbConnectOptions;
 import com.duangframework.db.mongodb.MongodbDbClient;
@@ -33,6 +34,7 @@ public class DbKit {
                         .passWord("1b88ab6d")
                         .build());
                 MongoClient client = mongodbDbClient.getClient();
+                DbClientFatory.CLIENT_MAP.put(mongodbDbClient.getClientId(), mongodbDbClient);
                 logsDao = new MongoDao<Logs>(mongodbDbClient.getClientId(), Logs.class);
             }
             return dbKit;
