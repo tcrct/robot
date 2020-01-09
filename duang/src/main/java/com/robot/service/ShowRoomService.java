@@ -16,6 +16,7 @@ import org.opentcs.guing.plugins.panels.loadgenerator.TransportOrderData;
 import org.opentcs.guing.plugins.panels.loadgenerator.batchcreator.ExplicitOrderBatchGenerator;
 import org.opentcs.guing.plugins.panels.loadgenerator.batchcreator.OrderBatchCreator;
 import org.opentcs.guing.plugins.panels.loadgenerator.trigger.ThresholdOrderGenTrigger;
+import org.opentcs.guing.plugins.panels.loadgenerator.trigger.TimeoutOrderGenTrigger;
 import org.opentcs.virtualvehicle.commands.SetPositionCommand;
 import org.opentcs.virtualvehicle.commands.SetStateCommand;
 
@@ -35,7 +36,7 @@ public class ShowRoomService {
     public boolean runAll() {
         locationOperationMap.clear();
         try {
-            A006(); //注塑机
+//            A006(); //注塑机
             A009(); //SMT
             A010(); // 滚筒
             A033();  // SMT2
@@ -133,11 +134,17 @@ public class ShowRoomService {
         }
         OrderBatchCreator batchGenerator = new ExplicitOrderBatchGenerator(transportOrderService, dispatcherService, data);
         batchGenerator.createOrderBatch();
-        ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
-                AppContext.getKernelServicePortal().getPlantModelService(),
-                10,
-                batchGenerator);
-        thresholdOrderGenTrigger.setTriggeringEnabled(true);
+
+        // tomeout
+        TimeoutOrderGenTrigger timeoutOrderGenTrigger = new TimeoutOrderGenTrigger(5*1000, batchGenerator);
+        timeoutOrderGenTrigger.setTriggeringEnabled(true);
+
+        // threshold
+//        ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
+//                AppContext.getKernelServicePortal().getPlantModelService(),
+//                10,
+//                batchGenerator);
+//        thresholdOrderGenTrigger.setTriggeringEnabled(true);
 
     }
 
