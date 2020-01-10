@@ -103,11 +103,12 @@ public class RobotTelegramListener implements ActionListener {
                             if ("rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
                                 LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
                                 sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
-                            } else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
-                                LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
-                                sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
                             }
-                            clearAdvanceReportTelegram(protocol);
+//                            else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
+//                                LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
+//                                sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
+//                            }
+//                            clearAdvanceReportTelegram(protocol);
                         }
                     }
                 }
@@ -128,7 +129,7 @@ public class RobotTelegramListener implements ActionListener {
     /**
      * 清除提前上报动作请求
      *
-     * @param response
+     * @param protocol
      */
     private void clearAdvanceReportTelegram(Protocol protocol) {
         LongAdder longAdder = LISTENER_COUNT_MAP.get(protocol.getDeviceId());

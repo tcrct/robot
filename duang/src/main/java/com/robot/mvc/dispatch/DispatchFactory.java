@@ -48,9 +48,10 @@ public class DispatchFactory {
 //        FutureTask<Response> futureTask = (FutureTask<Response>) ThreadUtil.execAsync(new BusinessHandler(stateRequest, response));
 //    }
 
-    /**
+    /***
      * 根据IProtocol里的参数，反射调用对应Service里的方法
      * @param request
+     * @param sender
      */
     public Object execute(Request request, TelegramSender sender) {
         if (SERVICE_METHOD_MAP.isEmpty()) {
@@ -65,9 +66,9 @@ public class DispatchFactory {
             @Override
             public void run() {
                 // 将所有rpt开头的协议缓存起来，因为rpt*指令上报在某些场景下可能会比动作指令快，导致动作指令一直在等待上报
-                if (protocol.getCommandKey().startsWith("rpt")) {
-                    AppContext.getAdvanceReportMap().put(protocol.getCode(), protocol);
-                }
+//                if (protocol.getCommandKey().startsWith("rpt")) {
+//                    AppContext.getAdvanceReportMap().put(protocol.getCode(), protocol);
+//                }
                 //将所有接收到的报文保存到数据库
                 DbKit.duang().saveLogs(new Logs(protocol));
             }
@@ -124,7 +125,7 @@ public class DispatchFactory {
                 ThreadUtil.execAsync(new Runnable() {
                     @Override
                     public void run() {
-                        AppContext.getAdvanceReportMap().remove(removeCode);
+//                        AppContext.getAdvanceReportMap().remove(removeCode);
                         HandshakeTelegram.duang().remove(deviceId, removeCode);
                     }
                 });

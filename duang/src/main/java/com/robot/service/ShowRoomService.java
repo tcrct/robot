@@ -37,8 +37,8 @@ public class ShowRoomService {
         locationOperationMap.clear();
         try {
             A006(); //注塑机
-            A009(); //SMT
-            A010(); // 滚筒
+//            A009(); //SMT
+//            A010(); // 滚筒
             A033();  // SMT2
 
             // 创建批量订单
