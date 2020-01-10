@@ -1,5 +1,6 @@
 package com.robot.agv.vehicle.net;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
@@ -25,6 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 /**
  * 网络通讯管理工厂
@@ -120,9 +124,21 @@ public class ChannelManagerFactory {
         ConnectionEventListener<Response> eventListener = (ConnectionEventListener<Response>)adapter;
         TelegramSender telegramSender = (TelegramSender) adapter;
 
-
+        final Protocol finalProtocol = protocol;
         // 将请求转到业务逻辑处理
-        Response response = SendRequest.duang().send(protocol, telegramSender);
+        FutureTask<Response> futureTask = (FutureTask<Response>) ThreadUtil.execAsync(new Callable<Response>() {
+            @Override
+            public Response call() throws Exception {
+                return SendRequest.duang().send(finalProtocol, telegramSender);
+            }
+        });
+
+        Response response = null;
+        try {
+            response = futureTask.get();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
         if (ToolsKit.isNotEmpty(response)) {
             if (response.getStatus() != HttpStatus.HTTP_OK) {
                 LOG.error("协议内容：{}，业务逻辑处理时发生异常，退出处理！", response.getRawContent());

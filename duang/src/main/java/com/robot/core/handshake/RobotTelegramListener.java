@@ -82,7 +82,7 @@ public class RobotTelegramListener implements ActionListener {
             LOG.debug("车辆设备[{}]的报文监听器队列为空或不存在",key);
             return;
         }
-        LOG.info("###key: {}, queue: {}", key, queue);
+        LOG.info("time: {}    threadName: {}  ###key: {}, queue: {},  hashCode: {}", System.currentTimeMillis(), Thread.currentThread().getId(), key, queue, this.hashCode());
         Iterator<HandshakeTelegramDto> iterator = queue.iterator();
         while (null != iterator && iterator.hasNext()) {
             HandshakeTelegramDto queueDto = iterator.next();
@@ -104,10 +104,10 @@ public class RobotTelegramListener implements ActionListener {
                                 LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
                                 sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
                             }
-//                            else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
-//                                LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
-//                                sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
-//                            }
+                            else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
+                                LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
+                                sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
+                            }
 //                            clearAdvanceReportTelegram(protocol);
                         }
                     }
