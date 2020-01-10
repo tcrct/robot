@@ -48,10 +48,16 @@ public class RobotTelegramListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        boolean isSleep = false;
+        if (deviceIds!= null && deviceIds.size() >1) {
+            isSleep = true;
+        }
         for (String deviceId : deviceIds) {
             //间隔随机数50-100的毫秒时间，因为串口发送是单工的，所以需要间隔，即串口不能同时进行接收
             try {
-                Thread.sleep(RandomUtil.randomInt(50, 100));
+                if (isSleep) {
+                    Thread.sleep(RandomUtil.randomInt(50, 100));
+                }
                 doActionPerformed(deviceId);
             } catch (Exception ex){
                 ex.printStackTrace();
