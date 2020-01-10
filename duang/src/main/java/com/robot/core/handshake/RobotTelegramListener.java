@@ -76,6 +76,7 @@ public class RobotTelegramListener implements ActionListener {
             LOG.debug("车辆设备[{}]的报文监听器队列为空或不存在",key);
             return;
         }
+        LOG.info("###key: {}, queue: {}", key, queue);
         Iterator<HandshakeTelegramDto> iterator = queue.iterator();
         while (null != iterator && iterator.hasNext()) {
             HandshakeTelegramDto queueDto = iterator.next();
