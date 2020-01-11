@@ -35,6 +35,10 @@ public class HandshakeTelegram {
      */
     private final static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> HANDSHAKE_TELEGRAM_QUEUE = new java.util.concurrent.ConcurrentHashMap<>();
 
+    public static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> getHandshakeTelegram() {
+        return HANDSHAKE_TELEGRAM_QUEUE;
+    }
+
     public static LinkedBlockingQueue<HandshakeTelegramDto> getHandshakeTelegramQueue(String deviceId) {
         if (ToolsKit.isEmpty(deviceId)) {
             return null;

@@ -44,25 +44,54 @@ public class RobotTelegramListener implements ActionListener {
         if (ToolsKit.isNotEmpty(deviceIdList)) {
             this.deviceIds.addAll(deviceIdList);
         }
+
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        boolean isSleep = false;
-        if (deviceIds!= null && deviceIds.size() >1) {
-            isSleep = true;
+
+        Iterator<Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>>> iterator = HandshakeTelegram.getHandshakeTelegram().entrySet().iterator();
+        while (null != iterator && iterator.hasNext()) {
+            Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>> entry = iterator.next();
+            String key = entry.getKey();
+            LinkedBlockingQueue<HandshakeTelegramDto> value = entry.getValue();
+            if(ToolsKit.isNotEmpty(value) && peekTelegramQueueDto(value).isPresent()){
+                HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
+                if(ToolsKit.isNotEmpty(queueDto)){
+                    Request request = queueDto.getRequest();
+                    Response response = queueDto.getResponse();
+                    if(ToolsKit.isNotEmpty(queueDto) && ToolsKit.isNotEmpty(request) && ToolsKit.isNotEmpty(response)) {
+                        // 如果不是等待上报请求，则重发指令
+                        if(!request.isActionResponse()) {
+                            sender.sendTelegram(request);
+                        }
+                        else {
+                            Protocol protocol = response.getProtocol();
+                            LOG.info(key+ "正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码为["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
+                            clearAdvanceReportTelegram(request, protocol);
+
+                        }
+                    }
+                }
+            }
         }
+
+        /*
+        LOG.info("actionPerformed  " + String.valueOf(Thread.currentThread().getId()));
         for (String deviceId : deviceIds) {
             //间隔随机数50-100的毫秒时间，因为串口发送是单工的，所以需要间隔，即串口不能同时进行接收
             try {
-                if (isSleep) {
-                    Thread.sleep(RandomUtil.randomInt(50, 100));
-                }
-                doActionPerformed(deviceId);
+                ActionPerformedThread actionPerformedThread = new ActionPerformedThread(deviceId,sender);
+                actionPerformedThread.run();
             } catch (Exception ex){
                 ex.printStackTrace();
             }
         }
+
+         */
+
+
+
         /*
         ThreadUtil.execAsync(new Runnable() {
             @Override
@@ -75,62 +104,24 @@ public class RobotTelegramListener implements ActionListener {
          */
     }
 
-    private void doActionPerformed(String key) {
-        // 改用非阻塞队列
-        LinkedBlockingQueue<HandshakeTelegramDto> queue = HandshakeTelegram.getHandshakeTelegramQueue(key);
-        if (null == queue || queue.isEmpty()) {
-            LOG.debug("车辆设备[{}]的报文监听器队列为空或不存在",key);
-            return;
-        }
-        LOG.info("time: {}    threadName: {}  ###key: {}, queue: {},  hashCode: {}", System.currentTimeMillis(), Thread.currentThread().getId(), key, queue, this.hashCode());
-        Iterator<HandshakeTelegramDto> iterator = queue.iterator();
-        while (null != iterator && iterator.hasNext()) {
-            HandshakeTelegramDto queueDto = iterator.next();
-            if(ToolsKit.isNotEmpty(queueDto)){
-//                HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
-                Request request = queueDto.getRequest();
-                Response response = queueDto.getResponse();
-                if(ToolsKit.isNotEmpty(queueDto) && ToolsKit.isNotEmpty(request) && ToolsKit.isNotEmpty(response)) {
-                    // 如果不是等待上报请求，则重发指令
-                    if(!request.isActionResponse()) {
-                        sender.sendTelegram(request);
-                    }
-                    else {
-                        Protocol protocol = response.getProtocol();
-                        LOG.info("正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码为["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
-
-                        if (request.isActionResponse() && request.isRobotSend()) {
-                            if ("rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
-                                LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
-                                sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
-                            }
-                            else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
-                                LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
-                                sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
-                            }
-//                            clearAdvanceReportTelegram(protocol);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private Optional<HandshakeTelegramDto> peekTelegramQueueDto(Queue<HandshakeTelegramDto> queue) {
         return Optional.ofNullable(queue.peek());
     }
+
+
 
 
     /**计数器*/
     private static final Map<String, LongAdder> LISTENER_COUNT_MAP = new HashMap<>();
     private static final int COUNT = 3;
     /**执行时间间隔*/
-    int INTERVAL = 0;
+    int INTERVAL = 1000;
     /**
      * 清除提前上报动作请求
      *
      * @param protocol
      */
+    /*
     private void clearAdvanceReportTelegram(Protocol protocol) {
         LongAdder longAdder = LISTENER_COUNT_MAP.get(protocol.getDeviceId());
         if(null == longAdder) {
@@ -155,6 +146,29 @@ public class RobotTelegramListener implements ActionListener {
                 }
             } else {
                 LOG.info("验证码为["+key+"]的上报请求不存在，继续等待上报");
+            }
+            longAdder.reset();
+        }
+    }
+    */
+
+    private void clearAdvanceReportTelegram(Request request,Protocol protocol) {
+        LongAdder longAdder = LISTENER_COUNT_MAP.get(protocol.getDeviceId());
+        if(null == longAdder) {
+            longAdder = new LongAdder();
+            LISTENER_COUNT_MAP.put(protocol.getDeviceId(), longAdder);
+        }
+        longAdder.increment();
+        if(longAdder.intValue() == COUNT) {
+            if (request.isActionResponse() && request.isRobotSend()) {
+                if ("rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
+                    LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
+                    sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
+                }
+                else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
+                    LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
+                    sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
+                }
             }
             longAdder.reset();
         }

@@ -124,7 +124,6 @@ public class RobotCommAdapter
         this.stateMapper = requireNonNull(stateMapper, "orderMapper");
         this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
         this.objectService = requireNonNull(objectService, "objectService");
-//        AppContext.setCommAdapter(this);
     }
 
     /**
@@ -149,9 +148,7 @@ public class RobotCommAdapter
     public void initialize() {
         super.initialize();
         this.requestResponseMatcher = componentsFactory.createRequestResponseMatcher(this);
-        // 启动定时器
-        stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
-        stateRequesterTask.enable();
+
         LOG.info("车辆[{}]完成Robot适配器初始化完成", getName());
     }
 
@@ -160,7 +157,9 @@ public class RobotCommAdapter
      */
     @Override
     public void terminate() {
-        stateRequesterTask.disable();
+        if (null != stateRequesterTask) {
+            stateRequesterTask.disable();
+        }
         super.terminate();
         LOG.info("车辆[{}]终止Robot适配器完成", getName());
     }
@@ -184,23 +183,35 @@ public class RobotCommAdapter
         }
 
         LOG.info("车辆[{}]通讯管理器启用成功", getName());
-
+        boolean isTask = false;
         if ("A006".equals(getName())) {
             getProcessModel().setVehiclePosition("705");
+            isTask = true;
         }
         if ("A010".equals(getName())) {
             getProcessModel().setVehiclePosition("1");
+            isTask = true;
         }
 
         if ("A009".equals(getName())) {
             getProcessModel().setVehiclePosition("237");
+            isTask = true;
         }
 
         if ("A033".equals(getName())) {
             getProcessModel().setVehiclePosition("49");
+            isTask = true;
         }
         getProcessModel().setVehicleIdle(true);
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
+
+        // 启动定时器, 用来发放消息
+        if (null == stateRequesterTask && isTask) {
+            stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
+            stateRequesterTask.enable();
+            LOG.info("车辆[{}]完成定时器开启", getName());
+        }
+
         super.enable();
     }
 
@@ -348,7 +359,7 @@ public class RobotCommAdapter
      */
     @Override
     protected synchronized boolean canSendNextCommand() {
-         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
 //        return true;
     }
@@ -550,7 +561,7 @@ public class RobotCommAdapter
             telegram.addSerialPortToRwaContent(deviceId);
         }
 
-        LOG.info("发送报文内容[{}]，到车辆/设备[{}]", telegram.getRawContent(), deviceId);
+        LOG.info("发送报文内容[{}]，到车辆/设备[{}/{}]", telegram.getRawContent(), deviceId, getName());
         channelManager.send(telegram);
 
         // If the telegram is an order, remember it.
