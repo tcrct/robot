@@ -55,23 +55,11 @@ public class RobotTelegramListener implements ActionListener {
             Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>> entry = iterator.next();
             String key = entry.getKey();
             LinkedBlockingQueue<HandshakeTelegramDto> value = entry.getValue();
-            if(ToolsKit.isNotEmpty(value) && peekTelegramQueueDto(value).isPresent()){
+            if (ToolsKit.isNotEmpty(value) && peekTelegramQueueDto(value).isPresent()) {
                 HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
-                if(ToolsKit.isNotEmpty(queueDto)){
-                    Request request = queueDto.getRequest();
-                    Response response = queueDto.getResponse();
-                    if(ToolsKit.isNotEmpty(queueDto) && ToolsKit.isNotEmpty(request) && ToolsKit.isNotEmpty(response)) {
-                        // 如果不是等待上报请求，则重发指令
-                        if(!request.isActionResponse()) {
-                            sender.sendTelegram(request);
-                        }
-                        else {
-                            Protocol protocol = response.getProtocol();
-                            LOG.info(key+ "正在等待设备提交指令为["+protocol.getCommandKey()+"],握手验证码为["+protocol.getCode()+"]的报文消息: " + response.getRawContent());
-                            clearAdvanceReportTelegram(request, protocol);
-
-                        }
-                    }
+                if (ToolsKit.isNotEmpty(queueDto)) {
+                    ActionPerformedThread thread = new ActionPerformedThread(key, sender, queueDto);
+                    thread.run();
                 }
             }
         }
