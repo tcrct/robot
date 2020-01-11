@@ -43,7 +43,7 @@ public class ActionPerformedThread extends Thread {
             if(ToolsKit.isNotEmpty(queueDto) && ToolsKit.isNotEmpty(request) && ToolsKit.isNotEmpty(response)) {
                 // 如果不是等待上报请求，则重发指令
                 if(!request.isActionResponse()) {
-                    LOG.info("thread name:  {}", this.getName() );
+//                    LOG.info("thread name:  {}", this.getName() );
                     sender.sendTelegram(request);
                 }
                 else {
