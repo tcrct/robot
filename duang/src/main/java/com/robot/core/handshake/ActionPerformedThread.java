@@ -21,12 +21,10 @@ public class ActionPerformedThread extends Thread {
     private static final Logger LOG = LoggerFactory.getLogger(ActionPerformedThread.class);
 
     private String key;
-    private TelegramSender sender;
     private HandshakeTelegramDto queueDto;
 
-    public ActionPerformedThread(String key, TelegramSender sender, HandshakeTelegramDto telegramDto) {
+    public ActionPerformedThread(String key, HandshakeTelegramDto telegramDto) {
         this.key = key;
-        this.sender = sender;
         this.queueDto = telegramDto;
     }
 
@@ -44,7 +42,7 @@ public class ActionPerformedThread extends Thread {
                 // 如果不是等待上报请求，则重发指令
                 if(!request.isActionResponse()) {
 //                    LOG.info("thread name:  {}", this.getName() );
-                    sender.sendTelegram(request);
+                    AppContext.getTelegramSender().sendTelegram(request);
                 }
                 else {
                     Protocol protocol = response.getProtocol();
@@ -75,11 +73,11 @@ public class ActionPerformedThread extends Thread {
             if (request.isActionResponse() && request.isRobotSend()) {
                 if ("rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
                     LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
-                    sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
+                    AppContext.getTelegramSender().sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
                 }
                 else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
                     LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
-                    sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
+                    AppContext.getTelegramSender().sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
                 }
             }
             longAdder.reset();

@@ -32,12 +32,11 @@ public class RobotTelegramListener implements ActionListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(RobotTelegramListener.class);
 
-    private TelegramSender sender;
     private List<String> deviceIds = new ArrayList<>();  // 车辆，设备ID
     private String vehicleId;
 
     public RobotTelegramListener(RobotCommAdapter adapter) {
-        this.sender = adapter;
+        AppContext.setTelegramSender(adapter);
         vehicleId = adapter.getName();
         deviceIds.add(vehicleId);
         Set<String> deviceIdList = ActionHelper.duang().getVehicelDeviceMap().get(vehicleId);
@@ -58,7 +57,7 @@ public class RobotTelegramListener implements ActionListener {
             if (ToolsKit.isNotEmpty(value) && peekTelegramQueueDto(value).isPresent()) {
                 HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
                 if (ToolsKit.isNotEmpty(queueDto)) {
-                    ActionPerformedThread thread = new ActionPerformedThread(key, sender, queueDto);
+                    ActionPerformedThread thread = new ActionPerformedThread(key, queueDto);
                     thread.run();
                 }
             }
@@ -151,11 +150,11 @@ public class RobotTelegramListener implements ActionListener {
             if (request.isActionResponse() && request.isRobotSend()) {
                 if ("rptmt".equalsIgnoreCase(protocol.getCommandKey())) {
                     LOG.info("等待的是物料状态提交指令，发送getmt命令查询物料状态");
-                    sender.sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
+                    AppContext.getTelegramSender().sendTelegram(new GetMtRequest(protocol.getDeviceId(), "0"));
                 }
                 else if ("rptvmot".equalsIgnoreCase(protocol.getCommandKey())) {
                     LOG.info("等待的是动作到位状态提交指令，重发setvmot命令设置AGV动作");
-                    sender.sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
+                    AppContext.getTelegramSender().sendTelegram(new SetVmotRequest(protocol.getDeviceId(), protocol.getParams()));
                 }
             }
             longAdder.reset();

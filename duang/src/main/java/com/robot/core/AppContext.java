@@ -1,6 +1,7 @@
 package com.robot.core;
 
 import com.robot.agv.common.telegrams.Request;
+import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.agv.vehicle.telegrams.Protocol;
@@ -88,5 +89,15 @@ public class AppContext {
     }
     public static EventSource getEventSource() {
         return eventSource;
+    }
+
+
+    private static TelegramSender TELEGRAM_SENDER;
+    public static void setTelegramSender(RobotCommAdapter adapter) {
+        TELEGRAM_SENDER = (TelegramSender)adapter;
+    }
+
+    public static TelegramSender getTelegramSender() {
+        return TELEGRAM_SENDER;
     }
 }

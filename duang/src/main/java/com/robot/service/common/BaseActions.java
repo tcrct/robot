@@ -59,7 +59,7 @@ public abstract  class BaseActions implements IAction {
         String vehicleId = vehicleId();
         if(ToolsKit.isEmpty(sender)) {
             adapter = AppContext.getCommAdapter(vehicleId);
-            sender = adapter.getSender();
+            sender = AppContext.getTelegramSender();
         }
         add(requestList);
         putQueue(actionKey, vehicleId, requestList);

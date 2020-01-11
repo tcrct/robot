@@ -377,7 +377,7 @@ public class RobotCommAdapter
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
             StateRequest stateRequest = new StateRequest(cmd, getProcessModel());
             //进行业务处理
-            StateResponse stateResponse = SendRequest.duang().send(stateRequest, this);
+            StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
             if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
                 LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
                 return;

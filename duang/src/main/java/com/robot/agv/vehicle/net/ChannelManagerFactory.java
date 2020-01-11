@@ -122,7 +122,7 @@ public class ChannelManagerFactory {
             }
         }
         ConnectionEventListener<Response> eventListener = (ConnectionEventListener<Response>)adapter;
-        TelegramSender telegramSender = (TelegramSender) adapter;
+        TelegramSender telegramSender = AppContext.getTelegramSender();
 
         final Protocol finalProtocol = protocol;
         // 将请求转到业务逻辑处理
