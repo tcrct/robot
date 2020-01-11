@@ -124,7 +124,6 @@ public class RobotCommAdapter
         this.stateMapper = requireNonNull(stateMapper, "orderMapper");
         this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
         this.objectService = requireNonNull(objectService, "objectService");
-//        AppContext.setCommAdapter(this);
     }
 
     /**
