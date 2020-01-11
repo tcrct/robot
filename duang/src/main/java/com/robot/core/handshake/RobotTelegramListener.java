@@ -43,7 +43,6 @@ public class RobotTelegramListener implements ActionListener {
         if (ToolsKit.isNotEmpty(deviceIdList)) {
             this.deviceIds.addAll(deviceIdList);
         }
-
     }
 
     @Override
@@ -57,8 +56,9 @@ public class RobotTelegramListener implements ActionListener {
             if (ToolsKit.isNotEmpty(value) && peekTelegramQueueDto(value).isPresent()) {
                 HandshakeTelegramDto queueDto = peekTelegramQueueDto(value).get();
                 if (ToolsKit.isNotEmpty(queueDto)) {
-                    ActionPerformedThread thread = new ActionPerformedThread(key, queueDto);
-                    thread.run();
+                    ThreadUtil.execute(new ActionPerformedThread(key, queueDto));
+//                    ActionPerformedThread thread = new ActionPerformedThread(key, queueDto);
+//                    thread.run();
                 }
             }
         }
