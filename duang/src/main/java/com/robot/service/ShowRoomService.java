@@ -36,10 +36,14 @@ public class ShowRoomService {
     public boolean runAll() {
         locationOperationMap.clear();
         try {
+            A001();//交通管制1
+            A002(); //交通管制2
+
             A006(); //注塑机
             A009(); //SMT
-//            A010(); // 滚筒
+            A010(); // 滚筒
             A033();  // SMT2
+
 
             // 创建批量订单
 
@@ -62,6 +66,26 @@ public class ShowRoomService {
         vehicleService.sendCommAdapterCommand(vehicleRef, new SetStateCommand(Vehicle.State.IDLE));
         // 集成等级(使用该车辆进行运输订单)
         vehicleService.updateVehicleIntegrationLevel(vehicleRef, Vehicle.IntegrationLevel.TO_BE_UTILIZED);
+    }
+
+    private void A001() {
+        String vehicleName = "A001";
+        String position = "218";
+        daung(vehicleName, position);
+        List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start218", "NOP"));
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End223", "NOP"));
+        locationOperationMap.put(vehicleName, locationOperationDtoList);
+    }
+
+    private void A002() {
+        String vehicleName = "A002";
+        String position = "231";
+        daung(vehicleName, position);
+        List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start231", "NOP"));
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End213", "NOP"));
+        locationOperationMap.put(vehicleName, locationOperationDtoList);
     }
 
     private void A006() {
