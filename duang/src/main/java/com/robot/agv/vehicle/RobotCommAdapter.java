@@ -183,7 +183,15 @@ public class RobotCommAdapter
         }
 
         LOG.info("车辆[{}]通讯管理器启用成功", getName());
-        boolean isTask = false;
+
+        if ("A001".equals(getName())) {
+            getProcessModel().setVehiclePosition("218");
+        }
+
+        if ("A002".equals(getName())) {
+            getProcessModel().setVehiclePosition("231");
+        }
+
         if ("A006".equals(getName())) {
             getProcessModel().setVehiclePosition("705");
         }
