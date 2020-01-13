@@ -33,6 +33,7 @@ import java.util.concurrent.*;
  * 所以在Service里必须要实现对应指令动作的方法。
  *
  * @author Laotang
+ * @blame Android Team
  */
 public class DispatchFactory {
 
@@ -48,7 +49,7 @@ public class DispatchFactory {
 //        FutureTask<Response> futureTask = (FutureTask<Response>) ThreadUtil.execAsync(new BusinessHandler(stateRequest, response));
 //    }
 
-    /***
+    /**
      * 根据IProtocol里的参数，反射调用对应Service里的方法
      * @param request
      * @param sender
@@ -129,7 +130,10 @@ public class DispatchFactory {
                         HandshakeTelegram.duang().remove(deviceId, removeCode);
                     }
                 });
-                return response;
+                // rptac指令放行
+                if (!"rptac".equalsIgnoreCase(cmdKey)) {
+                    return response;
+                }
             }
         }
 

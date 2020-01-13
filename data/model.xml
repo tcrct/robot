@@ -22,7 +22,6 @@
     </point>
     <point name="213" xPosition="24500" yPosition="-3500" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="213 --- 220"/>
-        <property name="orientation" value="b"/>
     </point>
     <point name="214" xPosition="89500" yPosition="-5000" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="214 --- 234"/>
@@ -48,7 +47,6 @@
     </point>
     <point name="223" xPosition="14000" yPosition="-3500" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="223 --- 225"/>
-        <property name="orientation" value="b"/>
     </point>
     <point name="225" xPosition="14000" yPosition="-11500" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="225 --- 219"/>
@@ -757,5 +755,5 @@
             <property name="POSITION_Y" value="31750"/>
         </modelLayoutElement>
     </visualLayout>
-    <property name="tcs:modelFileLastModified" value="2020-01-13T01:53:57.193Z"/>
+    <property name="tcs:modelFileLastModified" value="2020-01-13T05:53:04.650Z"/>
 </model>

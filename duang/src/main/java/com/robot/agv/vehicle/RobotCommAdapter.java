@@ -182,15 +182,16 @@ public class RobotCommAdapter
             channelManager.initialize();
         }
 
+        // 启动定时器, 用来发放消息
+        if (null == stateRequesterTask) {
+            stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
+            stateRequesterTask.enable();
+            LOG.info("车辆[{}]完成定时器开启", getName());
+        }
+
         LOG.info("车辆[{}]通讯管理器启用成功", getName());
 
-        if ("A001".equals(getName())) {
-            getProcessModel().setVehiclePosition("218");
-        }
 
-        if ("A002".equals(getName())) {
-            getProcessModel().setVehiclePosition("231");
-        }
 
         if ("A006".equals(getName())) {
             getProcessModel().setVehiclePosition("705");
@@ -209,14 +210,18 @@ public class RobotCommAdapter
         getProcessModel().setVehicleIdle(true);
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
 
-        // 启动定时器, 用来发放消息
-        if (null == stateRequesterTask) {
-            stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
-            stateRequesterTask.enable();
-            LOG.info("车辆[{}]完成定时器开启", getName());
-        }
+
 
         super.enable();
+        if ("A001".equals(getName())) {
+            getProcessModel().setVehiclePosition("218");
+//            RobotUtil.initVehicleStatus(getName());
+        }
+
+        if ("A002".equals(getName())) {
+            getProcessModel().setVehiclePosition("231");
+//            RobotUtil.initVehicleStatus(getName());
+        }
     }
 
     /**

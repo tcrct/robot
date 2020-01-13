@@ -3,6 +3,7 @@ package com.robot.utils;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.core.AppContext;
@@ -13,6 +14,7 @@ import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionResponse;
+import com.robot.service.common.requests.get.GetAcRequest;
 import org.opentcs.data.model.Location;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Vehicle;
@@ -241,4 +243,10 @@ public class RobotUtil {
         });
         return true;
     }
+
+    public static void initVehicleStatus(String deviceId) {
+        TelegramSender sender = AppContext.getTelegramSender();
+        sender.sendTelegram(new GetAcRequest(deviceId, "0"));
+    }
+
 }
