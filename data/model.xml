@@ -29,7 +29,7 @@
     <point name="218" xPosition="66000" yPosition="-14000" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="218 --- 228"/>
         <outgoingPath name="218 --- 235"/>
-        <property name="direction" value="l"/>
+        <property name="direction" value="r"/>
     </point>
     <point name="219" xPosition="14000" yPosition="-18500" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
         <outgoingPath name="219 --- 225"/>
@@ -755,5 +755,5 @@
             <property name="POSITION_Y" value="31750"/>
         </modelLayoutElement>
     </visualLayout>
-    <property name="tcs:modelFileLastModified" value="2020-01-13T05:53:04.650Z"/>
+    <property name="tcs:modelFileLastModified" value="2020-01-13T11:00:02.579Z"/>
 </model>

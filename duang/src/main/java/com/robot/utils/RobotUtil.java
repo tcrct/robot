@@ -249,4 +249,28 @@ public class RobotUtil {
         sender.sendTelegram(new GetAcRequest(deviceId, "0"));
     }
 
+    public static final Map<String,String> DIRECTION_MAP = new HashMap<>();
+    public static void sureDirection(String deviceId, Protocol protocol) {
+        String params = protocol.getParams();
+        String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
+        LOG.info("{}", paramsArray);
+        String direction = RobotEnum.FORWARD.getValue();
+        if ("218".equals(paramsArray[0])) {
+            direction = paramsArray[1];
+            DIRECTION_MAP.put(deviceId, direction);
+            LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+        }
+
+        if ("223".equals(paramsArray[0])) {
+            if(RobotEnum.BACK.getValue().equals(paramsArray[1])) {
+                direction = RobotEnum.FORWARD.getValue();
+            }
+            if(RobotEnum.FORWARD.getValue().equals(paramsArray[1])) {
+                direction = RobotEnum.BACK.getValue();
+            }
+            DIRECTION_MAP.put(deviceId, direction);
+            LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+        }
+
+    }
 }

@@ -215,6 +215,7 @@ public class RobotCommAdapter
         super.enable();
         if ("A001".equals(getName())) {
             getProcessModel().setVehiclePosition("218");
+//            getProcessModel().setVehiclePosition("225");
 //            RobotUtil.initVehicleStatus(getName());
         }
 
@@ -678,7 +679,7 @@ public class RobotCommAdapter
                 LOG.info("不能重复执行该操作，因该动作指令已经运行，作丢弃处理！");
             }
         } else {
-            LOG.debug("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), cmd.getStep().getDestinationPoint().getName(), cmd);
+            LOG.info("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), cmd.getStep().getDestinationPoint().getName(), cmd);
             MovementCommand curCommand = getSentQueue().poll();
             if (cmd != null && cmd.equals(curCommand)) {
                 getProcessModel().commandExecuted(cmd);

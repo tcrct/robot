@@ -130,10 +130,10 @@ public class DispatchFactory {
                         HandshakeTelegram.duang().remove(deviceId, removeCode);
                     }
                 });
-                // rptac指令放行
-                if (!"rptac".equalsIgnoreCase(cmdKey)) {
-                    return response;
+                if ("rptac".equals(cmdKey) && ("A001".equals(deviceId) || "A002".equals(deviceId))) {
+                    RobotUtil.sureDirection(deviceId, protocol);
                 }
+                return response;
             }
         }
 
