@@ -186,27 +186,23 @@ public class RobotCommAdapter
         boolean isTask = false;
         if ("A006".equals(getName())) {
             getProcessModel().setVehiclePosition("705");
-            isTask = true;
         }
         if ("A010".equals(getName())) {
             getProcessModel().setVehiclePosition("1");
-            isTask = true;
         }
 
         if ("A009".equals(getName())) {
             getProcessModel().setVehiclePosition("237");
-            isTask = true;
         }
 
         if ("A033".equals(getName())) {
             getProcessModel().setVehiclePosition("49");
-            isTask = true;
         }
         getProcessModel().setVehicleIdle(true);
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
 
         // 启动定时器, 用来发放消息
-        if (null == stateRequesterTask && isTask) {
+        if (null == stateRequesterTask) {
             stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
             stateRequesterTask.enable();
             LOG.info("车辆[{}]完成定时器开启", getName());
