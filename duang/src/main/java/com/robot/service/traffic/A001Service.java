@@ -2,7 +2,6 @@ package com.robot.service.traffic;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
-import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.mvc.annotations.Service;
@@ -21,9 +20,6 @@ import java.util.List;
 public class A001Service extends BaseService {
 
     private static final Logger LOG =  LoggerFactory.getLogger(A001Service.class);
-    private static String DIRECTION = "";  //方向
-
-
 
     /**
      * 下发车辆移动指令
@@ -39,6 +35,7 @@ public class A001Service extends BaseService {
         String direction = RobotUtil.DIRECTION_MAP.get(stateRequest.getModel().getName());
         if (ToolsKit.isEmpty(direction)) {
             direction = RobotEnum.FORWARD.getValue();
+//            direction = RobotEnum.BACK.getValue();
         }
         List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response, direction);
 
