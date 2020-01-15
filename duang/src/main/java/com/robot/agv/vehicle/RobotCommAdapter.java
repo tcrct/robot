@@ -29,6 +29,8 @@ import com.robot.utils.SettingUtils;
 import com.robot.utils.ToolsKit;
 import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
+import org.opentcs.data.model.Block;
+import org.opentcs.data.model.TCSResourceReference;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
@@ -45,6 +47,7 @@ import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import static java.util.Objects.requireNonNull;
@@ -214,8 +217,8 @@ public class RobotCommAdapter
 
         super.enable();
         if ("A001".equals(getName())) {
-            getProcessModel().setVehiclePosition("218");
-//            getProcessModel().setVehiclePosition("225");
+//            getProcessModel().setVehiclePosition("218");
+            getProcessModel().setVehiclePosition("213");
 //            RobotUtil.initVehicleStatus(getName());
         }
 
@@ -367,9 +370,17 @@ public class RobotCommAdapter
      *
      * @return true可以发送
      */
+    private boolean waitingForAllocation;
+
+    public void setWaitingForAllocation(boolean waitingForAllocation) {
+        this.waitingForAllocation = waitingForAllocation;
+    }
     @Override
     protected synchronized boolean canSendNextCommand() {
-        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
+        if (waitingForAllocation) {
+            LOG.info("车辆{}需要让行，正等待分配指令", getName());
+        }
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
 //        return true;
     }
@@ -382,6 +393,14 @@ public class RobotCommAdapter
             throws IllegalArgumentException {
         requireNonNull(cmd, "cmd");
         LOG.info("cmd: " + cmd);
+
+//        Block block = objectService.fetchObject(Block.class, "Block-0001");
+//        block.getMembers().forEach(new Consumer<TCSResourceReference<?>>() {
+//            @Override
+//            public void accept(TCSResourceReference<?> tcsResourceReference) {
+//                LOG.info("{}", tcsResourceReference.getName());
+//            }
+//        });
 
         try {
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
@@ -851,8 +870,8 @@ public class RobotCommAdapter
         if (NetChannelType.TCP.equals(getNetChannelType())) {
             return getProcessModel().getVehicleHost();
         } else if (NetChannelType.UDP.equals(getNetChannelType())) {
-            return SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
-//            return  getProcessModel().getVehicleHost();
+//            return SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
+            return  getProcessModel().getVehicleHost();
         } else if (NetChannelType.SERIALPORT.equals(getNetChannelType())) {
             return SettingUtils.getStringByGroup("name", NetChannelType.SERIALPORT.name().toLowerCase(), "COM6");
         }
@@ -863,8 +882,8 @@ public class RobotCommAdapter
         if (NetChannelType.TCP.equals(getNetChannelType())) {
             return getProcessModel().getVehiclePort();
         } else if (NetChannelType.UDP.equals(getNetChannelType())) {
-            return SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
-//            return getProcessModel().getVehiclePort();
+//            return SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
+            return getProcessModel().getVehiclePort();
         } else if (NetChannelType.SERIALPORT.equals(getNetChannelType())) {
             return SettingUtils.getInt("baudrate", NetChannelType.SERIALPORT.name().toLowerCase(), 38400);
         }

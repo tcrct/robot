@@ -132,6 +132,8 @@ public class DispatchFactory {
                 });
                 if ("rptac".equals(cmdKey) && ("A001".equals(deviceId) || "A002".equals(deviceId))) {
                     RobotUtil.sureDirection(deviceId, protocol);
+                    //交通管制
+                    RobotUtil.traffic(deviceId,protocol);
                 }
                 return response;
             }

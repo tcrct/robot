@@ -1,7 +1,7 @@
 package com.robot.utils;
 
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.core.util.StrUtil;
+import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.Protocol;
@@ -15,6 +15,7 @@ import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionResponse;
 import com.robot.service.common.requests.get.GetAcRequest;
+import com.robot.service.common.requests.set.SetVmotRequest;
 import org.opentcs.data.model.Location;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Vehicle;
@@ -270,6 +271,33 @@ public class RobotUtil {
             }
             DIRECTION_MAP.put(deviceId, direction);
             LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+        }
+    }
+
+    public static Map<String, Boolean> LockVehicleMap = new HashMap<>();
+    public static void traffic(String deviceId, Protocol protocol){
+        String pointName = getReportPoint(protocol);
+//      如果没有锁上且是要锁区域的点 219;221;233的话，就锁上
+        boolean isInLock = "219".equals(pointName) || "221".equals(pointName) || "233".equals(pointName);
+        boolean isUnLock = "225".equals(pointName) || "220".equals(pointName) || "218".equals(pointName);
+        // 如果需要等待则马上发送停车指令并将适配器里的等待分配变量设置为true,让系统暂停下发指令
+        if (isInLock) {
+            LockVehicleMap.put(deviceId, isInLock); //锁定区域
+            //另一辆车是否解锁
+            String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
+            Boolean isLockOf = LockVehicleMap.get(deviceId2);
+            if ((null != isLockOf) && isLockOf ) {//未解锁，则发送停车指令，暂停下发移动指令
+                Request request = new SetVmotRequest(deviceId, "");
+                AppContext.getTelegramSender().sendTelegram(request);
+                AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
+            }
+        }
+
+        if (isUnLock) {
+            LockVehicleMap.put(deviceId, false); //解锁
+            // 另一台车辆继续下发指令
+            String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
+            AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
         }
 
     }

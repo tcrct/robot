@@ -36,6 +36,10 @@ public class A001Service extends BaseService {
             throw new RobotException("该请求不是移动命令请求");
         }
         StateRequest stateRequest =(StateRequest)request;
+        LOG.info("stateRequest: {}", stateRequest);
+        if (null==stateRequest) {
+            return "";
+        }
         String direction = RobotUtil.DIRECTION_MAP.get(stateRequest.getModel().getName());
         if (ToolsKit.isEmpty(direction)) {
             direction = RobotEnum.FORWARD.getValue();

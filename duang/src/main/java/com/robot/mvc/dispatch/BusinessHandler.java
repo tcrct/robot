@@ -65,7 +65,7 @@ public class BusinessHandler implements Callable {
                 return emptyRouteOrMehtod(deviceId, methodName);
             }
             Object resultObj = ReflectUtil.invoke(route.getInjectObject(), method, request, response);
-            if (response.isResponseTo(request)) {
+            if (response.isResponseTo(request) && ToolsKit.isNotEmpty(resultObj)) {
                 response.write(resultObj);
             }
         } catch (Exception e) {

@@ -49,6 +49,9 @@ public class BaseService implements IService {
         }
         StateRequest stateRequest =(StateRequest)request;
         List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response);
+        if (ToolsKit.isEmpty(protocolParamList)) {
+            return null;
+        }
         return getProtocolString(stateRequest, protocolParamList);
     }
 
@@ -60,7 +63,8 @@ public class BaseService implements IService {
     protected MovementCommand getCommand(StateRequest stateRequest) {
         MovementCommand command =  stateRequest.getCommand();
         if(ToolsKit.isEmpty(command)) {
-            throw new RobotException("移动命令队列不能为空!");
+           LOG.info("移动命令队列不能为空，可能是车辆提交");
+           return null;
         }
         return command;
     }
@@ -83,11 +87,17 @@ public class BaseService implements IService {
     }
     protected List<ProtocolParam> getProtocolParamList(StateRequest stateRequest, Response response, String orientationValue) {
         MovementCommand command = getCommand(stateRequest);
+        if (ToolsKit.isEmpty(command)) {
+            return null;
+        }
         List<ProtocolParam> protocolParamList = new ArrayList<>();
         String startPointName = null;
         String endPointName = null;
         String vehicleName = stateRequest.getModel().getName();
         Route.Step step= command.getStep();
+
+        LOG.info("##########该移动命令是否允许在车辆[{}]执行[{}]", vehicleName,  step.isExecutionAllowed());
+
         // 当前点
         String currentPointName = step.getSourcePoint().getName();
         // 起始点
