@@ -29,8 +29,6 @@ import com.robot.utils.SettingUtils;
 import com.robot.utils.ToolsKit;
 import org.opentcs.components.kernel.services.TCSObjectService;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
-import org.opentcs.data.model.Block;
-import org.opentcs.data.model.TCSResourceReference;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.data.order.DriveOrder;
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
@@ -47,7 +45,6 @@ import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import static java.util.Objects.requireNonNull;
@@ -370,17 +367,22 @@ public class RobotCommAdapter
      *
      * @return true可以发送
      */
+    // 是否需要等待分配，true为需要
     private boolean waitingForAllocation;
-
+    // 是否不可以发送下一个命令，true为不可以
+    private boolean isNotSendNextCommand;
     public void setWaitingForAllocation(boolean waitingForAllocation) {
         this.waitingForAllocation = waitingForAllocation;
+        if (!waitingForAllocation) {
+            isNotSendNextCommand = false;
+        }
     }
     @Override
     protected synchronized boolean canSendNextCommand() {
-        if (waitingForAllocation) {
+        if (isNotSendNextCommand) {
             LOG.info("车辆{}需要让行，正等待分配指令", getName());
         }
-        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !isNotSendNextCommand;
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
 //        return true;
     }
@@ -558,6 +560,11 @@ public class RobotCommAdapter
             LOG.warn("车辆[{}]接收到一个未知的报文请求/响应: {}",
                     getName(),
                     response.getClass().getName());
+        }
+
+        if (waitingForAllocation) {
+            isNotSendNextCommand = true;
+            LOG.info("{}车辆需要等待分配，暂停下发新的指令到车辆", getName());
         }
 
         //如果不需要等待分配则立即发送下一封电报
