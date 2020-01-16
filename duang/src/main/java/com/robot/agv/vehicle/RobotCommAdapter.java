@@ -217,8 +217,8 @@ public class RobotCommAdapter
 
         super.enable();
         if ("A001".equals(getName())) {
-//            getProcessModel().setVehiclePosition("218");
-            getProcessModel().setVehiclePosition("213");
+            getProcessModel().setVehiclePosition("218");
+//            getProcessModel().setVehiclePosition("213");
 //            RobotUtil.initVehicleStatus(getName());
         }
 
@@ -560,8 +560,10 @@ public class RobotCommAdapter
                     response.getClass().getName());
         }
 
-        //发送下一封电报
-        requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
+        //如果不需要等待分配则立即发送下一封电报
+        if(!waitingForAllocation) {
+            requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
+        }
     }
 
     @Override

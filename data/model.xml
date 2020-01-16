@@ -285,7 +285,6 @@
         <link point="702"/>
         <property name="tcs:defaultLocationSymbol" value="WORKING_ALT_1"/>
     </location>
-    <block name="Block-0001" type="SINGLE_VEHICLE_ONLY"/>
     <visualLayout name="VLayout-1" scaleX="50.0" scaleY="50.0">
         <modelLayoutElement visualizedObjectName="1" layer="0">
             <property name="LABEL_OFFSET_X" value="-10"/>
@@ -665,9 +664,6 @@
         <modelLayoutElement visualizedObjectName="A033" layer="0">
             <property name="ROUTE_COLOR" value="#FFFF00"/>
         </modelLayoutElement>
-        <modelLayoutElement visualizedObjectName="Block-0001" layer="0">
-            <property name="COLOR" value="#FF0000"/>
-        </modelLayoutElement>
         <modelLayoutElement visualizedObjectName="End213" layer="0">
             <property name="LABEL_OFFSET_X" value="-10"/>
             <property name="LABEL_OFFSET_Y" value="-20"/>
@@ -747,5 +743,5 @@
             <property name="POSITION_Y" value="31750"/>
         </modelLayoutElement>
     </visualLayout>
-    <property name="tcs:modelFileLastModified" value="2020-01-15T07:35:16.963Z"/>
+    <property name="tcs:modelFileLastModified" value="2020-01-16T00:48:14.186Z"/>
 </model>

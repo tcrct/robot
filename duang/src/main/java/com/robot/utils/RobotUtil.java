@@ -15,6 +15,8 @@ import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionResponse;
 import com.robot.service.common.requests.get.GetAcRequest;
+import com.robot.service.common.requests.set.SetSpdRequest;
+import com.robot.service.common.requests.set.SetStpRequest;
 import com.robot.service.common.requests.set.SetVmotRequest;
 import org.opentcs.data.model.Location;
 import org.opentcs.data.model.Point;
@@ -294,31 +296,39 @@ public class RobotUtil {
         }
     }
 
-    public static Map<String, Boolean> LockVehicleMap = new HashMap<>();
+    // 0是，1否
+    public static Map<String, String> LockVehicleMap = new HashMap<>();
+
     public static void traffic(String deviceId, Protocol protocol){
         String pointName = getReportPoint(protocol);
-//      如果没有锁上且是要锁区域的点 219;221;233的话，就锁上
-        boolean isInLock = "219".equals(pointName) || "221".equals(pointName) || "233".equals(pointName);
-        boolean isUnLock = "225".equals(pointName) || "220".equals(pointName) || "218".equals(pointName);
-        // 如果需要等待则马上发送停车指令并将适配器里的等待分配变量设置为true,让系统暂停下发指令
-        if (isInLock) {
-            LockVehicleMap.put(deviceId, isInLock); //锁定区域
-            //另一辆车是否解锁
+        String isLock = LockVehicleMap.get(deviceId);
+        boolean isInLock =
+                "225".equals(pointName) || "220".equals(pointName)
+                || "233".equals(pointName)
+                || "218".equals(pointName);
+
+        //如果没有锁住，并进入锁区范围，则锁上
+        if (!"0".equals(isLock) && isInLock) {
+            //看看另一辆车是不是在锁区里，如果是，则需要停车
             String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
-            Boolean isLockOf = LockVehicleMap.get(deviceId2);
-            if ((null != isLockOf) && isLockOf ) {//未解锁，则发送停车指令，暂停下发移动指令
-                Request request = new SetVmotRequest(deviceId, "");
+            String otherLock = LockVehicleMap.get(deviceId2);
+            if (null != otherLock &&"0".equals(otherLock)) {
+                Request request = new SetStpRequest(deviceId, "0");
                 AppContext.getTelegramSender().sendTelegram(request);
                 AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
             }
-        }
-
-        if (isUnLock) {
-            LockVehicleMap.put(deviceId, false); //解锁
-            // 另一台车辆继续下发指令
+            LockVehicleMap.put(deviceId, "0");
+        } // 如果是锁上的，并且在锁区范围的，则认为是驶出锁区范围，则解锁
+        else  if ("0".equals(isLock) && isInLock) {
+            LockVehicleMap.put(deviceId, "1");
             String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
-            AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
+            String isLockOf = LockVehicleMap.get(deviceId2);
+            if (null !=isLockOf && "0".equals(isLockOf )) {
+                LOG.info("[{}]解除等待，继续执行移动任务", deviceId2);
+                AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
+                AppContext.getCommAdapter(deviceId2).getRequestResponseMatcher()
+                        .checkForSendingNextRequest(deviceId2);
+            }
         }
-
     }
 }
