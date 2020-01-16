@@ -369,20 +369,15 @@ public class RobotCommAdapter
      */
     // 是否需要等待分配，true为需要
     private boolean waitingForAllocation;
-    // 是否不可以发送下一个命令，true为不可以
-    private boolean isNotSendNextCommand;
     public void setWaitingForAllocation(boolean waitingForAllocation) {
         this.waitingForAllocation = waitingForAllocation;
-        if (!waitingForAllocation) {
-            isNotSendNextCommand = false;
-        }
     }
     @Override
     protected synchronized boolean canSendNextCommand() {
-        if (isNotSendNextCommand) {
+        if (waitingForAllocation) {
             LOG.info("车辆{}需要让行，正等待分配指令", getName());
         }
-        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !isNotSendNextCommand;
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
 //        return true;
     }
@@ -417,12 +412,7 @@ public class RobotCommAdapter
 
             orderIds.put(cmd, cmd.isFinalMovement() ? cmd.getFinalDestination().getName() : cmd.getStep().getDestinationPoint().getName());
 
-
-            LOG.debug("{}: Enqueuing order telegram with ID {}: {}, {}",
-                    getName(),
-                    stateRequest.getCode(),
-                    stateRequest.getDestinationId(),
-                    stateRequest.getDestinationAction());
+            LOG.info("@@@@ {} stateRequest: {}" ,getName(), stateRequest);
             // 把请求请求加入队列。请求发送规则是FIFO。电报请求将在队列中的第一封电报之后发送。这确保我们总是等待响应，直到发送新请求。
             requestResponseMatcher.enqueueRequest(getProcessModel().getName(), stateRequest);
             LOG.debug("将车辆[{}]将移动请求提交到消息队列完成", getName());
@@ -560,11 +550,6 @@ public class RobotCommAdapter
             LOG.warn("车辆[{}]接收到一个未知的报文请求/响应: {}",
                     getName(),
                     response.getClass().getName());
-        }
-
-        if (waitingForAllocation) {
-            isNotSendNextCommand = true;
-            LOG.info("{}车辆需要等待分配，暂停下发新的指令到车辆", getName());
         }
 
         //如果不需要等待分配则立即发送下一封电报

@@ -133,7 +133,14 @@ public class DispatchFactory {
                 if ("rptac".equals(cmdKey) && ("A001".equals(deviceId) || "A002".equals(deviceId))) {
                     RobotUtil.sureDirection(deviceId, protocol);
                     //交通管制
-                    RobotUtil.traffic(deviceId,protocol);
+                    String pointName = RobotUtil.getReportPoint(protocol);
+                    boolean isInLock =
+                            "225".equals(pointName) || "220".equals(pointName)
+                                    || "233".equals(pointName)
+                                    || "218".equals(pointName);
+                    if(isInLock) {
+                        RobotUtil.traffic(deviceId, protocol, isInLock);
+                    }
                 }
                 return response;
             }

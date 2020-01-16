@@ -15,9 +15,7 @@ import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionResponse;
 import com.robot.service.common.requests.get.GetAcRequest;
-import com.robot.service.common.requests.set.SetSpdRequest;
 import com.robot.service.common.requests.set.SetStpRequest;
-import com.robot.service.common.requests.set.SetVmotRequest;
 import org.opentcs.data.model.Location;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Vehicle;
@@ -298,26 +296,32 @@ public class RobotUtil {
 
     // 0是，1否
     public static Map<String, String> LockVehicleMap = new HashMap<>();
-
-    public static void traffic(String deviceId, Protocol protocol){
+    public static void traffic(String deviceId, Protocol protocol, boolean isInLock){
         String pointName = getReportPoint(protocol);
         String isLock = LockVehicleMap.get(deviceId);
-        boolean isInLock =
-                "225".equals(pointName) || "220".equals(pointName)
-                || "233".equals(pointName)
-                || "218".equals(pointName);
+//        boolean isInLock =
+//                "225".equals(pointName) || "220".equals(pointName)
+//                || "233".equals(pointName)
+//                || "218".equals(pointName);
+
+        // 如果第一个上报上卡号是218的，则退出，218一定不是第一个上报的
+        if (ToolsKit.isEmpty(isLock) && "218".equals(pointName)) {
+            LOG.info("{}上报的第一个点是218，直接退出处理: {}", deviceId, isLock);
+            return;
+        }
 
         //如果没有锁住，并进入锁区范围，则锁上
-        if (!"0".equals(isLock) && isInLock) {
+        if ((ToolsKit.isEmpty(isLock) || "1".equals(isLock)) && isInLock) {
             //看看另一辆车是不是在锁区里，如果是，则需要停车
             String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
             String otherLock = LockVehicleMap.get(deviceId2);
-            if (null != otherLock &&"0".equals(otherLock)) {
+            if (null != otherLock && "0".equals(otherLock)) {
                 Request request = new SetStpRequest(deviceId, "0");
                 AppContext.getTelegramSender().sendTelegram(request);
                 AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
             }
             LockVehicleMap.put(deviceId, "0");
+            LOG.info("{}进入锁定区域：{}", deviceId, LockVehicleMap);
         } // 如果是锁上的，并且在锁区范围的，则认为是驶出锁区范围，则解锁
         else  if ("0".equals(isLock) && isInLock) {
             LockVehicleMap.put(deviceId, "1");

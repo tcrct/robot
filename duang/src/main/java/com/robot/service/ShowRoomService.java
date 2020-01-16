@@ -36,7 +36,7 @@ public class ShowRoomService {
     public boolean runAll() {
         locationOperationMap.clear();
         try {
-//            A001();//交通管制1
+            A001();//交通管制1
             A002(); //交通管制2
 
 //            A006(); //注塑机
