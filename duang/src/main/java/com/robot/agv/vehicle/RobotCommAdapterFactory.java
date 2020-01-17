@@ -61,6 +61,7 @@ public class RobotCommAdapterFactory
         }
         initialized = true;
         LOG.info("Robot适配器工厂初始化完成");
+//        AppContext.setCommAdapterFactory(this);
     }
 
     @Override

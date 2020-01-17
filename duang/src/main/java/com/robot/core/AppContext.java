@@ -2,6 +2,7 @@ package com.robot.core;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.vehicle.RobotCommAdapter;
+import com.robot.agv.vehicle.RobotCommAdapterFactory;
 import com.robot.agv.vehicle.net.NetChannelType;
 import com.robot.utils.SettingUtils;
 import org.opentcs.access.KernelServicePortal;
@@ -18,6 +19,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AppContext {
 
     private static final Logger LOG = LoggerFactory.getLogger(AppContext.class);
+
+
+//    private static RobotCommAdapterFactory COMMADAPTER_FACTORY;
+//    public static void setCommAdapterFactory(RobotCommAdapterFactory factory) {
+//        COMMADAPTER_FACTORY = factory;
+//    }
+//    public static RobotCommAdapterFactory getCommAdapterFactory() {
+//        return COMMADAPTER_FACTORY;
+//    }
+
 
     /**
      * 通讯适配器
