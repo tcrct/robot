@@ -250,8 +250,12 @@ public class RobotUtil {
         sender.sendTelegram(new GetAcRequest(deviceId, "0"));
     }
 
+    //交通管制的上报卡号
+    public static final Map<String,String> TRAFFIC_POINT_MAP = new HashMap<>();
     public static final Map<String,String> DIRECTION_MAP = new HashMap<>();
     public static void sureDirection(String deviceId, Protocol protocol) {
+        String pointName = getReportPoint(protocol);
+        TRAFFIC_POINT_MAP.put(deviceId, pointName );
         String params = protocol.getParams();
         String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
         LOG.info("{}", paramsArray);
@@ -316,9 +320,14 @@ public class RobotUtil {
             String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
             String otherLock = LockVehicleMap.get(deviceId2);
             if (null != otherLock && "0".equals(otherLock)) {
-                Request request = new SetStpRequest(deviceId, "0");
-                AppContext.getTelegramSender().sendTelegram(request);
-                AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
+                String currentPointName = TRAFFIC_POINT_MAP.get(deviceId2);
+                if (ToolsKit.isNotEmpty(currentPointName)) {
+                    if ( "225".equals(currentPointName) || "220".equals(currentPointName) || "233".equals(currentPointName)) {
+                        Request request = new SetStpRequest(deviceId, "0");
+                        AppContext.getTelegramSender().sendTelegram(request);
+                        AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
+                    }
+                }
             }
             LockVehicleMap.put(deviceId, "0");
             LOG.info("{}进入锁定区域：{}", deviceId, LockVehicleMap);
