@@ -7,7 +7,7 @@ import com.robot.mvc.dispatch.route.RouteHelper;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.helper.ClassHelper;
 import com.robot.mvc.helper.IocHelper;
-import org.opentcs.App;
+import com.robot.utils.DbKit;
 import org.opentcs.guing.RunPlantOverview;
 import org.opentcs.kernel.RunKernel;
 import org.opentcs.kernelcontrolcenter.RunKernelControlCenter;
@@ -21,13 +21,15 @@ public class Duang {
     public static void main(String[] args) {
         Duang duang = new Duang();
         try {
+            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
+//            AppContext.setNetChannelType(NetChannelType.UDP);
+            DbKit.duang();
             ClassHelper.duang();
             RouteHelper.duang().getRoutes();
             ActionHelper.duang().getActions();
             IocHelper.duang().ioc();
-//            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
-            AppContext.setNetChannelType(NetChannelType.UDP);
             duang.startOpenTcs();
+
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

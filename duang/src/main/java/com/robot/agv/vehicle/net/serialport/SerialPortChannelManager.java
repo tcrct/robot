@@ -1,6 +1,5 @@
 package com.robot.agv.vehicle.net.serialport;
 
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
@@ -21,6 +20,9 @@ import java.util.List;
 
 /**
  * 串口方式
+ *
+ * @author Laotang
+ * @blame Android Team
  */
 public class SerialPortChannelManager implements IChannelManager<Request, Response> {
 
@@ -28,10 +30,10 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
 
     private ConnectionEventListener<Response> eventListener;
     private TelegramSender sender;
-    private SerialPortManager serialPortManager;
-    private SerialPort serialPort;
+    private static SerialPortManager SERIALPORT_MANAGER;
+    private static SerialPort SERIAL_PORT;
     private boolean initialize;
-    private List<String> mCommList = null;
+    private static List<String> M_COMM_LIST = null;
 
     public SerialPortChannelManager(RobotCommAdapter adapter) {
         if (adapter.isEnabled()) {
@@ -39,17 +41,24 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
         }
         this.eventListener = (ConnectionEventListener<Response>)adapter;
         this.sender =(TelegramSender)adapter;
-        serialPortManager = new SerialPortManager();
+        if (null == SERIALPORT_MANAGER) {
+            SERIALPORT_MANAGER = new SerialPortManager();
+        }
     }
 
     @Override
     public void initialize() {
-        mCommList = serialPortManager.findPorts();
+        if (ToolsKit.isEmpty(M_COMM_LIST)) {
+            M_COMM_LIST = SERIALPORT_MANAGER.findPorts();
 
-        if(ToolsKit.isEmpty(mCommList)) {
-            throw new NullPointerException("没有找到可用的串串口！");
+            if (ToolsKit.isEmpty(M_COMM_LIST)) {
+                throw new NullPointerException("没有找到可用的串口！");
+            }
+            initialize = true;
+        } else {
+            initialize = true;
+            LOG.info("该串口地址已经初始化，无需重复初始化");
         }
-        initialize = true;
     }
 
     @Override
@@ -59,8 +68,8 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
 
     @Override
     public void terminate() {
-        if (isInitialized() && null != serialPort && isConnected()) {
-            serialPortManager.closePort(serialPort);
+        if (isInitialized() && null != SERIAL_PORT && isConnected()) {
+            SERIALPORT_MANAGER.closePort(SERIAL_PORT);
         }
     }
 
@@ -69,16 +78,19 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
         if (!isInitialized()) {
             throw new RuntimeException("指定的串口初始化不成功");
         }
-        if(!mCommList.contains(serialPortName)) {
+        if(M_COMM_LIST == null || !M_COMM_LIST.contains(serialPortName)) {
             throw new IllegalArgumentException("指定的串口名称["+serialPortName+"]与系统允许使用的不符");
         }
         if(baudrate == 0) {
             throw new IllegalArgumentException("串口波特率["+baudrate+"]没有设置");
         }
         try {
-            serialPort = serialPortManager.openPort(serialPortName, baudrate);
-            //读监听
-            readListener();
+            if (null == SERIAL_PORT) {
+                SERIAL_PORT = SERIALPORT_MANAGER.openPort(serialPortName, baudrate);
+                //读监听
+                readListener();
+            }
+            eventListener.onConnect();
             LOG.info("串口连接并监听成功，名称[{}]，波特率[{}]", serialPortName, baudrate);
         } catch (Exception e) {
             throw new RuntimeException("打开串口时失败，名称["+serialPortName+"]， 波特率["+baudrate+"], 串口可能已被占用！");
@@ -92,7 +104,7 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
 
     @Override
     public boolean isConnected() {
-        return serialPortManager.isConnected();
+        return SERIALPORT_MANAGER.isConnected();
     }
 
     @Override
@@ -110,7 +122,7 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
         if (ObjectUtil.isEmpty(telegram) && !isConnected()) {
             throw new NullPointerException("待发送的报文不能为空或未连接成功");
         }
-        serialPortManager.sendToPort(serialPort, telegram.toString().getBytes());
+        SERIALPORT_MANAGER.sendToPort(SERIAL_PORT, telegram.toString().getBytes());
     }
 
     public void readListener() {
@@ -118,11 +130,11 @@ public class SerialPortChannelManager implements IChannelManager<Request, Respon
             LOG.error("串口未连接成功");
              return;
         }
-        eventListener.onConnect();
-        serialPortManager.addListener(serialPort, new DataAvailableListener() {
+//        eventListener.onConnect();
+        SERIALPORT_MANAGER.addListener(SERIAL_PORT, new DataAvailableListener() {
             @Override
             public void dataAvailable() {
-                String telegramData = serialPortManager.readTelegram(serialPort);
+                String telegramData = SERIALPORT_MANAGER.readTelegram(SERIAL_PORT);
                 // 接收到的协议
                 ChannelManagerFactory.onIncomingTelegram(eventListener, sender, telegramData);
             }

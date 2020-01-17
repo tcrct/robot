@@ -51,7 +51,7 @@ public abstract  class BaseActions implements IAction {
     }
 
     @Override
-    public boolean execute() throws Exception {
+    public void execute() throws Exception {
         //确认车辆没有提前移走
         isVehicleMove = false;
         List<ICommand> requestList = new ArrayList<>();
@@ -59,14 +59,14 @@ public abstract  class BaseActions implements IAction {
         String vehicleId = vehicleId();
         if(ToolsKit.isEmpty(sender)) {
             adapter = AppContext.getCommAdapter(vehicleId);
-            sender = adapter.getSender();
+            sender = AppContext.getTelegramSender();
         }
         add(requestList);
         putQueue(actionKey, vehicleId, requestList);
         try {
             sendTelegram(actionKey);
-            LOG.info("车辆[{}]对应的工作站[{}]的所有{}动作已经完成！", vehicleId, deviceId(), actionKey);
-            return true;
+//            LOG.info("车辆[{}]对应的工作站[{}]的所有{}动作已经完成！", vehicleId, deviceId(), actionKey);
+//            return true;
         }catch (Exception e) {
             throw new RobotException("设备["+deviceId()+"]执行["+actionKey+"]工站任务时出错: " + e.getMessage(), e);
         }

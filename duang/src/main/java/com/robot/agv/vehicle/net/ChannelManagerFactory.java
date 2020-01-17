@@ -1,26 +1,34 @@
 package com.robot.agv.vehicle.net;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.net.netty.upd.UdpServerManager;
+import com.robot.core.AppContext;
+import com.robot.entity.Logs;
 import com.robot.mvc.exceptions.RobotException;
-import com.robot.utils.ProtocolUtils;
+import com.robot.mvc.helper.ActionHelper;
+import com.robot.utils.*;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.net.serialport.SerialPortChannelManager;
 import com.robot.agv.vehicle.net.netty.tcp.TcpChannelManager;
 import com.robot.agv.vehicle.net.netty.upd.UdpClientManager;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateResponse;
-import com.robot.utils.SettingUtils;
-import com.robot.utils.ToolsKit;
 import org.opentcs.contrib.tcp.netty.ConnectionEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 /**
  * 网络通讯管理工厂
@@ -43,6 +51,7 @@ public class ChannelManagerFactory {
             return new TcpChannelManager(adapter);
         }
         else if (NetChannelType.UDP.equals(type)) {
+//            return new UdpServerManager(adapter);
             if (null == udpServerManager) {
                 udpServerManager = new UdpServerManager(adapter);
                 String host = SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
@@ -59,8 +68,8 @@ public class ChannelManagerFactory {
                     }
                 }
             }
-            LOG.info("连接车辆[{}], [{}]成功", adapter.getProcessModel().getName(),
-                    adapter.getProcessModel().getVehicleHost()+":"+adapter.getProcessModel().getVehiclePort());
+//            LOG.info("连接车辆[{}], [{}]成功", adapter.getProcessModel().getName(),
+//                    adapter.getProcessModel().getVehicleHost()+":"+adapter.getProcessModel().getVehiclePort());
             return new UdpClientManager(adapter);
         }
         else if (NetChannelType.SERIALPORT.equals(type)) {
@@ -82,16 +91,17 @@ public class ChannelManagerFactory {
             return;
         }
         for (String data :  telegramDataList) {
-            doTelegram(eventListener, telegramSender, data);
+            doTelegram(data);
         }
 
     }
 
-    private static void doTelegram(ConnectionEventListener<Response> eventListener, TelegramSender telegramSender, String telegramData) {
+    private static void doTelegram(String telegramData) {
         //将接收到的报文内容转换为Protocol对象
         Protocol protocol = null;
         try {
             protocol = ProtocolUtils.buildProtocol(telegramData);
+
             //如果协议对象为空或者不允许访问，则直接退出
             if (ToolsKit.isEmpty(protocol) || !ProtocolUtils.isAllowAccess(protocol.getDeviceId())) {
                 return;
@@ -101,8 +111,34 @@ public class ChannelManagerFactory {
             LOG.warn("将报文内容{}转换为Protocol对象时出错, 退出该请求的处理: {}, {}", telegramData,e.getMessage(), e);
         }
 
+        String deviceId = protocol.getDeviceId();
+        RobotCommAdapter adapter = AppContext.getCommAdapter(deviceId);
+        if (ToolsKit.isEmpty(adapter)) {
+            deviceId = RobotUtil.getAdapterByDeviceId(deviceId);
+            adapter = AppContext.getCommAdapter(deviceId);
+            if (ToolsKit.isEmpty(adapter)) {
+                LOG.error("车辆[{}]对应的适配器不存在", deviceId);
+                return;
+            }
+        }
+        ConnectionEventListener<Response> eventListener = (ConnectionEventListener<Response>)adapter;
+        TelegramSender telegramSender = AppContext.getTelegramSender();
+
+        final Protocol finalProtocol = protocol;
         // 将请求转到业务逻辑处理
-        Response response = SendRequest.duang().send(protocol, telegramSender);
+        FutureTask<Response> futureTask = (FutureTask<Response>) ThreadUtil.execAsync(new Callable<Response>() {
+            @Override
+            public Response call() throws Exception {
+                return SendRequest.duang().send(finalProtocol, telegramSender);
+            }
+        });
+
+        Response response = null;
+        try {
+            response = futureTask.get();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
         if (ToolsKit.isNotEmpty(response)) {
             if (response.getStatus() != HttpStatus.HTTP_OK) {
                 LOG.error("协议内容：{}，业务逻辑处理时发生异常，退出处理！", response.getRawContent());

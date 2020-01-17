@@ -66,7 +66,9 @@ public abstract class Response extends Telegram {
 //    LOG.info("{}", request instanceof StateRequest);
 //    LOG.info("cmdkey: {}", request.getProtocol().getCommandKey());
       boolean isOK = point.equals(postPoint);
-      LOG.info("队列中第一位元素的点: {}， 提交上来的点: {}, 两个点匹配结果: {}",  point, postPoint, isOK);
+      LOG.info("{}队列中第一位元素的点: {}， 提交上来的点: {}, 两个点匹配结果: {}",  request.getProtocol().getDeviceId(),
+              point, postPoint, isOK);
+      LOG.info("############containsPoint:  {}", ProtocolUtils.converterString(request.getProtocol()));
 
     return isOK;
   }

@@ -1,9 +1,11 @@
 package com.robot.service.common;
 
+import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
+import com.robot.core.Sensor;
 import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
@@ -13,19 +15,28 @@ import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.interfaces.IService;
 import com.robot.utils.ToolsKit;
+import org.opentcs.components.kernel.services.DispatcherService;
+import org.opentcs.components.kernel.services.TransportOrderService;
+import org.opentcs.components.kernel.services.VehicleService;
+import org.opentcs.customizations.kernel.KernelExecutor;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.order.Route;
 import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+
+import static java.util.Objects.requireNonNull;
 
 public class BaseService implements IService {
 
     private static final Logger LOG = LoggerFactory.getLogger(BaseService.class);
-
     /***
      * 公用的路径下发处理逻辑
      * @param request
@@ -38,6 +49,9 @@ public class BaseService implements IService {
         }
         StateRequest stateRequest =(StateRequest)request;
         List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response);
+        if (ToolsKit.isEmpty(protocolParamList)) {
+            return null;
+        }
         return getProtocolString(stateRequest, protocolParamList);
     }
 
@@ -49,7 +63,8 @@ public class BaseService implements IService {
     protected MovementCommand getCommand(StateRequest stateRequest) {
         MovementCommand command =  stateRequest.getCommand();
         if(ToolsKit.isEmpty(command)) {
-            throw new RobotException("移动命令队列不能为空!");
+           LOG.info("移动命令队列不能为空，可能是车辆提交");
+           return null;
         }
         return command;
     }
@@ -68,12 +83,21 @@ public class BaseService implements IService {
     }
 
     protected List<ProtocolParam> getProtocolParamList(StateRequest stateRequest, Response response) {
+        return getProtocolParamList(stateRequest, response, "");
+    }
+    protected List<ProtocolParam> getProtocolParamList(StateRequest stateRequest, Response response, String orientationValue) {
         MovementCommand command = getCommand(stateRequest);
+        if (ToolsKit.isEmpty(command)) {
+            return null;
+        }
         List<ProtocolParam> protocolParamList = new ArrayList<>();
         String startPointName = null;
         String endPointName = null;
         String vehicleName = stateRequest.getModel().getName();
         Route.Step step= command.getStep();
+
+        LOG.info("##########该移动命令是否允许在车辆[{}]执行[{}]", vehicleName,  step.isExecutionAllowed());
+
         // 当前点
         String currentPointName = step.getSourcePoint().getName();
         // 起始点
@@ -84,7 +108,7 @@ public class BaseService implements IService {
         String nextPointName =   step.getDestinationPoint().getName();
         // 最终目的点，即停车点
         endPointName = stateRequest.getDestinationId();
-        ProtocolParam travelParam = buildAgvTravelParamString(vehicleName, startPointName, currentPointName, nextPointName, endPointName, stateRequest);
+        ProtocolParam travelParam = buildAgvTravelParamString(vehicleName, startPointName, currentPointName, nextPointName, endPointName, stateRequest, orientationValue);
         protocolParamList.add(travelParam);
         return protocolParamList;
     }
@@ -109,7 +133,7 @@ public class BaseService implements IService {
      * @return
      */
     private ProtocolParam buildAgvTravelParamString(String vehicleName, String startPointName, String currentPointName, String nextPointName,
-                                                    String endPointName, StateRequest request) {
+                                                    String endPointName, StateRequest request, String orientationValue) {
 
         // 在工厂概述里设置的点属性关键字，例如: {"direction":"l"}， 不填写的话就是直行,确定车辆的方向，左中右
         String direction = SettingUtils.getStringByGroup("direction", "point", "direction");
@@ -125,8 +149,10 @@ public class BaseService implements IService {
             directionAfter = RobotUtil.getPointPropertiesValue(vehicleName, endPointName, stopMode, RobotEnum.STOP.getValue());
         }
         // 确定车辆是前进还是后退
-        String around = RobotUtil.getPointPropertiesValue(vehicleName, currentPointName, orientation, RobotEnum.FORWARD.getValue());
-
+        String around = orientationValue;
+        if (ToolsKit.isEmpty(around)) {
+            around = RobotUtil.getPointPropertiesValue(vehicleName, currentPointName, orientation, RobotEnum.FORWARD.getValue());
+        }
         directionBefore += around + currentPointName;
         directionAfter += around + nextPointName;
         Point.Type beforePointType = RobotUtil.getPoint(vehicleName, currentPointName).getType();

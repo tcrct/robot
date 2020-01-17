@@ -20,7 +20,7 @@ vehicle.prestop.success.cmd=rptrtp
 [adapter]
 name=创智科技
 #重发指令时间间隔，毫秒作单位
-handshake.interval=2000
+handshake.interval=1000
 
 #车辆
 [vehicle]
@@ -64,3 +64,4 @@ enable=true;
 allow.keys=getmt,setout,setrout,setspd,setvmot,getmag,getac,setmov,rptac,rpterr,rptmt,rptrtp,rptvmot,rptgo,rptmag,rptstart,rptmode
 #允许访问的车辆或设备名称
 device.name=A001,A002,A006,A009,A010,A030,A033,B002,B003,B030,B052,B053
+#device.name=A006,B003

@@ -303,6 +303,7 @@ public class ContinuousLoadPanel
    *
    * @return A new order generation trigger
    */
+  // TODO 持续负载---批量创建订单
   private OrderGenerationTrigger createOrderGenTrigger() {
     OrderBatchCreator batchCreator = createOrderBatchCreator();
     if (batchCreator == null) {

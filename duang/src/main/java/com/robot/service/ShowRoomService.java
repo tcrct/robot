@@ -1,10 +1,10 @@
 package com.robot.service;
 
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.robot.core.AppContext;
 import com.robot.service.dto.LocationOperationDto;
 import com.robot.utils.RobotUtil;
-import com.robot.utils.ToolsKit;
 import org.opentcs.access.KernelServicePortal;
 import org.opentcs.components.kernel.services.DispatcherService;
 import org.opentcs.components.kernel.services.TransportOrderService;
@@ -16,6 +16,7 @@ import org.opentcs.guing.plugins.panels.loadgenerator.TransportOrderData;
 import org.opentcs.guing.plugins.panels.loadgenerator.batchcreator.ExplicitOrderBatchGenerator;
 import org.opentcs.guing.plugins.panels.loadgenerator.batchcreator.OrderBatchCreator;
 import org.opentcs.guing.plugins.panels.loadgenerator.trigger.ThresholdOrderGenTrigger;
+import org.opentcs.guing.plugins.panels.loadgenerator.trigger.TimeoutOrderGenTrigger;
 import org.opentcs.virtualvehicle.commands.SetPositionCommand;
 import org.opentcs.virtualvehicle.commands.SetStateCommand;
 
@@ -35,12 +36,17 @@ public class ShowRoomService {
     public boolean runAll() {
         locationOperationMap.clear();
         try {
+            A001();//交通管制1
+            A002(); //交通管制2
+
 //            A006(); //注塑机
-        A009(); //SMT
+//            A009(); //SMT
 //            A010(); // 滚筒
-//        A033();  // SMT2
+//            A033();  // SMT2
+
 
             // 创建批量订单
+
             createBatchOrderRequest(locationOperationMap);
             return true;
         } catch (Exception e) {
@@ -60,6 +66,26 @@ public class ShowRoomService {
         vehicleService.sendCommAdapterCommand(vehicleRef, new SetStateCommand(Vehicle.State.IDLE));
         // 集成等级(使用该车辆进行运输订单)
         vehicleService.updateVehicleIntegrationLevel(vehicleRef, Vehicle.IntegrationLevel.TO_BE_UTILIZED);
+    }
+
+    private void A001() {
+        String vehicleName = "A001";
+        String position = "218";
+        daung(vehicleName, position);
+        List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start218", "NOP"));
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End223", "NOP"));
+        locationOperationMap.put(vehicleName, locationOperationDtoList);
+    }
+
+    private void A002() {
+        String vehicleName = "A002";
+        String position = "231";
+        daung(vehicleName, position);
+        List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start231", "NOP"));
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End213", "NOP"));
+        locationOperationMap.put(vehicleName, locationOperationDtoList);
     }
 
     private void A006() {
@@ -113,7 +139,7 @@ public class ShowRoomService {
         KernelServicePortal kernelServicePortal =  AppContext.getKernelServicePortal();
         TransportOrderService transportOrderService = kernelServicePortal.getTransportOrderService();
         DispatcherService dispatcherService = kernelServicePortal.getDispatcherService();
-        List<TransportOrderData> data = new ArrayList<>(map.size());
+        List<TransportOrderData> data = new ArrayList<>();
         for (Iterator<Map.Entry<String, List<LocationOperationDto>>> iterator = map.entrySet().iterator(); iterator.hasNext();) {
             Map.Entry<String, List<LocationOperationDto>> entry = iterator.next();
             String vehicleName = entry.getKey();
@@ -132,11 +158,17 @@ public class ShowRoomService {
         }
         OrderBatchCreator batchGenerator = new ExplicitOrderBatchGenerator(transportOrderService, dispatcherService, data);
         batchGenerator.createOrderBatch();
-        ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
-                AppContext.getKernelServicePortal().getPlantModelService(),
-                1,
-                batchGenerator);
-        thresholdOrderGenTrigger.setTriggeringEnabled(true);
+
+        // tomeout
+        TimeoutOrderGenTrigger timeoutOrderGenTrigger = new TimeoutOrderGenTrigger(60*1000, batchGenerator);
+        timeoutOrderGenTrigger.setTriggeringEnabled(true);
+
+        // threshold
+//        ThresholdOrderGenTrigger thresholdOrderGenTrigger = new ThresholdOrderGenTrigger(AppContext.getEventSource(),
+//                AppContext.getKernelServicePortal().getPlantModelService(),
+//                10,
+//                batchGenerator);
+//        thresholdOrderGenTrigger.setTriggeringEnabled(true);
 
     }
 

@@ -20,6 +20,7 @@ import com.robot.agv.vehicle.telegrams.StateResponse;
 import com.robot.core.AppContext;
 import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.core.handshake.RobotTelegramListener;
+import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
@@ -49,7 +50,10 @@ import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import static java.util.Objects.requireNonNull;
 
 /**
- * An example implementation for a communication adapter.
+ * 通讯适配器
+ * 一车辆一适配器对象，有多少车辆就new多少个RobotCommAdapter对象
+ *
+ * 所以，在接收报文，发送报文，设备动作完成后需要调用适配器进行操作的，需要找出与车辆对应的适配器
  *
  * @author Mats Wilhelm (Fraunhofer IML)
  * @blame Android Team
@@ -92,7 +96,7 @@ public class RobotCommAdapter
     /**
      * 任务定时器，定期将请求加入队列中
      */
-    private StateRequesterTask stateRequesterTask;
+    private static StateRequesterTask stateRequesterTask;
 
     private TCSObjectService objectService;
 
@@ -120,7 +124,6 @@ public class RobotCommAdapter
         this.stateMapper = requireNonNull(stateMapper, "orderMapper");
         this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
         this.objectService = requireNonNull(objectService, "objectService");
-        AppContext.setCommAdapter(this);
     }
 
     /**
@@ -145,9 +148,7 @@ public class RobotCommAdapter
     public void initialize() {
         super.initialize();
         this.requestResponseMatcher = componentsFactory.createRequestResponseMatcher(this);
-        // 启动定时器
-        stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
-        stateRequesterTask.enable();
+
         LOG.info("车辆[{}]完成Robot适配器初始化完成", getName());
     }
 
@@ -156,7 +157,9 @@ public class RobotCommAdapter
      */
     @Override
     public void terminate() {
-        stateRequesterTask.disable();
+        if (null != stateRequesterTask) {
+            stateRequesterTask.disable();
+        }
         super.terminate();
         LOG.info("车辆[{}]终止Robot适配器完成", getName());
     }
@@ -179,7 +182,16 @@ public class RobotCommAdapter
             channelManager.initialize();
         }
 
+        // 启动定时器, 用来发放消息
+        if (null == stateRequesterTask) {
+            stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
+            stateRequesterTask.enable();
+            LOG.info("车辆[{}]完成定时器开启", getName());
+        }
+
         LOG.info("车辆[{}]通讯管理器启用成功", getName());
+
+
 
         if ("A006".equals(getName())) {
             getProcessModel().setVehiclePosition("705");
@@ -197,7 +209,20 @@ public class RobotCommAdapter
         }
         getProcessModel().setVehicleIdle(true);
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
+
+
+
         super.enable();
+        if ("A001".equals(getName())) {
+            getProcessModel().setVehiclePosition("218");
+//            getProcessModel().setVehiclePosition("213");
+//            RobotUtil.initVehicleStatus(getName());
+        }
+
+        if ("A002".equals(getName())) {
+            getProcessModel().setVehiclePosition("231");
+//            RobotUtil.initVehicleStatus(getName());
+        }
     }
 
     /**
@@ -240,9 +265,8 @@ public class RobotCommAdapter
             return;
         }
         // 根据车辆设置的host与port，连接车辆
-        if (NetChannelType.UDP.equals(getNetChannelType()) && channelManager.isConnected()) {
-            channelManager.connect(getHost(), getPort());
-        }
+        channelManager.connect(getHost(), getPort());
+        LOG.info("连接车辆[{}]成功: [{}]", getName(), (getHost()+":"+getPort()));
     }
 
     /**
@@ -343,9 +367,19 @@ public class RobotCommAdapter
      *
      * @return true可以发送
      */
+    // 是否需要等待分配，true为需要
+    private boolean waitingForAllocation;
+    public void setWaitingForAllocation(boolean waitingForAllocation) {
+        this.waitingForAllocation = waitingForAllocation;
+    }
     @Override
     protected synchronized boolean canSendNextCommand() {
-        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
+        if (waitingForAllocation) {
+            LOG.info("车辆{}需要让行，正等待分配指令", getName());
+        }
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
+//        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
+//        return true;
     }
 
     /**
@@ -357,11 +391,19 @@ public class RobotCommAdapter
         requireNonNull(cmd, "cmd");
         LOG.info("cmd: " + cmd);
 
+//        Block block = objectService.fetchObject(Block.class, "Block-0001");
+//        block.getMembers().forEach(new Consumer<TCSResourceReference<?>>() {
+//            @Override
+//            public void accept(TCSResourceReference<?> tcsResourceReference) {
+//                LOG.info("{}", tcsResourceReference.getName());
+//            }
+//        });
+
         try {
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
             StateRequest stateRequest = new StateRequest(cmd, getProcessModel());
             //进行业务处理
-            StateResponse stateResponse = SendRequest.duang().send(stateRequest, this);
+            StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
             if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
                 LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
                 return;
@@ -370,12 +412,7 @@ public class RobotCommAdapter
 
             orderIds.put(cmd, cmd.isFinalMovement() ? cmd.getFinalDestination().getName() : cmd.getStep().getDestinationPoint().getName());
 
-
-            LOG.debug("{}: Enqueuing order telegram with ID {}: {}, {}",
-                    getName(),
-                    stateRequest.getCode(),
-                    stateRequest.getDestinationId(),
-                    stateRequest.getDestinationAction());
+            LOG.info("@@@@ {} stateRequest: {}" ,getName(), stateRequest);
             // 把请求请求加入队列。请求发送规则是FIFO。电报请求将在队列中的第一封电报之后发送。这确保我们总是等待响应，直到发送新请求。
             requestResponseMatcher.enqueueRequest(getProcessModel().getName(), stateRequest);
             LOG.debug("将车辆[{}]将移动请求提交到消息队列完成", getName());
@@ -492,9 +529,10 @@ public class RobotCommAdapter
 
         // 车辆状态设置为不空闲
         getProcessModel().setVehicleIdle(false);
+        StateResponse stateResponse = (StateResponse) response;
 
         // 检查响应是否与当前请求匹配，请求与响应应该是一一对应的
-        if (!requestResponseMatcher.tryMatchWithCurrentRequest((StateResponse) response)) {
+        if (!requestResponseMatcher.tryMatchWithCurrentRequest(stateResponse)) {
             // 如果不匹配则忽略消息
             LOG.error("该报文不存在系统的队列中或需要作预停车处理，忽略该报文退出");
             return;
@@ -514,8 +552,10 @@ public class RobotCommAdapter
                     response.getClass().getName());
         }
 
-        //发送下一封电报
-        requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
+        //如果不需要等待分配则立即发送下一封电报
+        if(!waitingForAllocation) {
+            requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
+        }
     }
 
     @Override
@@ -544,7 +584,7 @@ public class RobotCommAdapter
             telegram.addSerialPortToRwaContent(deviceId);
         }
 
-        LOG.info("发送报文内容[{}]，到车辆/设备[{}]", telegram.getRawContent(), deviceId);
+        LOG.info("发送报文内容[{}]，到车辆/设备[{}/{}]", telegram.getRawContent(), deviceId, getName());
         channelManager.send(telegram);
 
         // If the telegram is an order, remember it.
@@ -638,8 +678,28 @@ public class RobotCommAdapter
                     currentState.getLastFinishedOrderId());
             return;
         }
+        MovementCommand cmd = getSentQueue().peek();
+        // 不是NOP，是最后一条指令并且自定义动作组合里包含该动作名称
+        if (!cmd.isWithoutOperation() &&
+                cmd.isFinalMovement() &&
+                RobotUtil.isContainActionsKey(cmd)) {
+            // 如果动作指令操作未运行则可以运行
+            String operation = cmd.getOperation();
+            if (!CUSTOM_ACTIONS_MAP.containsKey(operation)) {
+                LOG.info("车辆[" + getName() + "]对应位置[" + cmd.getStep().getSourcePoint().getName() + "]上的设备开始执行动作[" + operation + "]");
+                executeCustomCmds(cmd, getName(), operation);
+            } else {
+                LOG.info("不能重复执行该操作，因该动作指令已经运行，作丢弃处理！");
+            }
+        } else {
+            LOG.info("车辆[{}]开始移动到点为[{}]的移动命令: {}", getName(), cmd.getStep().getDestinationPoint().getName(), cmd);
+            MovementCommand curCommand = getSentQueue().poll();
+            if (cmd != null && cmd.equals(curCommand)) {
+                getProcessModel().commandExecuted(cmd);
+            }
+        }
 
-
+        /*
         // 遍历队列，将在这个订单之前的所有移动命令移除
         Iterator<MovementCommand> cmdIter = getSentQueue().iterator();
         boolean finishedAll = false;
@@ -669,6 +729,7 @@ public class RobotCommAdapter
             }
 //
         }
+         */
     }
 
     /**
@@ -728,18 +789,47 @@ public class RobotCommAdapter
         processModel.setVehicleState(Vehicle.State.IDLE);
         // 取消单步执行状态
         processModel.setSingleStepModeEnabled(false);
-//    MovementCommand cmd = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
-        MovementCommand cmd = AppContext.getCommAdapter(deviceId).getSentQueue().poll();
+//        MovementCommand cmd1 = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
+//        System.out.println("cmd1: " + cmd1);
+        MovementCommand cmd = getSentQueue().poll();
 //        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
         System.out.println("cmd: " + cmd);
         //移除指定动作的名称
         if (ToolsKit.isNotEmpty(actionKey)) {
             CUSTOM_ACTIONS_MAP.remove(actionKey);
         }
-        LOG.info("#################deviceId: " + deviceId + "                    getName: " + processModel.getName());
+        LOG.info("#################deviceId: " + deviceId + "                    getName: " + getName());
+        if (!deviceId.equals(getName())) {
+            throw new RobotException("车辆标识["+deviceId+"]与对应的适配器["+getName()+"]不匹配");
+        }
 //    LAST_CMD_MAP.remove(deviceId);
-        processModel.commandExecuted(cmd);
+        if (null != cmd) {
+            processModel.commandExecuted(cmd);
+        }
     }
+//    public void executeNextMoveCmd(String deviceId, String actionKey) {
+//        LOG.info("成功执行自定义指令完成，则检查是否有下一订单，如有则继续执行");
+//        RobotCommAdapter adapter = AppContext.getCommAdapter(deviceId);
+//        RobotProcessModel processModel = adapter.getProcessModel();
+//        //车辆设置为空闲状态，执行下一个移动指令
+//        processModel.setVehicleState(Vehicle.State.IDLE);
+//        // 取消单步执行状态
+//        processModel.setSingleStepModeEnabled(false);
+////        MovementCommand cmd1 = LAST_CMD_MAP.get(deviceId); //getSentQueue().poll();
+////        System.out.println("cmd1: " + cmd1);
+//        MovementCommand cmd = adapter.getSentQueue().poll();
+////        System.out.println("cmd.getStep().getSourcePoint(): " + cmd.getStep().getSourcePoint());
+//        System.out.println("cmd: " + cmd);
+//        //移除指定动作的名称
+//        if (ToolsKit.isNotEmpty(actionKey)) {
+//            CUSTOM_ACTIONS_MAP.remove(actionKey);
+//        }
+//        LOG.info("#################deviceId: " + deviceId + "                    getName: " + processModel.getName());
+////    LAST_CMD_MAP.remove(deviceId);
+//        if (null != cmd) {
+//            processModel.commandExecuted(cmd);
+//        }
+//    }
 
     /**
      * 将车辆的运行状态映射到内核的车辆状态

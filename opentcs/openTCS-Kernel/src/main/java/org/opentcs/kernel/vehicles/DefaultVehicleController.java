@@ -545,6 +545,8 @@ public class DefaultVehicleController
         // the pending command is reset and therefore the associated allocation will be ignored. 
         // Since there's now a new/updated route we need to trigger the next allocation. Otherwise
         // the vehicle would wait forever to get the next command.
+        // 如果在等待资源分配时控制器的车辆被重新路由，则挂起的命令将重置，因此相关的分配将被忽略。
+        // 因为现在有一个新的/更新的路由，我们需要触发下一个分配。否则车辆将永远等待下一个命令。
         if (canSendNextCommand()) {
           allocateForNextCommand();
         }
@@ -826,17 +828,20 @@ public class DefaultVehicleController
     int sendableCommands = Math.min(commAdapter.getCommandQueueCapacity() - commandsSent.size(),
                                     futureCommands.size());
     if (sendableCommands <= 0) {
-      LOG.debug("{}: Cannot send, number of sendable commands: {}",
+      LOG.info("{}: Cannot send, number of sendable commands: {}",
                 vehicle.getName(),
                 sendableCommands);
       return false;
     }
+    // 是否允许执行此步骤
     if (!futureCommands.peek().getStep().isExecutionAllowed()) {
-      LOG.debug("{}: Cannot send, movement execution is not allowed", vehicle.getName());
+      LOG.info("{}: Cannot send, movement execution is not allowed", vehicle.getName());
       return false;
     }
+    // 等待分配
     if (waitingForAllocation) {
-      LOG.debug("{}: Cannot send, waiting for allocation", vehicle.getName());
+      LOG.warn("{}: Cannot send, waiting for allocation", vehicle.getName());
+//      commAdapter.getProcessModel().setWaitingForAllocationToMap(vehicle.getName(), true);
       return false;
     }
     return true;
@@ -851,7 +856,7 @@ public class DefaultVehicleController
     // Find out which resources are actually needed for the next command.
     MovementCommand moveCmd = futureCommands.poll();
     pendingResources = getNeededResources(moveCmd);
-    LOG.debug("{}: Allocating resources: {}", vehicle.getName(), pendingResources);
+    LOG.info("{}: Allocating resources: {}", vehicle.getName(), pendingResources);
     scheduler.allocate(this, pendingResources);
     // Remember that we're waiting for an allocation. This ensures that we only
     // wait for one allocation at a time, and that we get the resources from the

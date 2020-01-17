@@ -1,4 +1,4 @@
-package com.robot.service.smt2;
+package com.robot.service.traffic;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
@@ -8,22 +8,18 @@ import com.robot.mvc.annotations.Service;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.BaseService;
+import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
-import org.opentcs.components.kernel.services.DispatcherService;
-import org.opentcs.components.kernel.services.TransportOrderService;
-import org.opentcs.components.kernel.services.VehicleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 @Service
-public class A033Service extends BaseService {
+public class A001Service extends BaseService {
 
-    private static final Logger LOG =  LoggerFactory.getLogger(A033Service.class);
+    private static final Logger LOG =  LoggerFactory.getLogger(A001Service.class);
 
     /**
      * 下发车辆移动指令
@@ -36,22 +32,19 @@ public class A033Service extends BaseService {
             throw new RobotException("该请求不是移动命令请求");
         }
         StateRequest stateRequest =(StateRequest)request;
-        List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response);
+        LOG.info("stateRequest: {}", stateRequest);
+        if (null==stateRequest) {
+            return "";
+        }
+        String direction = RobotUtil.DIRECTION_MAP.get(stateRequest.getModel().getName());
+        if (ToolsKit.isEmpty(direction)) {
+            direction = RobotEnum.FORWARD.getValue();
+//            direction = RobotEnum.BACK.getValue();
+        }
+        List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response, direction);
 
         if (protocolParamList.isEmpty()) {
             throw new RobotException("协议参数列表对象不能为空");
-        }
-
-        ProtocolParam lastProtocolParam = protocolParamList.get(protocolParamList.size()-1);
-        String after = lastProtocolParam.getAfter();
-        if (after.endsWith("50")) {
-            protocolParamList.get(0).setBefore("mf49");
-        }
-        if (after.endsWith("51")) {
-            protocolParamList.get(0).setBefore("lf49");
-        }
-        if (after.endsWith("49")) {
-            lastProtocolParam.setAfter("ef49");
         }
         return getProtocolString(stateRequest, protocolParamList);
     }
@@ -63,7 +56,7 @@ public class A033Service extends BaseService {
      * @return
      */
     public String rptAc(Request request, Response response) {
-        LOG.info("车辆[{}]行驶到达[{}]卡号", request.getProtocol().getDeviceId(), RobotUtil.getReportPoint(request.getProtocol()));
+        LOG.info("车辆[{}]行驶到达[{}]卡号,  {}", request.getProtocol().getDeviceId(), RobotUtil.getReportPoint(request.getProtocol()), ProtocolUtils.converterString(request.getProtocol()));
         return request.getRawContent();
     }
 

@@ -7,14 +7,17 @@ import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.*;
+import com.robot.core.AppContext;
 import com.robot.core.Sensor;
 import com.robot.core.handshake.HandshakeTelegram;
+import com.robot.entity.Logs;
 import com.robot.mvc.dispatch.route.Route;
 import com.robot.mvc.dispatch.route.RouteHelper;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionRequest;
 import com.robot.service.common.ActionResponse;
+import com.robot.utils.DbKit;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
@@ -30,6 +33,7 @@ import java.util.concurrent.*;
  * 所以在Service里必须要实现对应指令动作的方法。
  *
  * @author Laotang
+ * @blame Android Team
  */
 public class DispatchFactory {
 
@@ -48,6 +52,7 @@ public class DispatchFactory {
     /**
      * 根据IProtocol里的参数，反射调用对应Service里的方法
      * @param request
+     * @param sender
      */
     public Object execute(Request request, TelegramSender sender) {
         if (SERVICE_METHOD_MAP.isEmpty()) {
@@ -56,7 +61,19 @@ public class DispatchFactory {
 
         // 返回对象
         Response response = null;
-        Protocol protocol = request.getProtocol();
+        final Protocol protocol = request.getProtocol();
+        // 保存到数据库
+        ThreadUtil.execAsync(new Runnable() {
+            @Override
+            public void run() {
+                // 将所有rpt开头的协议缓存起来，因为rpt*指令上报在某些场景下可能会比动作指令快，导致动作指令一直在等待上报
+//                if (protocol.getCommandKey().startsWith("rpt")) {
+//                    AppContext.getAdvanceReportMap().put(protocol.getCode(), protocol);
+//                }
+                //将所有接收到的报文保存到数据库
+                DbKit.duang().saveLogs(new Logs(protocol));
+            }
+        });
 
         // 如果是订单请求，车辆主动上报的请求
         if (request instanceof OrderRequest) {
@@ -82,7 +99,7 @@ public class DispatchFactory {
         // 如果协议对象不为空且不是调度系统主动发送的，则要进行应答回复
         if (ToolsKit.isNotEmpty(protocol) && !request.isRobotSend()) {
             String direction = protocol.getDirection();
-            String deviceId = protocol.getDeviceId();
+            final String deviceId = protocol.getDeviceId();
             String code = protocol.getCode();
             String cmdKey = protocol.getCommandKey();
             // 如果是车辆/设备主动发送的请求则进行应答回复
@@ -94,6 +111,9 @@ public class DispatchFactory {
                     (RobotEnum.UP_LINK.getValue().equals(direction) && cmdKey.startsWith("rpt"))) {
                 // 如果是rptmt指令
                 if ("rptmt".equalsIgnoreCase(cmdKey)) {
+//                    if (RobotEnum.UP_LINK.getValue().equals(direction)) {
+//                        RobotUtil.addSensorStatus(protocol);
+//                    }
                     Sensor sensor = Sensor.getSensor(deviceId);
                     if (ToolsKit.isNotEmpty(sensor) && sensor.isWith(protocol.getParams())) {
                         // 取出传感器里的code
@@ -101,8 +121,27 @@ public class DispatchFactory {
                         LOG.info("车辆/设备[{}]传感器验证参数code为[{}]", deviceId, code);
                     }
                 }
+                final String removeCode= code;
                 // 响应上报的(r)，需要将握手列队中对应的消息移除(如果存在)
-                HandshakeTelegram.duang().remove(deviceId, code);
+                ThreadUtil.execAsync(new Runnable() {
+                    @Override
+                    public void run() {
+//                        AppContext.getAdvanceReportMap().remove(removeCode);
+                        HandshakeTelegram.duang().remove(deviceId, removeCode);
+                    }
+                });
+                if ("rptac".equals(cmdKey) && ("A001".equals(deviceId) || "A002".equals(deviceId))) {
+                    RobotUtil.sureDirection(deviceId, protocol);
+                    //交通管制
+                    String pointName = RobotUtil.getReportPoint(protocol);
+                    boolean isInLock =
+                            "225".equals(pointName) || "220".equals(pointName)
+                                    || "233".equals(pointName)
+                                    || "218".equals(pointName);
+                    if(isInLock) {
+                        RobotUtil.traffic(deviceId, protocol, isInLock);
+                    }
+                }
                 return response;
             }
         }
@@ -125,6 +164,14 @@ public class DispatchFactory {
                 // 则直接发送报文到客户端
                 if (null != sender && !(request instanceof StateRequest)
                         && !ProtocolUtils.isStateProtocol(protocol.getCommandKey())) {
+                    // 保存到数据库
+                    ThreadUtil.execAsync(new Runnable() {
+                        @Override
+                        public void run() {
+                            //将所有接收到的报文保存到数据库
+                            DbKit.duang().saveLogs(new Logs(protocol));
+                        }
+                    });
                     sender.sendTelegram(request);
                 }
             }

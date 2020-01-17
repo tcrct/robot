@@ -1,14 +1,21 @@
 package com.robot.utils;
 
+import cn.hutool.core.thread.ThreadUtil;
+import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.core.AppContext;
+import com.robot.core.Sensor;
+import com.robot.core.handshake.HandshakeTelegram;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.mvc.interfaces.IAction;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.ActionResponse;
+import com.robot.service.common.requests.get.GetAcRequest;
+import com.robot.service.common.requests.set.SetStpRequest;
 import org.opentcs.data.model.Location;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Vehicle;
@@ -16,8 +23,8 @@ import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RobotUtil {
 
@@ -169,4 +176,163 @@ public class RobotUtil {
         };
     }
 
+
+    /**key为车辆或设备的标识号，value为车辆标识号，即适配器标识号*/
+    private static Map<String,String> ADPATER_KEY_MAP = new HashMap<>();
+    /**
+     * 根据车辆/设备的ID取适配器key
+     * 因为有些时候，是一车辆对应多设备。所以要确认关系。
+     *
+     * @param deviceId  车辆/设备的ID
+     * @return
+     */
+    public static String getAdapterByDeviceId(String deviceId) {
+        String key = ADPATER_KEY_MAP.get(deviceId);
+        if (ToolsKit.isEmpty(key) && deviceId.startsWith("B")) {
+            Map<String, Set<String>> actionMap = ActionHelper.duang().getVehicelDeviceMap();
+            if (ToolsKit.isNotEmpty(actionMap)) {
+                for (Iterator<Map.Entry<String,Set<String>>> iterator = actionMap.entrySet().iterator(); iterator.hasNext();) {
+                    Map.Entry<String,Set<String>> entry = iterator.next();
+                    Set<String> values = entry.getValue();
+                    key = entry.getKey();
+                    if (ToolsKit.isNotEmpty(values)) {
+                        for (String value : values) {
+                            ADPATER_KEY_MAP.put(value, key);
+                        }
+                    }
+                }
+            }
+        }
+        return ADPATER_KEY_MAP.get(deviceId);
+    }
+
+
+    private static final Map<String, List<String>> SENSOR_STATUS_MAP = new ConcurrentHashMap();
+    public static void addSensorStatus(Protocol protocol) {
+        String params = protocol.getParams();
+        String deviceId = protocol.getDeviceId();
+        List<String> sensorList = SENSOR_STATUS_MAP.get(deviceId);
+        if (ToolsKit.isEmpty(sensorList)) {
+            sensorList = new ArrayList<>();
+        }
+
+        if (ToolsKit.isNotEmpty(sensorList)) {
+            sensorList.add(params);
+            SENSOR_STATUS_MAP.put(deviceId, sensorList);
+            LOG.info("车辆/设备[{}]添加传感器状态成功:{}", deviceId, sensorList);
+        }
+    }
+
+    public static boolean checkSensorStatus(Protocol protocol) {
+        String deviceId = protocol.getDeviceId();
+        Sensor sensor = Sensor.getSensor(deviceId);
+        String code = "";
+        if (ToolsKit.isNotEmpty(sensor) && sensor.isWith(protocol.getParams())) {
+            // 取出传感器里的code
+            code = sensor.getCode();
+            LOG.info("车辆/设备[{}]传感器验证参数code为[{}]", deviceId, code);
+        }
+        final String removeCode= code;
+        if (ToolsKit.isEmpty(removeCode)) {
+            return false;
+        }
+        ThreadUtil.execAsync(new Runnable() {
+            @Override
+            public void run() {
+                HandshakeTelegram.duang().remove(deviceId, removeCode);
+            }
+        });
+        return true;
+    }
+
+    public static void initVehicleStatus(String deviceId) {
+        TelegramSender sender = AppContext.getTelegramSender();
+        sender.sendTelegram(new GetAcRequest(deviceId, "0"));
+    }
+
+    public static final Map<String,String> DIRECTION_MAP = new HashMap<>();
+    public static void sureDirection(String deviceId, Protocol protocol) {
+        String params = protocol.getParams();
+        String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
+        LOG.info("{}", paramsArray);
+        String direction = RobotEnum.FORWARD.getValue();
+        if ("A001".equals(deviceId)) {
+            if ("218".equals(paramsArray[0])) {
+                direction = paramsArray[1];
+                DIRECTION_MAP.put(deviceId, direction);
+                LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+            }
+
+            if ("223".equals(paramsArray[0])) {
+                if (RobotEnum.BACK.getValue().equals(paramsArray[1])) {
+                    direction = RobotEnum.FORWARD.getValue();
+                }
+                if (RobotEnum.FORWARD.getValue().equals(paramsArray[1])) {
+                    direction = RobotEnum.BACK.getValue();
+                }
+                DIRECTION_MAP.put(deviceId, direction);
+                LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+            }
+        }
+        if ("A002".equals(deviceId)) {
+            if ("231".equals(paramsArray[0])) {
+                direction = paramsArray[1];
+                DIRECTION_MAP.put(deviceId, direction);
+                LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+            }
+
+            if ("213".equals(paramsArray[0])) {
+                if (RobotEnum.BACK.getValue().equals(paramsArray[1])) {
+                    direction = RobotEnum.FORWARD.getValue();
+                }
+                if (RobotEnum.FORWARD.getValue().equals(paramsArray[1])) {
+                    direction = RobotEnum.BACK.getValue();
+                }
+                DIRECTION_MAP.put(deviceId, direction);
+                LOG.info("车辆 {}当前点为{}， 方向为{}", deviceId, paramsArray[0], direction);
+            }
+        }
+    }
+
+    // 0是，1否
+    public static Map<String, String> LockVehicleMap = new HashMap<>();
+    public static void traffic(String deviceId, Protocol protocol, boolean isInLock){
+        String pointName = getReportPoint(protocol);
+        String isLock = LockVehicleMap.get(deviceId);
+//        boolean isInLock =
+//                "225".equals(pointName) || "220".equals(pointName)
+//                || "233".equals(pointName)
+//                || "218".equals(pointName);
+
+        // 如果第一个上报上卡号是218的，则退出，218一定不是第一个上报的
+        if (ToolsKit.isEmpty(isLock) && "218".equals(pointName)) {
+            LOG.info("{}上报的第一个点是218，直接退出处理: {}", deviceId, isLock);
+            return;
+        }
+
+        //如果没有锁住，并进入锁区范围，则锁上
+        if ((ToolsKit.isEmpty(isLock) || "1".equals(isLock)) && isInLock) {
+            //看看另一辆车是不是在锁区里，如果是，则需要停车
+            String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
+            String otherLock = LockVehicleMap.get(deviceId2);
+            if (null != otherLock && "0".equals(otherLock)) {
+                Request request = new SetStpRequest(deviceId, "0");
+                AppContext.getTelegramSender().sendTelegram(request);
+                AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
+            }
+            LockVehicleMap.put(deviceId, "0");
+            LOG.info("{}进入锁定区域：{}", deviceId, LockVehicleMap);
+        } // 如果是锁上的，并且在锁区范围的，则认为是驶出锁区范围，则解锁
+        else  if ("0".equals(isLock) && isInLock) {
+            LockVehicleMap.put(deviceId, "1");
+            String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
+            String isLockOf = LockVehicleMap.get(deviceId2);
+            if (null !=isLockOf && "0".equals(isLockOf )) {
+                LOG.info("[{}]解除等待，继续执行移动任务", deviceId2);
+                AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
+                AppContext.getCommAdapter(deviceId2).getRequestResponseMatcher()
+                        .checkForSendingNextRequest(deviceId2);
+            }
+        }
+    }
 }

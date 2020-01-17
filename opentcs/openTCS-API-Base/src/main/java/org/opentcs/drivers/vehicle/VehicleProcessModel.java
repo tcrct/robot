@@ -12,7 +12,10 @@ import java.beans.PropertyChangeSupport;
 import java.util.LinkedList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
+
+import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.opentcs.data.TCSObjectReference;
@@ -735,5 +738,22 @@ public class VehicleProcessModel {
      * Indicates a change of a transport order property.
      */
     TRANSPORT_ORDER_PROPERTY;
+  }
+
+  /***
+   * 扩展代码
+   * 设置交通管制时，车辆是否需要等待分配。
+   */
+  private Map<String, Boolean> waitingForAllocationMap = new ConcurrentHashMap<>();
+  public void setWaitingForAllocationToMap(String vehicleName, boolean isWait) {
+    waitingForAllocationMap.put(vehicleName, isWait);
+  }
+
+  /**
+   * 如果返回值为true时，则代表车辆需要等待分配指令。
+   * 在到达的点上需要进一步处理，例如马上发送停车指令。
+   * */
+  public boolean isWaitingForAllocation() {
+    return waitingForAllocationMap.get(getName());
   }
 }

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
@@ -30,8 +31,13 @@ public class HandshakeTelegram {
     /**
      * 握手报文队队
      * 车辆为KEY， 队列为Value
+     * ConcurrentLinkedQueue：非阻塞队列
      */
     private final static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> HANDSHAKE_TELEGRAM_QUEUE = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static Map<String, LinkedBlockingQueue<HandshakeTelegramDto>> getHandshakeTelegram() {
+        return HANDSHAKE_TELEGRAM_QUEUE;
+    }
 
     public static LinkedBlockingQueue<HandshakeTelegramDto> getHandshakeTelegramQueue(String deviceId) {
         if (ToolsKit.isEmpty(deviceId)) {
@@ -111,7 +117,7 @@ public class HandshakeTelegram {
         requireNonNull(code, "标识字段不能为空，握手消息唯一标识字段");
         LinkedBlockingQueue<HandshakeTelegramDto> queue = HANDSHAKE_TELEGRAM_QUEUE.get(deviceId);
         if (ToolsKit.isEmpty(queue)) {
-            LOG .info("该车辆[{}]对应的握手队列不存在或该队列没有任何元素！", deviceId);
+//            LOG .info("该车辆[{}]对应的握手队列不存在或该队列没有任何元素！", deviceId);
             return;
         }
         HandshakeTelegramDto toBeDeleteDto = requireNonNull(queue.peek(), "handshake telegram dto is null");
