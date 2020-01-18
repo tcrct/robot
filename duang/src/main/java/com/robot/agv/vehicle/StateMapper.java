@@ -37,7 +37,7 @@ public class StateMapper {
    */
   public StateRequest mapToOrder(MovementCommand command)
       throws IllegalArgumentException {
-    return new StateRequest(command, null);
+    return null; //new StateRequest(command, null);
   }
 
   private static int extractDestinationId(Point point)

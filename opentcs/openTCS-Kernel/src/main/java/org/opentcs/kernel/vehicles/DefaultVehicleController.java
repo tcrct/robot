@@ -828,19 +828,19 @@ public class DefaultVehicleController
     int sendableCommands = Math.min(commAdapter.getCommandQueueCapacity() - commandsSent.size(),
                                     futureCommands.size());
     if (sendableCommands <= 0) {
-      LOG.info("{}: Cannot send, number of sendable commands: {}",
+      LOG.debug("{}: Cannot send, number of sendable commands: {}",
                 vehicle.getName(),
                 sendableCommands);
       return false;
     }
     // 是否允许执行此步骤
     if (!futureCommands.peek().getStep().isExecutionAllowed()) {
-      LOG.info("{}: Cannot send, movement execution is not allowed", vehicle.getName());
+      LOG.debug("{}: Cannot send, movement execution is not allowed", vehicle.getName());
       return false;
     }
     // 等待分配
     if (waitingForAllocation) {
-      LOG.warn("{}: Cannot send, waiting for allocation", vehicle.getName());
+      LOG.debug("{}: Cannot send, waiting for allocation", vehicle.getName());
 //      commAdapter.getProcessModel().setWaitingForAllocationToMap(vehicle.getName(), true);
       return false;
     }
@@ -856,7 +856,7 @@ public class DefaultVehicleController
     // Find out which resources are actually needed for the next command.
     MovementCommand moveCmd = futureCommands.poll();
     pendingResources = getNeededResources(moveCmd);
-    LOG.info("{}: Allocating resources: {}", vehicle.getName(), pendingResources);
+    LOG.debug("{}: Allocating resources: {}", vehicle.getName(), pendingResources);
     scheduler.allocate(this, pendingResources);
     // Remember that we're waiting for an allocation. This ensures that we only
     // wait for one allocation at a time, and that we get the resources from the

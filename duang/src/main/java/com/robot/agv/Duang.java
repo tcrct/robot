@@ -21,8 +21,8 @@ public class Duang {
     public static void main(String[] args) {
         Duang duang = new Duang();
         try {
-            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
-//            AppContext.setNetChannelType(NetChannelType.UDP);
+//            AppContext.setNetChannelType(NetChannelType.SERIALPORT);
+            AppContext.setNetChannelType(NetChannelType.UDP);
             DbKit.duang();
             ClassHelper.duang();
             RouteHelper.duang().getRoutes();

@@ -6,6 +6,7 @@ import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
+import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.core.AppContext;
 import com.robot.core.Sensor;
 import com.robot.core.handshake.HandshakeTelegram;
@@ -105,7 +106,7 @@ public class RobotUtil {
         return null;
     }
 
-    public static String  buildProtocolParamString (List<ProtocolParam> protocolParamList) {
+    public static String  buildProtocolParamString (String deviceId, List<ProtocolParam> protocolParamList) {
         StringBuilder paramsString = new StringBuilder();
         int length = protocolParamList.size();
         if(ToolsKit.isEmpty(protocolParamList) || length == 0) {
@@ -122,7 +123,7 @@ public class RobotUtil {
         // 最后一个点的处理
         ProtocolParam endProtocolParam = protocolParamList.get(length-1);
         paramsString.append(RobotEnum.PARAMLINK.getValue()).append(endProtocolParam.getAfter());
-        LOG.info("创建协议字符串：{}", paramsString);
+        LOG.info("{}车辆创建协议字符串：{}", deviceId, paramsString);
         return paramsString.toString();
     }
 
@@ -256,7 +257,7 @@ public class RobotUtil {
     public static boolean INIT_START_218;
     public static void sureDirection(String deviceId, Protocol protocol) {
         String pointName = getReportPoint(protocol);
-        TRAFFIC_POINT_MAP.put(deviceId, pointName );
+        TRAFFIC_POINT_MAP.put(deviceId, pointName);
         String params = protocol.getParams();
         String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
         LOG.info("{}", paramsArray);
@@ -334,7 +335,7 @@ public class RobotUtil {
                         Request request = new SetStpRequest(deviceId, "0");
                         AppContext.getTelegramSender().sendTelegram(request);
                         LOG.info("发送停车指令，{}车辆立即停车，等待放行", deviceId);
-                        AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
+//                        AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
                     }
                 }
             }
@@ -347,16 +348,44 @@ public class RobotUtil {
             String isLockOf = LockVehicleMap.get(deviceId2);
             if (null !=isLockOf && "0".equals(isLockOf )) {
                 LOG.info("[{}]解除等待，继续执行移动任务, {}", deviceId2, LockVehicleMap);
-                AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
+                String currentPointName = TRAFFIC_POINT_MAP.get(deviceId2);
+                // 重新发送路径到车辆
+                Protocol moveProtocol = AppContext.getCommAdapter(deviceId2).getRequestResponseMatcher().getMoveProtocol();
+                Request reReq = reSendProtocol(deviceId2, currentPointName, moveProtocol);
+                AppContext.getCommAdapter(deviceId2).getSender().sendTelegram(reReq);
+//                AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
 //                AppContext.getCommAdapter(deviceId2).getRequestResponseMatcher()
 //                        .checkForSendingNextRequest(deviceId2);
-                MovementCommand cmd = AppContext.getCommAdapter(deviceId).getSentQueue().peek();
-                if (null != cmd) {
-                    cmd = AppContext.getCommAdapter(deviceId).getSentQueue().poll();
-                    LOG.info("移除{}车辆中的队列", deviceId);
-//                    AppContext.getCommAdapter(deviceId).getProcessModel().commandExecuted(cmd);
-                }
+
             }
         }
+    }
+
+    /**避让后重新发送移动请求*/
+    public static Request reSendProtocol(String deviceId, String currentPoint, Protocol protocol) {
+        if (!deviceId.equals(protocol.getDeviceId())) {
+            throw new RobotException("提交上来的车辆：" + deviceId+"     协议中的车辆："+protocol.getDeviceId() + "，不是同一台车辆的移动协议");
+        }
+
+        String params = protocol.getParams();
+        String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
+        int index = 0;
+        for (String param : paramsArray) {
+            if (param.endsWith(currentPoint)) {
+                break;
+            }
+            index++;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i= index; i<paramsArray.length; i++) {
+            sb.append(paramsArray[i]).append(RobotEnum.PARAMLINK.getValue());
+        }
+        String reProtocolString = "";
+        if (sb.length() >1) {
+            reProtocolString = sb.substring(0, sb.length()-2);
+        }
+        protocol.setParams(reProtocolString);
+
+        return new StateRequest(protocol);
     }
 }

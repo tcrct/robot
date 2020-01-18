@@ -1,11 +1,9 @@
 package com.robot.service.common;
 
-import cn.hutool.core.util.StrUtil;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
-import com.robot.core.Sensor;
 import com.robot.numes.RobotEnum;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
@@ -15,22 +13,15 @@ import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.mvc.interfaces.IService;
 import com.robot.utils.ToolsKit;
-import org.opentcs.components.kernel.services.DispatcherService;
-import org.opentcs.components.kernel.services.TransportOrderService;
-import org.opentcs.components.kernel.services.VehicleService;
-import org.opentcs.customizations.kernel.KernelExecutor;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.order.Route;
 import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
+import java.util.Queue;
 
 import static java.util.Objects.requireNonNull;
 
@@ -60,13 +51,13 @@ public class BaseService implements IService {
      * @param stateRequest
      * @return
      */
-    protected MovementCommand getCommand(StateRequest stateRequest) {
-        MovementCommand command =  stateRequest.getCommand();
-        if(ToolsKit.isEmpty(command)) {
+    protected Queue<MovementCommand> getCommand(StateRequest stateRequest) {
+        Queue<MovementCommand> commandQueue =  stateRequest.getCommandQueue();
+        if(ToolsKit.isEmpty(commandQueue)) {
            LOG.info("移动命令队列不能为空，可能是车辆提交");
            return null;
         }
-        return command;
+        return commandQueue;
     }
 
     /**
@@ -86,38 +77,41 @@ public class BaseService implements IService {
         return getProtocolParamList(stateRequest, response, "");
     }
     protected List<ProtocolParam> getProtocolParamList(StateRequest stateRequest, Response response, String orientationValue) {
-        MovementCommand command = getCommand(stateRequest);
-        if (ToolsKit.isEmpty(command)) {
-            return null;
-        }
-        List<ProtocolParam> protocolParamList = new ArrayList<>();
-        String startPointName = null;
-        String endPointName = null;
-        String vehicleName = stateRequest.getModel().getName();
-        Route.Step step= command.getStep();
+        Queue<MovementCommand>  commandQueue = getCommand(stateRequest);
+        List<ProtocolParam> protocolParamList = new ArrayList<>(commandQueue.size());
+        for (MovementCommand command : commandQueue) {
+            if (ToolsKit.isEmpty(commandQueue)) {
+                return null;
+            }
+            String startPointName = null;
+            String endPointName = null;
+            String vehicleName = stateRequest.getModel().getName();
+            Route.Step step = command.getStep();
 
-        LOG.info("##########该移动命令是否允许在车辆[{}]执行[{}]", vehicleName,  step.isExecutionAllowed());
+//            LOG.info("##########该移动命令是否允许在车辆[{}]执行[{}]", vehicleName, step.isExecutionAllowed());
 
-        // 当前点
-        String currentPointName = step.getSourcePoint().getName();
-        // 起始点
-        if(ToolsKit.isEmpty(startPointName)) {
-            startPointName = currentPointName;
+            // 当前点
+            String currentPointName = step.getSourcePoint().getName();
+            // 起始点
+            if (ToolsKit.isEmpty(startPointName)) {
+                startPointName = currentPointName;
+            }
+            // 下一个点
+            String nextPointName = step.getDestinationPoint().getName();
+            // 最终目的点，即停车点
+            endPointName = stateRequest.getDestinationId();
+            ProtocolParam travelParam = buildAgvTravelParamString(vehicleName, startPointName, currentPointName, nextPointName, endPointName, stateRequest, orientationValue);
+            protocolParamList.add(travelParam);
         }
-        // 下一个点
-        String nextPointName =   step.getDestinationPoint().getName();
-        // 最终目的点，即停车点
-        endPointName = stateRequest.getDestinationId();
-        ProtocolParam travelParam = buildAgvTravelParamString(vehicleName, startPointName, currentPointName, nextPointName, endPointName, stateRequest, orientationValue);
-        protocolParamList.add(travelParam);
         return protocolParamList;
     }
 
     protected String getProtocolString(StateRequest stateRequest, List<ProtocolParam> protocolParamList) {
         // 组装成参数字符串
-        String travelParamString = RobotUtil.buildProtocolParamString(protocolParamList);
         // 确定车辆
         String deviceId = getModel(stateRequest).getName();
+        String travelParamString = RobotUtil.buildProtocolParamString(deviceId, protocolParamList);
+
         // 根据规则组建下发路径指令的协议指令
         Protocol protocol = new Protocol.Builder()
                 .deviceId(deviceId)

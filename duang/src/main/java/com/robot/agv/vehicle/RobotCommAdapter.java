@@ -45,6 +45,7 @@ import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.robot.agv.common.telegrams.BoundedCounter.UINT16_MAX_VALUE;
 import static java.util.Objects.requireNonNull;
@@ -120,7 +121,7 @@ public class RobotCommAdapter
                             TCSObjectService objectService,
                             VehicleEntryPool vehicleEntryPool,
                             RobotAdapterComponentsFactory componentsFactory) {
-        super(new RobotProcessModel(vehicle), 3, 2, LoadAction.CHARGE);
+        super(new RobotProcessModel(vehicle), 100, 100, LoadAction.CHARGE);
         this.stateMapper = requireNonNull(stateMapper, "orderMapper");
         this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
         this.objectService = requireNonNull(objectService, "objectService");
@@ -374,15 +375,19 @@ public class RobotCommAdapter
     }
     @Override
     protected synchronized boolean canSendNextCommand() {
+        /*
         if (waitingForAllocation) {
             LOG.info("车辆{}需要让行，正等待分配指令", getName());
             requestResponseMatcher.clear();
         }
         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
+        */
+        return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
 //        return true;
     }
 
+    private LinkedBlockingQueue<MovementCommand> commandQueue = new LinkedBlockingQueue<>();
     /**
      * 发送移动命令
      */
@@ -399,23 +404,27 @@ public class RobotCommAdapter
 //                LOG.info("{}", tcsResourceReference.getName());
 //            }
 //        });
-
+        commandQueue.add(cmd);
         try {
+            if (cmd.isFinalMovement()) {
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
-            StateRequest stateRequest = new StateRequest(cmd, getProcessModel());
-            //进行业务处理
-            StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
-            if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
-                LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
-                return;
+                StateRequest stateRequest = new StateRequest(commandQueue, getProcessModel());
+                stateRequest.setFinalCommand(cmd);
+                //进行业务处理
+                StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
+                if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
+                    LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
+                    return;
+                }
+
+//                orderIds.put(cmd, cmd.isFinalMovement() ? cmd.getFinalDestination().getName() : cmd.getStep().getDestinationPoint().getName());
+
+                LOG.info("@@@@ {} stateRequest: {}", getName(), stateRequest);
+                // 把请求请求加入队列。请求发送规则是FIFO。电报请求将在队列中的第一封电报之后发送。这确保我们总是等待响应，直到发送新请求。
+                requestResponseMatcher.enqueueRequest(getProcessModel().getName(), stateRequest);
+                LOG.debug("将车辆[{}]将移动请求提交到消息队列完成", getName());
+                commandQueue.clear();
             }
-
-            orderIds.put(cmd, cmd.isFinalMovement() ? cmd.getFinalDestination().getName() : cmd.getStep().getDestinationPoint().getName());
-
-            LOG.info("@@@@ {} stateRequest: {}" ,getName(), stateRequest);
-            // 把请求请求加入队列。请求发送规则是FIFO。电报请求将在队列中的第一封电报之后发送。这确保我们总是等待响应，直到发送新请求。
-            requestResponseMatcher.enqueueRequest(getProcessModel().getName(), stateRequest);
-            LOG.debug("将车辆[{}]将移动请求提交到消息队列完成", getName());
         } catch (IllegalArgumentException exc) {
             LOG.error("车辆[{}]将移动请求命令提交到队列失败: {}", getName(), cmd, exc);
         }
@@ -672,12 +681,12 @@ public class RobotCommAdapter
             return;
         }
         // 检查新的已完成订单ID是否在已发送订单的队列中。如果是，则将该订单之前的所有订单报告为已完成。
-        if (!orderIds.containsValue(currentState.getLastFinishedOrderId())) {
-            LOG.info("{}: Ignored finished order ID {} (reported by vehicle, not found in sent queue).",
-                    getName(),
-                    currentState.getLastFinishedOrderId());
-            return;
-        }
+//        if (!orderIds.containsValue(currentState.getLastFinishedOrderId())) {
+//            LOG.info("{}: Ignored finished order ID {} (reported by vehicle, not found in sent queue).",
+//                    getName(),
+//                    currentState.getLastFinishedOrderId());
+//            return;
+//        }
         MovementCommand cmd = getSentQueue().peek();
         // 不是NOP，是最后一条指令并且自定义动作组合里包含该动作名称
         if (!cmd.isWithoutOperation() &&
@@ -864,8 +873,8 @@ public class RobotCommAdapter
         if (NetChannelType.TCP.equals(getNetChannelType())) {
             return getProcessModel().getVehicleHost();
         } else if (NetChannelType.UDP.equals(getNetChannelType())) {
-//            return SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
-            return  getProcessModel().getVehicleHost();
+            return SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
+//            return  getProcessModel().getVehicleHost();
         } else if (NetChannelType.SERIALPORT.equals(getNetChannelType())) {
             return SettingUtils.getStringByGroup("name", NetChannelType.SERIALPORT.name().toLowerCase(), "COM6");
         }
@@ -876,8 +885,8 @@ public class RobotCommAdapter
         if (NetChannelType.TCP.equals(getNetChannelType())) {
             return getProcessModel().getVehiclePort();
         } else if (NetChannelType.UDP.equals(getNetChannelType())) {
-//            return SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
-            return getProcessModel().getVehiclePort();
+            return SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
+//            return getProcessModel().getVehiclePort();
         } else if (NetChannelType.SERIALPORT.equals(getNetChannelType())) {
             return SettingUtils.getInt("baudrate", NetChannelType.SERIALPORT.name().toLowerCase(), 38400);
         }

@@ -16,6 +16,8 @@ import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.LinkedBlockingQueue;
+
 
 /**
  * Represents a state request addressed to the vehicle.
@@ -29,7 +31,9 @@ public class StateRequest extends Request {
   /**
    *  opentcs的车辆移动命令
    */
-  private MovementCommand command;
+  private LinkedBlockingQueue<MovementCommand> commandQueue;
+
+  private MovementCommand finalCommand;
 
   /**路径的最后一个点名称*/
   private String destinationId;
@@ -69,11 +73,11 @@ public class StateRequest extends Request {
 
   /**
    * 构造函数
-   * @param command openTCS的移动命令
+   * @param commandQueue openTCS的移动命令
    * @param model openTCS的车辆模型对象
    */
-  public StateRequest(MovementCommand command, RobotProcessModel model) {
-    this.command = command;
+  public StateRequest(LinkedBlockingQueue<MovementCommand> commandQueue, RobotProcessModel model) {
+    this.commandQueue = commandQueue;
     this.model= model;
     super.id = IdUtil.objectId();
     encodeTelegramContent();
@@ -108,29 +112,33 @@ public class StateRequest extends Request {
 
   private void encodeTelegramContent() {
     super.id = IdUtil.objectId();
-    destinationId = command.getFinalDestination().getName();
-    destinationAction = command.getFinalOperation();
-    destinationLocation = command.getFinalDestinationLocation().getName();
-    Route.Step step = command.getStep();
-    currectPointName = step.getSourcePoint().getName();
-    nextPointName = step.getDestinationPoint().getName();
+//    destinationId =
+//    destinationAction =
+//    destinationLocation =
     setRobotSend(true);
   }
 
-  public MovementCommand getCommand() {
-    return command;
+  public MovementCommand getFinalCommand() {
+    return finalCommand;
+  }
+  public void setFinalCommand(MovementCommand finalCommand) {
+    this.finalCommand = finalCommand;
+  }
+
+  public LinkedBlockingQueue<MovementCommand> getCommandQueue() {
+    return commandQueue;
   }
 
   public String getDestinationId() {
-    return destinationId;
+    return  finalCommand.getFinalDestination().getName();
   }
 
   public String getDestinationAction() {
-    return destinationAction;
+    return finalCommand.getFinalOperation();
   }
 
   public String getDestinationLocation() {
-    return destinationLocation;
+    return finalCommand.getFinalDestinationLocation().getName();
   }
 
   public RobotProcessModel getModel() {

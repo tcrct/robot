@@ -45,6 +45,8 @@ public class RequestResponseMatcher {
    */
   private final TelegramSender telegramSender;
 
+  /**移动协议指令*/
+  private Protocol moveProtocol;
   /**
    * Creates a new instance.
    *
@@ -71,6 +73,10 @@ public class RequestResponseMatcher {
     }
   }
 
+  public Protocol getMoveProtocol() {
+    return moveProtocol;
+  }
+
   /**
    * Checks if a telegram is enqueued and sends it.
    */
@@ -82,8 +88,9 @@ public class RequestResponseMatcher {
           LOG.info("{}待发送的请求不能为空", deviceId);
           return;
       }
-
+      // 发送指令
       telegramSender.sendTelegram(request);
+      moveProtocol = request.getProtocol();
       // 添加到应答(握手)队列
       if (AppContext.isHandshakeListener() &&
               RobotEnum.UP_LINK.getValue().equals(request.getProtocol().getDirection())) {
@@ -127,14 +134,17 @@ public class RequestResponseMatcher {
       return false;
     }
 
-
     String deviceId = protocol.getDeviceId();
     Request request = requests.peek();
-    if (ToolsKit.isEmpty(request)) {
-      LOG.info("根据[{}]查找不到对应的移动命令请求或该队列为空: {}", deviceId, requests);
-      return false;
+    if (ToolsKit.isNotEmpty(request))  {
+      requests.remove();
     }
-
+    return true;
+//    if (ToolsKit.isEmpty(request)) {
+//      LOG.info("根据[{}]查找不到对应的移动命令请求或该队列为空: {}", deviceId, requests);
+//      return false;
+//    }
+/*
     //队列里的第一位请求元素
     StateRequest currentRequest = (StateRequest)request;
     // 如果最后一个指令是预停车的(s)，则需要判断参数是否以1结尾
@@ -167,6 +177,7 @@ public class RequestResponseMatcher {
     }
 
     return false;
+    */
   }
 
   /**

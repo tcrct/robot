@@ -2,22 +2,26 @@ package com.robot.service.smt2;
 
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
+import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.ProtocolParam;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.mvc.annotations.Service;
 import com.robot.mvc.exceptions.RobotException;
 import com.robot.numes.RobotEnum;
 import com.robot.service.common.BaseService;
+import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
 import org.opentcs.components.kernel.services.DispatcherService;
 import org.opentcs.components.kernel.services.TransportOrderService;
 import org.opentcs.components.kernel.services.VehicleService;
+import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 
 @Service
@@ -36,6 +40,26 @@ public class A033Service extends BaseService {
             throw new RobotException("该请求不是移动命令请求");
         }
         StateRequest stateRequest =(StateRequest)request;
+        Queue<MovementCommand> queue = stateRequest.getCommandQueue();
+        MovementCommand firstCommand = queue.peek();
+        String firstPont = firstCommand.getFinalDestination().getName();
+        String travelParamString = "";
+        if (firstPont.endsWith("50")) {
+            travelParamString = "mb50::lf49::sf51";
+
+        }
+        if (firstPont.endsWith("51")) {
+            travelParamString = "mb51::mf49::sf50";
+        }
+        // 根据规则组建下发路径指令的协议指令
+        Protocol protocol = new Protocol.Builder()
+                .deviceId(stateRequest.getModel().getName())
+                .direction(RobotEnum.UP_LINK.getValue())
+                .commandKey("setrout")
+                .params(travelParamString).build();
+        return ProtocolUtils.converterString(protocol);
+
+        /*
         List<ProtocolParam> protocolParamList =  getProtocolParamList(stateRequest, response);
 
         if (protocolParamList.isEmpty()) {
@@ -54,6 +78,7 @@ public class A033Service extends BaseService {
             lastProtocolParam.setAfter("ef49");
         }
         return getProtocolString(stateRequest, protocolParamList);
+         */
     }
 
     /**

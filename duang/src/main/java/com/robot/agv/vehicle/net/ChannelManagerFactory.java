@@ -51,26 +51,27 @@ public class ChannelManagerFactory {
             return new TcpChannelManager(adapter);
         }
         else if (NetChannelType.UDP.equals(type)) {
-//            return new UdpServerManager(adapter);
-            if (null == udpServerManager) {
-                udpServerManager = new UdpServerManager(adapter);
-                String host = SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
-                Integer port = SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
-                if (!udpServerManager.isInitialized()) {
-                    udpServerManager.initialize();
-                    if (!udpServerManager.isConnected()) {
-                        udpServerManager.connect(host, port);
-                        if (udpServerManager.isConnected()) {
-                            LOG.info("Robot UDP服务器链接[{}:{}]成功", host, port);
-                        } else {
-                            LOG.info("Robot UDP服务器链接[{}:{}]失败", host, port);
-                        }
-                    }
-                }
-            }
+            return new UdpServerManager(adapter);
+
+//            if (null == udpServerManager) {
+//                udpServerManager = new UdpServerManager(adapter);
+//                String host = SettingUtils.getStringByGroup("host", NetChannelType.UDP.name().toLowerCase(), "0.0.0.0");
+//                Integer port = SettingUtils.getInt("port", NetChannelType.UDP.name().toLowerCase(), 9090);
+//                if (!udpServerManager.isInitialized()) {
+//                    udpServerManager.initialize();
+//                    if (!udpServerManager.isConnected()) {
+//                        udpServerManager.connect(host, port);
+//                        if (udpServerManager.isConnected()) {
+//                            LOG.info("Robot UDP服务器链接[{}:{}]成功", host, port);
+//                        } else {
+//                            LOG.info("Robot UDP服务器链接[{}:{}]失败", host, port);
+//                        }
+//                    }
+//                }
+//            }
 //            LOG.info("连接车辆[{}], [{}]成功", adapter.getProcessModel().getName(),
 //                    adapter.getProcessModel().getVehicleHost()+":"+adapter.getProcessModel().getVehiclePort());
-            return new UdpClientManager(adapter);
+//            return new UdpClientManager(adapter);
         }
         else if (NetChannelType.SERIALPORT.equals(type)) {
             return new SerialPortChannelManager(adapter);
