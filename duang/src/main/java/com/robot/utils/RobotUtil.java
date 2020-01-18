@@ -253,6 +253,7 @@ public class RobotUtil {
     //交通管制的上报卡号
     public static final Map<String,String> TRAFFIC_POINT_MAP = new HashMap<>();
     public static final Map<String,String> DIRECTION_MAP = new HashMap<>();
+    public static boolean INIT_START_218;
     public static void sureDirection(String deviceId, Protocol protocol) {
         String pointName = getReportPoint(protocol);
         TRAFFIC_POINT_MAP.put(deviceId, pointName );
@@ -299,7 +300,10 @@ public class RobotUtil {
     }
 
     // 0是，1否
-    public static Map<String, String> LockVehicleMap = new HashMap<>();
+    public static Map<String, String> LockVehicleMap = new HashMap<String,String>(){{
+        this.put("A001", "1");
+        this.put("A002", "1");
+    }};
     public static void traffic(String deviceId, Protocol protocol, boolean isInLock){
         String pointName = getReportPoint(protocol);
         String isLock = LockVehicleMap.get(deviceId);
@@ -308,23 +312,28 @@ public class RobotUtil {
 //                || "233".equals(pointName)
 //                || "218".equals(pointName);
 
-        // 如果第一个上报上卡号是218的，则退出，218一定不是第一个上报的
-        if (ToolsKit.isEmpty(isLock) && "218".equals(pointName)) {
+        // 如果第一个上报上卡号是218的，则退出，218一定不能是第一个上报的
+        if (!INIT_START_218 && "218".equals(pointName)) {
+            INIT_START_218 = true;
             LOG.info("{}上报的第一个点是218，直接退出处理: {}", deviceId, isLock);
             return;
         }
 
         //如果没有锁住，并进入锁区范围，则锁上
-        if ((ToolsKit.isEmpty(isLock) || "1".equals(isLock)) && isInLock) {
+        if (("1".equals(isLock)) && isInLock) {
+            INIT_START_218 = true;
             //看看另一辆车是不是在锁区里，如果是，则需要停车
             String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
             String otherLock = LockVehicleMap.get(deviceId2);
             if (null != otherLock && "0".equals(otherLock)) {
-                String currentPointName = TRAFFIC_POINT_MAP.get(deviceId2);
+                //当前车辆的所在点
+                String currentPointName = TRAFFIC_POINT_MAP.get(deviceId);
                 if (ToolsKit.isNotEmpty(currentPointName)) {
+                    //如果是指定的点则立即停车，停止发送新的指令
                     if ( "225".equals(currentPointName) || "220".equals(currentPointName) || "233".equals(currentPointName)) {
                         Request request = new SetStpRequest(deviceId, "0");
                         AppContext.getTelegramSender().sendTelegram(request);
+                        LOG.info("发送停车指令，{}车辆立即停车，等待放行", deviceId);
                         AppContext.getCommAdapter(deviceId).setWaitingForAllocation(true);
                     }
                 }
@@ -337,10 +346,16 @@ public class RobotUtil {
             String deviceId2 = "A001".equals(deviceId) ? "A002" : "A001";
             String isLockOf = LockVehicleMap.get(deviceId2);
             if (null !=isLockOf && "0".equals(isLockOf )) {
-                LOG.info("[{}]解除等待，继续执行移动任务", deviceId2);
+                LOG.info("[{}]解除等待，继续执行移动任务, {}", deviceId2, LockVehicleMap);
                 AppContext.getCommAdapter(deviceId2).setWaitingForAllocation(false);
-                AppContext.getCommAdapter(deviceId2).getRequestResponseMatcher()
-                        .checkForSendingNextRequest(deviceId2);
+//                AppContext.getCommAdapter(deviceId2).getRequestResponseMatcher()
+//                        .checkForSendingNextRequest(deviceId2);
+                MovementCommand cmd = AppContext.getCommAdapter(deviceId).getSentQueue().peek();
+                if (null != cmd) {
+                    cmd = AppContext.getCommAdapter(deviceId).getSentQueue().poll();
+                    LOG.info("移除{}车辆中的队列", deviceId);
+//                    AppContext.getCommAdapter(deviceId).getProcessModel().commandExecuted(cmd);
+                }
             }
         }
     }

@@ -73,8 +73,8 @@ public class ShowRoomService {
         String position = "218";
         daung(vehicleName, position);
         List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
-        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start218", "NOP"));
         locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End223", "NOP"));
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start218", "NOP"));
         locationOperationMap.put(vehicleName, locationOperationDtoList);
     }
 
@@ -83,8 +83,8 @@ public class ShowRoomService {
         String position = "231";
         daung(vehicleName, position);
         List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
-        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start231", "NOP"));
         locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End213", "NOP"));
+        locationOperationDtoList.add(new LocationOperationDto(vehicleName, "Start231", "NOP"));
         locationOperationMap.put(vehicleName, locationOperationDtoList);
     }
 

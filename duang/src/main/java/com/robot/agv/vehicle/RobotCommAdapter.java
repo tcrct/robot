@@ -376,6 +376,7 @@ public class RobotCommAdapter
     protected synchronized boolean canSendNextCommand() {
         if (waitingForAllocation) {
             LOG.info("车辆{}需要让行，正等待分配指令", getName());
+            requestResponseMatcher.clear();
         }
         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
@@ -408,7 +409,6 @@ public class RobotCommAdapter
                 LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", getName());
                 return;
             }
-
 
             orderIds.put(cmd, cmd.isFinalMovement() ? cmd.getFinalDestination().getName() : cmd.getStep().getDestinationPoint().getName());
 

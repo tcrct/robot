@@ -127,12 +127,14 @@ public class RequestResponseMatcher {
       return false;
     }
 
+
     String deviceId = protocol.getDeviceId();
     Request request = requests.peek();
     if (ToolsKit.isEmpty(request)) {
       LOG.info("根据[{}]查找不到对应的移动命令请求或该队列为空: {}", deviceId, requests);
       return false;
     }
+
     //队列里的第一位请求元素
     StateRequest currentRequest = (StateRequest)request;
     // 如果最后一个指令是预停车的(s)，则需要判断参数是否以1结尾
@@ -150,8 +152,10 @@ public class RequestResponseMatcher {
     }
 
     // 如果上报的卡号与队列中的第1位是一致的
-    if (currentRequest != null && response.containsPoint(currentRequest)) {
-        requests.remove();
+    if (currentRequest != null) {
+       if (response.containsPoint(currentRequest)) {
+           requests.remove();
+       }
       return true;
     }
 
