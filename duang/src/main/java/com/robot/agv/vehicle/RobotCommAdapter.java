@@ -107,7 +107,7 @@ public class RobotCommAdapter
      */
     private final static Map<String, String> CUSTOM_ACTIONS_MAP = new java.util.concurrent.ConcurrentHashMap<>();
     private final static Map<String, MovementCommand> LAST_CMD_MAP = new java.util.concurrent.ConcurrentHashMap<>();
-
+    private RobotTelegramListener robotTelegramListener;
     /**
      * 创建适配器
      *
@@ -184,8 +184,9 @@ public class RobotCommAdapter
         }
 
         // 启动定时器, 用来发放消息
-        if (null == stateRequesterTask) {
-            stateRequesterTask = new StateRequesterTask(new RobotTelegramListener(this));
+        if (null == stateRequesterTask && null == robotTelegramListener) {
+            robotTelegramListener = new RobotTelegramListener(this);
+            stateRequesterTask = new StateRequesterTask(robotTelegramListener);
             stateRequesterTask.enable();
             LOG.info("车辆[{}]完成定时器开启", getName());
         }
@@ -370,10 +371,10 @@ public class RobotCommAdapter
      * @return true可以发送
      */
     // 是否需要等待分配，true为需要
-    private boolean waitingForAllocation;
-    public void setWaitingForAllocation(boolean waitingForAllocation) {
-        this.waitingForAllocation = waitingForAllocation;
-    }
+//    private boolean waitingForAllocation;
+//    public void setWaitingForAllocation(boolean waitingForAllocation) {
+//        this.waitingForAllocation = waitingForAllocation;
+//    }
     private boolean isSendCommandQueue;
     @Override
     protected synchronized boolean canSendNextCommand() {
@@ -384,7 +385,7 @@ public class RobotCommAdapter
         }
         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
         */
-        waitingForAllocation = !super.canSendNextCommand();
+//        waitingForAllocation = !super.canSendNextCommand();
 //        if (waitingForAllocation
 //                && !isSendCommandQueue
 //                && ("A001".equals(getName()) || "A002".equals(getName()))) {
@@ -396,18 +397,7 @@ public class RobotCommAdapter
     }
 
     private LinkedBlockingQueue<MovementCommand> commandQueue = new LinkedBlockingQueue<>();
-    public synchronized void sendCommandQueue() {
-        System.out.println("@@@@@@@@@@@@waitingForAllocation: " + waitingForAllocation);
-        if (commandQueue.isEmpty()) {
-            return;
-        }
-        waitingForAllocation = false;
-        isSendCommandQueue = true;
-        for (MovementCommand command : commandQueue) {
-            LOG.info("#########: {}", command);
-        }
-        this.commandQueue.clear();
-    }
+
 
     /**
      * 发送移动命令
@@ -416,7 +406,7 @@ public class RobotCommAdapter
     public synchronized void sendCommand(MovementCommand cmd)
             throws IllegalArgumentException {
         requireNonNull(cmd, "cmd");
-        LOG.info("waitingForAllocation:  " + waitingForAllocation +"    getCommandQueue().size(): " + getCommandQueue().size()+"         getSentQueue().size(): " + getSentQueue().size());
+//        LOG.info("waitingForAllocation:  " + waitingForAllocation +"    getCommandQueue().size(): " + getCommandQueue().size()+"         getSentQueue().size(): " + getSentQueue().size());
         LOG.info("cmd: {} ",  cmd);
 
 
@@ -429,7 +419,9 @@ public class RobotCommAdapter
 //        });
         commandQueue.add(cmd);
         try {
-            if (cmd.isFinalMovement()) {
+            if ("A001".equals(getName()) || "A002".equals(getName())) {
+                robotTelegramListener.addSendCommandQueue(commandQueue);
+            } else  if (cmd.isFinalMovement()) {
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
                 StateRequest stateRequest = new StateRequest(commandQueue, getProcessModel());
                 stateRequest.setFinalCommand(cmd);
@@ -570,6 +562,10 @@ public class RobotCommAdapter
             return;
         }
 
+        if (!commandQueue.isEmpty()) {
+            commandQueue.remove();
+        }
+
         // 如果是状态请求，状态请求是指路径请求，路径状态请求是指车辆移动指令的请求
         if (response instanceof StateResponse) {
             onStateResponse((StateResponse) response);
@@ -585,9 +581,7 @@ public class RobotCommAdapter
         }
 
         //如果不需要等待分配则立即发送下一封电报
-        if(!waitingForAllocation) {
-            requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
-        }
+        requestResponseMatcher.checkForSendingNextRequest(getProcessModel().getName());
     }
 
     @Override

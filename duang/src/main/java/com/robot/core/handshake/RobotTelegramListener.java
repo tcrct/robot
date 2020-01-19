@@ -3,11 +3,15 @@ package com.robot.core.handshake;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.http.HttpStatus;
+import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.common.telegrams.Response;
 import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.telegrams.Protocol;
+import com.robot.agv.vehicle.telegrams.StateRequest;
+import com.robot.agv.vehicle.telegrams.StateResponse;
 import com.robot.core.AppContext;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.service.common.requests.get.GetMtRequest;
@@ -15,6 +19,7 @@ import com.robot.service.common.requests.set.SetVmotRequest;
 import com.robot.utils.ProtocolUtils;
 import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
+import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +41,7 @@ public class RobotTelegramListener implements ActionListener {
     private String vehicleId;
 
     public RobotTelegramListener(RobotCommAdapter adapter) {
+        this.adapter = adapter;
         AppContext.setTelegramSender(adapter);
         vehicleId = adapter.getName();
         deviceIds.add(vehicleId);
@@ -47,7 +53,7 @@ public class RobotTelegramListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        sendCommandQueue();
         Iterator<Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>>> iterator = HandshakeTelegram.getHandshakeTelegram().entrySet().iterator();
         while (null != iterator && iterator.hasNext()) {
             Map.Entry<String, LinkedBlockingQueue<HandshakeTelegramDto>> entry = iterator.next();
@@ -159,5 +165,35 @@ public class RobotTelegramListener implements ActionListener {
             }
             longAdder.reset();
         }
+    }
+
+
+    private RobotCommAdapter adapter;
+    private LinkedBlockingQueue<MovementCommand> commandQueue;
+    public void addSendCommandQueue(LinkedBlockingQueue<MovementCommand> commandQueue) {
+        this.commandQueue = commandQueue;
+    }
+
+    public void sendCommandQueue() {
+        if (null == commandQueue && commandQueue.isEmpty()) {
+            LOG.info("sendCommandQueue commandQueue is null, exit...");
+            return;
+        }
+        MovementCommand lastCommand = null;
+        for (MovementCommand command : commandQueue) {
+            LOG.info("#########: {}", command);
+            lastCommand = command;
+        }
+
+        StateRequest stateRequest = new StateRequest(commandQueue, adapter.getProcessModel());
+        stateRequest.setFinalCommand(lastCommand);
+        //进行业务处理
+        StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
+        if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
+            LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", adapter.getName());
+            return;
+        }
+        LOG.info("############stateResponse.rawContent: {} ", stateResponse.getRawContent());
+        adapter.getSender().sendTelegram(stateRequest);
     }
 }
