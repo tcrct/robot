@@ -221,7 +221,8 @@ public class RobotCommAdapter
         }
 
         if ("A002".equals(getName())) {
-            getProcessModel().setVehiclePosition("231");
+//            getProcessModel().setVehiclePosition("231");
+            getProcessModel().setVehiclePosition("226");
 //            RobotUtil.initVehicleStatus(getName());
         }
     }
@@ -373,6 +374,7 @@ public class RobotCommAdapter
     public void setWaitingForAllocation(boolean waitingForAllocation) {
         this.waitingForAllocation = waitingForAllocation;
     }
+    private boolean isSendCommandQueue;
     @Override
     protected synchronized boolean canSendNextCommand() {
         /*
@@ -382,12 +384,31 @@ public class RobotCommAdapter
         }
         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled()) && !waitingForAllocation;
         */
+        waitingForAllocation = !super.canSendNextCommand();
+//        if (waitingForAllocation
+//                && !isSendCommandQueue
+//                && ("A001".equals(getName()) || "A002".equals(getName()))) {
+//            sendCommandQueue();
+//        }
         return super.canSendNextCommand() && (!getProcessModel().isSingleStepModeEnabled());
 //        LOG.info(getName()+ "       " +super.canSendNextCommand()+"               "+(!getProcessModel().isSingleStepModeEnabled()));
 //        return true;
     }
 
     private LinkedBlockingQueue<MovementCommand> commandQueue = new LinkedBlockingQueue<>();
+    public synchronized void sendCommandQueue() {
+        System.out.println("@@@@@@@@@@@@waitingForAllocation: " + waitingForAllocation);
+        if (commandQueue.isEmpty()) {
+            return;
+        }
+        waitingForAllocation = false;
+        isSendCommandQueue = true;
+        for (MovementCommand command : commandQueue) {
+            LOG.info("#########: {}", command);
+        }
+        this.commandQueue.clear();
+    }
+
     /**
      * 发送移动命令
      */
@@ -395,9 +416,9 @@ public class RobotCommAdapter
     public synchronized void sendCommand(MovementCommand cmd)
             throws IllegalArgumentException {
         requireNonNull(cmd, "cmd");
-        LOG.info("getCommandQueue().size(): " + getCommandQueue().size());
-        LOG.info("getSentQueue().size(): " + getSentQueue().size());
-        LOG.info("cmd: " + cmd);
+        LOG.info("waitingForAllocation:  " + waitingForAllocation +"    getCommandQueue().size(): " + getCommandQueue().size()+"         getSentQueue().size(): " + getSentQueue().size());
+        LOG.info("cmd: {} ",  cmd);
+
 
 //        Block block = objectService.fetchObject(Block.class, "Block-0001");
 //        block.getMembers().forEach(new Consumer<TCSResourceReference<?>>() {

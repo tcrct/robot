@@ -137,8 +137,12 @@ public class RequestResponseMatcher {
             LOG.info("不是报告卡号的指令，退出处理");
             return false;
         }
-
         String deviceId = protocol.getDeviceId();
+
+        if ("A001".equals(deviceId)) {
+            return true;
+        }
+
         String pointName = RobotUtil.getReportPoint(protocol);
         boolean isRptrtpProtocol = ProtocolUtils.isRptrtpProtocol(cmdKey);
         String params = AppContext.getCommAdapter(deviceId).getRequestResponseMatcher().getMoveProtocol().getParams();

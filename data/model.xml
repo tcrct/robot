@@ -285,12 +285,15 @@
         <link point="702"/>
         <property name="tcs:defaultLocationSymbol" value="WORKING_ALT_1"/>
     </location>
-    <group name="Group-0001">
-        <member name="End213"/>
-        <member name="End223"/>
-        <member name="Start218"/>
-        <member name="Start231"/>
-    </group>
+    <block name="Block-0001" type="SINGLE_VEHICLE_ONLY">
+        <member name="219 --- 226"/>
+        <member name="221 --- 226"/>
+        <member name="226 --- 219"/>
+        <member name="226 --- 221"/>
+        <member name="226 --- 229"/>
+        <member name="229 --- 226"/>
+        <member name="233 --- 229"/>
+    </block>
     <visualLayout name="VLayout-1" scaleX="50.0" scaleY="50.0">
         <modelLayoutElement visualizedObjectName="1" layer="0">
             <property name="LABEL_OFFSET_X" value="-10"/>
@@ -670,6 +673,9 @@
         <modelLayoutElement visualizedObjectName="A033" layer="0">
             <property name="ROUTE_COLOR" value="#FFFF00"/>
         </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Block-0001" layer="0">
+            <property name="COLOR" value="#FF0000"/>
+        </modelLayoutElement>
         <modelLayoutElement visualizedObjectName="End213" layer="0">
             <property name="LABEL_OFFSET_X" value="-10"/>
             <property name="LABEL_OFFSET_Y" value="-20"/>
@@ -749,5 +755,5 @@
             <property name="POSITION_Y" value="31750"/>
         </modelLayoutElement>
     </visualLayout>
-    <property name="tcs:modelFileLastModified" value="2020-01-19T03:19:47.406Z"/>
+    <property name="tcs:modelFileLastModified" value="2020-01-15T02:55:26.765Z"/>
 </model>
