@@ -42,14 +42,20 @@ public class A033Service extends BaseService {
         StateRequest stateRequest =(StateRequest)request;
         Queue<MovementCommand> queue = stateRequest.getCommandQueue();
         MovementCommand firstCommand = queue.peek();
-        String firstPont = firstCommand.getFinalDestination().getName();
         String travelParamString = "";
-        if (firstPont.endsWith("50")) {
-            travelParamString = "mb50::lf49::sf51";
-
-        }
-        if (firstPont.endsWith("51")) {
-            travelParamString = "mb51::mf49::sf50";
+        String finalPoint = firstCommand.getFinalDestination().getName();
+        // 第一次启动
+        if (queue.size() == 1) {
+            if (finalPoint.endsWith("51")) {
+                travelParamString = "lf49::sf51";
+            }
+        } else {
+            if (finalPoint.endsWith("50")) {
+                travelParamString = "mb51::mf49::sf50";
+            }
+            if (finalPoint.endsWith("51")) {
+                travelParamString = "mb50::lf49::sf51";
+            }
         }
         // 根据规则组建下发路径指令的协议指令
         Protocol protocol = new Protocol.Builder()
