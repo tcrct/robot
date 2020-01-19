@@ -395,6 +395,8 @@ public class RobotCommAdapter
     public synchronized void sendCommand(MovementCommand cmd)
             throws IllegalArgumentException {
         requireNonNull(cmd, "cmd");
+        LOG.info("getCommandQueue().size(): " + getCommandQueue().size());
+        LOG.info("getSentQueue().size(): " + getSentQueue().size());
         LOG.info("cmd: " + cmd);
 
 //        Block block = objectService.fetchObject(Block.class, "Block-0001");

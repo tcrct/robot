@@ -385,7 +385,7 @@ public class RobotUtil {
             reProtocolString = sb.substring(0, sb.length()-2);
         }
         protocol.setParams(reProtocolString);
-
+        LOG.info("车辆{}让行后重新发送的路径：{}", protocol.getDeviceId(), reProtocolString);
         return new StateRequest(protocol);
     }
 }
