@@ -175,7 +175,7 @@ public class RobotTelegramListener implements ActionListener {
     }
 
     public void sendCommandQueue() {
-        if (null == commandQueue && commandQueue.isEmpty()) {
+        if (null == commandQueue || commandQueue.isEmpty()) {
             LOG.info("sendCommandQueue commandQueue is null, exit...");
             return;
         }
