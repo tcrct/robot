@@ -160,16 +160,20 @@ public class RobotTelegramListener implements ActionListener {
         }
     }
 
-
+    private boolean isNotSend;
     private RobotCommAdapter adapter;
     private LinkedBlockingQueue<MovementCommand> commandQueue;
     public void addSendCommandQueue(LinkedBlockingQueue<MovementCommand> commandQueue) {
         this.commandQueue = commandQueue;
+        isNotSend = true;
     }
 
     public void sendCommandQueue() {
-        if (null == commandQueue || commandQueue.isEmpty()) {
+        if ((null == commandQueue || commandQueue.isEmpty())) {
 //            LOG.debug("sendCommandQueue commandQueue is null, exit...");
+            return;
+        }
+        if (!isNotSend) {
             return;
         }
         LinkedBlockingQueue<MovementCommand> commands = new LinkedBlockingQueue<>(commandQueue.size());
@@ -196,5 +200,7 @@ public class RobotTelegramListener implements ActionListener {
         // 清空，防止多次重发
         commands.clear();
         adapter.getRequestResponseMatcher().clear();
+        // 发送开关，已经发送
+        isNotSend = false;
     }
 }

@@ -145,20 +145,23 @@ public class RequestResponseMatcher {
 
         String pointName = RobotUtil.getReportPoint(protocol);
         boolean isRptrtpProtocol = ProtocolUtils.isRptrtpProtocol(cmdKey);
-        String params = AppContext.getCommAdapter(deviceId).getRequestResponseMatcher().getMoveProtocol().getParams();
-        String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
-        String lastParam = paramsArray[paramsArray.length - 1];
-        if (lastParam.startsWith(RobotEnum.PRE_STOP.getValue()) && lastParam.endsWith(pointName)) {
-            String reportParam = protocol.getParams();
-            if (isRptrtpProtocol) {
-                if (!reportParam.endsWith("1")) {
-                    LOG.info("车辆 [" + deviceId + "]预停车不成功，[" + protocol.getParams() + "]最后一位参数不为1");
+        Protocol moveProtocol = AppContext.getCommAdapter(deviceId).getRequestResponseMatcher().getMoveProtocol();
+        if (null != moveProtocol) {
+            String params = moveProtocol.getParams();
+            String[] paramsArray = params.split(RobotEnum.PARAMLINK.getValue());
+            String lastParam = paramsArray[paramsArray.length - 1];
+            if (lastParam.startsWith(RobotEnum.PRE_STOP.getValue()) && lastParam.endsWith(pointName)) {
+                String reportParam = protocol.getParams();
+                if (isRptrtpProtocol) {
+                    if (!reportParam.endsWith("1")) {
+                        LOG.info("车辆 [" + deviceId + "]预停车不成功，[" + protocol.getParams() + "]最后一位参数不为1");
+                        return false;
+                    }
+                    LOG.info("车辆 [" + deviceId + "]预停车成功");
+                } else {
+                    LOG.info("车辆 [" + deviceId + "]最后一个指令是预停车，等待预停车到位指令[{}]上报再作处理", "rptrtp");
                     return false;
                 }
-                LOG.info("车辆 [" + deviceId + "]预停车成功");
-            } else {
-                LOG.info("车辆 [" + deviceId + "]最后一个指令是预停车，等待预停车到位指令[{}]上报再作处理", "rptrtp");
-                return false;
             }
         }
 

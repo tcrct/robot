@@ -217,13 +217,13 @@ public class RobotCommAdapter
         super.enable();
         if ("A001".equals(getName())) {
             getProcessModel().setVehiclePosition("218");
-//            getProcessModel().setVehiclePosition("213");
+//            getProcessModel().setVehiclePosition("223");
 //            RobotUtil.initVehicleStatus(getName());
         }
 
         if ("A002".equals(getName())) {
-//            getProcessModel().setVehiclePosition("231");
-            getProcessModel().setVehiclePosition("226");
+            getProcessModel().setVehiclePosition("231");
+//            getProcessModel().setVehiclePosition("226");
 //            RobotUtil.initVehicleStatus(getName());
         }
     }
@@ -707,7 +707,8 @@ public class RobotCommAdapter
 //        }
         MovementCommand cmd = getSentQueue().peek();
         // 不是NOP，是最后一条指令并且自定义动作组合里包含该动作名称
-        if (!cmd.isWithoutOperation() &&
+        if (null != cmd &&
+                !cmd.isWithoutOperation() &&
                 cmd.isFinalMovement() &&
                 RobotUtil.isContainActionsKey(cmd)) {
             // 如果动作指令操作未运行则可以运行
