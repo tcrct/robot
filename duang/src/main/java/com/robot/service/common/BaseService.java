@@ -101,6 +101,12 @@ public class BaseService implements IService {
             // 最终目的点，即停车点
             endPointName = stateRequest.getDestinationId();
             ProtocolParam travelParam = buildAgvTravelParamString(vehicleName, startPointName, currentPointName, nextPointName, endPointName, stateRequest, orientationValue);
+            // 如果是交通管制，则最后一个点一定是停车点
+            if (stateRequest.isTraffic()) {
+                String after = travelParam.getAfter();
+                after = RobotEnum.STOP.getValue()+after.substring(1);
+                travelParam.setAfter(after);
+            }
             protocolParamList.add(travelParam);
         }
         return protocolParamList;

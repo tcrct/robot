@@ -186,6 +186,8 @@ public class RobotTelegramListener implements ActionListener {
         }
 
         StateRequest stateRequest = new StateRequest(commandQueue, adapter.getProcessModel());
+        // 设置为交通管制
+        stateRequest.setTraffic(true);
         stateRequest.setFinalCommand(lastCommand);
         //进行业务处理
         StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
@@ -194,6 +196,8 @@ public class RobotTelegramListener implements ActionListener {
             return;
         }
         LOG.info("############stateResponse.rawContent: {} ", stateResponse.getRawContent());
-        adapter.getSender().sendTelegram(stateRequest);
+        adapter.getRequestResponseMatcher().enqueueRequest(adapter.getName(), stateRequest);
+        commandQueue.clear();
+        adapter.getRequestResponseMatcher().clear();
     }
 }

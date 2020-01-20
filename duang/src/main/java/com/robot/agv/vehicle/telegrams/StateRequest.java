@@ -35,6 +35,9 @@ public class StateRequest extends Request {
 
   private MovementCommand finalCommand;
 
+  private boolean traffic;
+
+
   /**路径的最后一个点名称*/
   private String destinationId;
   /**动作名称*/
@@ -151,5 +154,13 @@ public class StateRequest extends Request {
 
   public String getNextPointName() {
     return nextPointName;
+  }
+
+  public boolean isTraffic() {
+    return traffic;
+  }
+
+  public void setTraffic(boolean traffic) {
+    this.traffic = traffic;
   }
 }
