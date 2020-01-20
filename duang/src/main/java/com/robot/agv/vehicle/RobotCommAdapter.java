@@ -562,6 +562,7 @@ public class RobotCommAdapter
             return;
         }
 
+        // 如果是交通管制，此时的队列不为空，则需要将第一位的元素移除
         if (!commandQueue.isEmpty()) {
             commandQueue.remove();
         }

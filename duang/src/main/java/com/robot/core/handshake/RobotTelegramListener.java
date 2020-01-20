@@ -1,13 +1,9 @@
 package com.robot.core.handshake;
 
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
-import com.robot.agv.common.telegrams.Response;
-import com.robot.agv.common.telegrams.TelegramSender;
 import com.robot.agv.vehicle.RobotCommAdapter;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateRequest;
@@ -16,8 +12,6 @@ import com.robot.core.AppContext;
 import com.robot.mvc.helper.ActionHelper;
 import com.robot.service.common.requests.get.GetMtRequest;
 import com.robot.service.common.requests.set.SetVmotRequest;
-import com.robot.utils.ProtocolUtils;
-import com.robot.utils.RobotUtil;
 import com.robot.utils.ToolsKit;
 import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
@@ -26,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -176,16 +169,18 @@ public class RobotTelegramListener implements ActionListener {
 
     public void sendCommandQueue() {
         if (null == commandQueue || commandQueue.isEmpty()) {
-            LOG.info("sendCommandQueue commandQueue is null, exit...");
+//            LOG.debug("sendCommandQueue commandQueue is null, exit...");
             return;
         }
+        LinkedBlockingQueue<MovementCommand> commands = new LinkedBlockingQueue<>(commandQueue.size());
+        commands.addAll(commandQueue);
         MovementCommand lastCommand = null;
-        for (MovementCommand command : commandQueue) {
-            LOG.info("#########: {}", command);
+        for (MovementCommand command : commands) {
+//            LOG.info("#########: {}", command);
             lastCommand = command;
         }
 
-        StateRequest stateRequest = new StateRequest(commandQueue, adapter.getProcessModel());
+        StateRequest stateRequest = new StateRequest(commands, adapter.getProcessModel());
         // 设置为交通管制
         stateRequest.setTraffic(true);
         stateRequest.setFinalCommand(lastCommand);
@@ -196,8 +191,10 @@ public class RobotTelegramListener implements ActionListener {
             return;
         }
         LOG.info("############stateResponse.rawContent: {} ", stateResponse.getRawContent());
+        //自动重发机制
         adapter.getRequestResponseMatcher().enqueueRequest(adapter.getName(), stateRequest);
-        commandQueue.clear();
+        // 清空，防止多次重发
+        commands.clear();
         adapter.getRequestResponseMatcher().clear();
     }
 }
