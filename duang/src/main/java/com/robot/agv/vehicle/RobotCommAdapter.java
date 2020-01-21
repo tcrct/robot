@@ -107,7 +107,7 @@ public class RobotCommAdapter
      */
     private final static Map<String, String> CUSTOM_ACTIONS_MAP = new java.util.concurrent.ConcurrentHashMap<>();
     private final static Map<String, MovementCommand> LAST_CMD_MAP = new java.util.concurrent.ConcurrentHashMap<>();
-    private RobotTelegramListener robotTelegramListener;
+    private static RobotTelegramListener robotTelegramListener;
     /**
      * 创建适配器
      *
@@ -182,9 +182,8 @@ public class RobotCommAdapter
         if (!channelManager.isInitialized()) {
             channelManager.initialize();
         }
-
         // 启动定时器, 用来发放消息
-        if (null == stateRequesterTask && null == robotTelegramListener) {
+        if (null == stateRequesterTask  && null == robotTelegramListener) {
             robotTelegramListener = new RobotTelegramListener(this);
             stateRequesterTask = new StateRequesterTask(robotTelegramListener);
             stateRequesterTask.enable();
@@ -420,7 +419,7 @@ public class RobotCommAdapter
         commandQueue.add(cmd);
         try {
             if ("A001".equals(getName()) || "A002".equals(getName())) {
-                robotTelegramListener.addSendCommandQueue(commandQueue);
+                robotTelegramListener.addSendCommandQueue(getProcessModel(), commandQueue);
             } else  if (cmd.isFinalMovement()) {
 //      StateRequest stateRequest = stateMapper.mapToOrder(cmd, getProcessModel().getName());
                 StateRequest stateRequest = new StateRequest(commandQueue, getProcessModel());

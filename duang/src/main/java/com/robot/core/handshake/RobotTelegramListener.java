@@ -5,6 +5,7 @@ import cn.hutool.http.HttpStatus;
 import com.robot.agv.common.send.SendRequest;
 import com.robot.agv.common.telegrams.Request;
 import com.robot.agv.vehicle.RobotCommAdapter;
+import com.robot.agv.vehicle.RobotProcessModel;
 import com.robot.agv.vehicle.telegrams.Protocol;
 import com.robot.agv.vehicle.telegrams.StateRequest;
 import com.robot.agv.vehicle.telegrams.StateResponse;
@@ -34,7 +35,7 @@ public class RobotTelegramListener implements ActionListener {
     private String vehicleId;
 
     public RobotTelegramListener(RobotCommAdapter adapter) {
-        this.adapter = adapter;
+        //缓存发送对象
         AppContext.setTelegramSender(adapter);
         vehicleId = adapter.getName();
         deviceIds.add(vehicleId);
@@ -75,8 +76,6 @@ public class RobotTelegramListener implements ActionListener {
         }
 
          */
-
-
 
         /*
         ThreadUtil.execAsync(new Runnable() {
@@ -161,10 +160,11 @@ public class RobotTelegramListener implements ActionListener {
     }
 
     private boolean isNotSend;
-    private RobotCommAdapter adapter;
+    private RobotProcessModel processModel;
     private LinkedBlockingQueue<MovementCommand> commandQueue;
-    public void addSendCommandQueue(LinkedBlockingQueue<MovementCommand> commandQueue) {
+    public void addSendCommandQueue(RobotProcessModel processModel, LinkedBlockingQueue<MovementCommand> commandQueue) {
         this.commandQueue = commandQueue;
+        this.processModel = processModel;
         isNotSend = true;
     }
 
@@ -183,20 +183,21 @@ public class RobotTelegramListener implements ActionListener {
 //            LOG.info("#########: {}", command);
             lastCommand = command;
         }
-
-        StateRequest stateRequest = new StateRequest(commands, adapter.getProcessModel());
+//        LOG.info("#$$$$$$$$$$$#adapter name: {}", processModel.getName());
+        StateRequest stateRequest = new StateRequest(commands, processModel);
         // 设置为交通管制
         stateRequest.setTraffic(true);
         stateRequest.setFinalCommand(lastCommand);
         //进行业务处理
         StateResponse stateResponse = SendRequest.duang().send(stateRequest, AppContext.getTelegramSender());
         if (stateResponse.getStatus() != HttpStatus.HTTP_OK) {
-            LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", adapter.getName());
+            LOG.error("车辆[{}]进行业务处理里发生异常，退出处理!", processModel.getName());
             return;
         }
-        LOG.info("############stateResponse.rawContent: {} ", stateResponse.getRawContent());
+//        LOG.info("############stateResponse.rawContent: {} ", stateResponse.getRawContent());
         //自动重发机制
-        adapter.getRequestResponseMatcher().enqueueRequest(adapter.getName(), stateRequest);
+        RobotCommAdapter adapter = AppContext.getCommAdapter(processModel.getName());
+        adapter.getRequestResponseMatcher().enqueueRequest(processModel.getName(), stateRequest);
         // 清空，防止多次重发
         commands.clear();
         adapter.getRequestResponseMatcher().clear();
