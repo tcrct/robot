@@ -70,8 +70,8 @@ public class ShowRoomService {
 
     private void A001() {
         String vehicleName = "A001";
-//        String position = "218";
-        String position = "219";
+        String position = "218";
+//        String position = "219";
         daung(vehicleName, position);
         List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
         locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End223", "NOP"));
@@ -81,8 +81,8 @@ public class ShowRoomService {
 
     private void A002() {
         String vehicleName = "A002";
-//        String position = "231";
-        String position = "233";
+        String position = "231";
+//        String position = "233";
         daung(vehicleName, position);
         List<LocationOperationDto> locationOperationDtoList = new ArrayList<>();
         locationOperationDtoList.add(new LocationOperationDto(vehicleName, "End213", "NOP"));
